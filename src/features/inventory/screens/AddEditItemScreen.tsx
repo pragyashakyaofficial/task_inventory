@@ -16,6 +16,7 @@ import { Brain, Save, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
+import Toast from 'react-native-toast-message';
 import AISuggestionModal from '../components/AISuggestionModal';
 import { InventoryItem } from '../types/inventory.types';
 
@@ -69,6 +70,23 @@ const AddEditItemScreen = () => {
     console.log('Form data:', data);
     // Logic to save or update item
     Alert.alert('Success', `Item ${isEdit ? 'updated' : 'created'} successfully`);
+    
+    // Auto-reordering logic: If quantity is low after update, show AI toast
+    if (isEdit && data.quantity <= data.minQuantity) {
+      const suggestedVal = data.maxQuantity;
+      Toast.show({
+        type: 'info',
+        text1: 'AI Reorder Suggestion',
+        text2: `Low stock detected! Tap to reorder ${suggestedVal} units.`,
+        onPress: () => {
+          applyAISuggestion(suggestedVal);
+          Toast.hide();
+          Alert.alert('AI Applied', `Suggested reorder of ${suggestedVal} units applied.`);
+        },
+        visibilityTime: 5000,
+      });
+    }
+
     navigation.goBack();
   };
 

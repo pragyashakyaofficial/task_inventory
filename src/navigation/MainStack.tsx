@@ -10,6 +10,7 @@ import DashboardScreen from '../features/dashboard/screens/DashboardScreen';
 import InventoryListScreen from '../features/inventory/screens/InventoryListScreen';
 import ItemDetailScreen from '../features/inventory/screens/ItemDetailScreen';
 import AddEditItemScreen from '../features/inventory/screens/AddEditItemScreen';
+import AISuggestionsScreen from '../features/ai/screens/AISuggestionsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -91,7 +92,7 @@ export const MainStack = () => {
       />
       <Tab.Screen
         name="AI"
-        component={View} // Placeholder for consolidated suggestions
+        component={AISuggestionsScreen}
         options={{
           tabBarIcon: ({ color, size }) => <Sparkles size={size} color={color} />,
           tabBarLabel: 'Suggestions',
