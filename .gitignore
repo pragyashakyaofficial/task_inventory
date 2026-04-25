@@ -77,4 +77,6 @@ yarn-error.log
 # env files
 .env
 .env.*
+.env.dev 
+.env.prod
 !.env.example
