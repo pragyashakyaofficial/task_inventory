@@ -1802,6 +1802,15 @@
   dependencies:
     nanoid "^3.3.11"
 
+"@react-navigation/stack@^7.8.11":
+  version "7.8.11"
+  resolved "https://registry.yarnpkg.com/@react-navigation/stack/-/stack-7.8.11.tgz#a5bdf6656cbbcb62958c799887002be0ddc9bcc4"
+  integrity sha512-SpKfMEtKHwc6x/l7p+SUUv+aO9Q0OT9dO7HRVvIkpwv+RTLREi3qL/XoCJvoMnUfMsrWQ58UbX2Awyov+mGf0Q==
+  dependencies:
+    "@react-navigation/elements" "^2.9.15"
+    color "^4.2.3"
+    use-latest-callback "^0.2.4"
+
 "@reduxjs/toolkit@^2.11.2":
   version "2.11.2"
   resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-2.11.2.tgz#582225acea567329ca6848583e7dd72580d38e82"
