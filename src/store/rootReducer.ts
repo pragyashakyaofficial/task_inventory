@@ -1,7 +1,5 @@
 import { combineReducers } from '@reduxjs/toolkit';
-
-// Import your reducers here
-// import { apiSlice } from '../api/baseApi';
+import { inventoryApi } from '../api/slices/inventoryApi';
 
 // Create a simple placeholder reducer with auth state
 const placeholderReducer = (state = { isAuthenticated: false }, action: any) => {
@@ -17,6 +15,6 @@ const placeholderReducer = (state = { isAuthenticated: false }, action: any) => 
 
 export const rootReducer = combineReducers({
   // Add your reducers here
-  // api: apiSlice.reducer,
+  [inventoryApi.reducerPath]: inventoryApi.reducer,
   placeholder: placeholderReducer,
 });

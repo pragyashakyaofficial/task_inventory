@@ -1,4 +1,4 @@
-import { ENV } from '@config/env';
+import { ENV } from '../config/env';
 
 // API configuration
 export const API_CONFIG = {
