@@ -11,7 +11,7 @@ import { lightColors } from '../../theme/colors';
 
 type Props = MainStackScreenProps<'Dashboard'>;
 
-export const DashboardScreen: React.FC<Props> = () => {
+export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const globalStyles = useThemedStyle(createGlobalStyles);
 
@@ -58,7 +58,17 @@ export const DashboardScreen: React.FC<Props> = () => {
         </View>
       </View>
       
-      <StockCalculatorTest />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity 
+          style={[globalStyles.button, styles.inventoryButton]} 
+          onPress={() => navigation.navigate('InventoryList')}
+        >
+          <Ionicons name="list" size={24} color="white" style={styles.buttonIcon} />
+          <Text style={globalStyles.buttonText}>Go to Inventory List</Text>
+        </TouchableOpacity>
+
+        <StockCalculatorTest />
+      </ScrollView>
     </View>
   );
 };
@@ -73,5 +83,19 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     backgroundColor: 'rgba(241, 76, 76, 0.1)',
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  inventoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 16,
+    marginVertical: 20,
+    height: 56,
+  },
+  buttonIcon: {
+    marginRight: 10,
   },
 });

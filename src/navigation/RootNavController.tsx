@@ -18,10 +18,16 @@ export const RootNavController = () => {
           headerShown: false,
         }}
       >
-        {isAuthenticated ? (
+        {/* {isAuthenticated ? (
           <Stack.Screen name="Main" component={MainStack} />
         ) : (
           <Stack.Screen name="Auth" component={AuthStack} />
+        )} */}
+          {isAuthenticated ? (
+          <Stack.Screen name="Auth" component={AuthStack} />
+        ) : (
+           <Stack.Screen name="Main" component={MainStack} />
+          
         )}
       </Stack.Navigator>
     </NavigationContainer>

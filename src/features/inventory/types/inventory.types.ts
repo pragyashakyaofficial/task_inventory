@@ -17,6 +17,7 @@ export interface InventoryItem {
   lastRestocked?: string;
   tags?: string[];
   imageUrl?: string;
+  images?: string[];
   weight?: number;
   dimensions?: {
     length: number;
@@ -25,6 +26,7 @@ export interface InventoryItem {
   };
   barcode?: string;
   notes?: string;
+  minimumStock?: number;
 }
 
 export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock' | 'discontinued' | 'pending';

@@ -9,6 +9,7 @@ const path = require('path');
  */
 const config = {
   resolver: {
+    sourceExts: ['js', 'jsx', 'json', 'ts', 'tsx', 'mjs'],
     alias: {
       '@screens': path.resolve(__dirname, 'src/screens'),
       '@navigation': path.resolve(__dirname, 'src/navigation'),

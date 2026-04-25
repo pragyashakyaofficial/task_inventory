@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { ENV } from '../../config/env';
+import { InventoryItem as FeatureInventoryItem } from '../../features/inventory/types/inventory.types';
 
 // API configuration
 const API_CONFIG = {
@@ -27,24 +28,9 @@ const ENDPOINTS = {
   // Add more endpoints as needed
 } as const;
 
-// Types for inventory items
-export interface InventoryItem {
-  id: string;
-  name: string;
-  description?: string;
-  category: string;
-  quantity: number;
-  price: number;
-  sku: string;
-  location?: string;
-  supplier?: string;
-  createdAt: string;
-  updatedAt: string;
-  status: 'in_stock' | 'low_stock' | 'out_of_stock';
-  minimumStock?: number;
-  tags?: string[];
-  images?: string[];
-}
+// Re-export shared types
+export type InventoryItem = FeatureInventoryItem;
+
 
 export interface CreateItemRequest {
   name: string;
@@ -177,8 +163,14 @@ export const inventoryApi = createApi({
           id: tempId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          status: item.quantity === 0 ? 'out_of_stock' : 
-                  item.minimumStock && item.quantity <= item.minimumStock ? 'low_stock' : 'in_stock',
+          status: item.quantity === 0 ? 'out-of-stock' : 
+                  item.minimumStock && item.quantity <= item.minimumStock ? 'low-stock' : 'in-stock',
+          minQuantity: item.minimumStock || 0,
+          maxQuantity: 100,
+          category: item.category || 'Uncategorized',
+          sku: item.sku || '',
+          price: item.price || 0,
+          cost: 0,
         };
 
         // Update cache optimistically
@@ -218,8 +210,8 @@ export const inventoryApi = createApi({
             
             // Update status based on quantity
             if (patch.quantity !== undefined) {
-              draft.status = patch.quantity === 0 ? 'out_of_stock' : 
-                           draft.minimumStock && patch.quantity <= draft.minimumStock ? 'low_stock' : 'in_stock';
+              draft.status = patch.quantity === 0 ? 'out-of-stock' : 
+                           draft.minimumStock && patch.quantity <= draft.minimumStock ? 'low-stock' : 'in-stock';
             }
           })
         );
@@ -234,8 +226,8 @@ export const inventoryApi = createApi({
               // Update status based on quantity
               if (patch.quantity !== undefined) {
                 const item = draft.items[itemIndex];
-                item.status = patch.quantity === 0 ? 'out_of_stock' : 
-                             item.minimumStock && patch.quantity <= item.minimumStock ? 'low_stock' : 'in_stock';
+                item.status = patch.quantity === 0 ? 'out-of-stock' : 
+                             item.minimumStock && patch.quantity <= item.minimumStock ? 'low-stock' : 'in-stock';
               }
             }
           })

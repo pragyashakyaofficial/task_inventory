@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
+  useSharedValue,
   withRepeat,
   withTiming,
+  interpolate,
 } from 'react-native-reanimated';
+import { useTheme } from '../../theme/ThemeContext';
 
 interface LoadingSkeletonProps {
   width?: number | string;
@@ -20,35 +23,25 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   width = '100%',
   height = 20,
   style,
-  borderRadius = 4,
+  borderRadius = 12,
   variant = 'rectangular',
   lines = 1,
   spacing = 8,
 }) => {
+  const { theme } = useTheme();
+  const opacity = useSharedValue(0.3);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: withRepeat(
-        withTiming(0.7, { duration: 750 }),
-        -1,
-        true
-      ),
-    };
-  });
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withTiming(0.7, { duration: 1000 }),
+      -1,
+      true
+    );
+  }, []);
 
-  const shimmerGradientStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          translateX: withRepeat(
-            withTiming(200, { duration: 1500 }),
-            -1,
-            true
-          ),
-        },
-      ],
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   const getVariantStyle = () => {
     switch (variant) {
@@ -73,30 +66,17 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   };
 
   const renderSkeletonLine = (index: number) => (
-    <View key={index} style={styles.lineContainer}>
+    <View key={index} style={[styles.lineContainer, { marginBottom: spacing }]}>
       <Animated.View
         style={[
           styles.skeleton,
+          { backgroundColor: theme.colors.backgroundSecondary },
           getVariantStyle(),
           index === lines - 1 && variant === 'text' && { width: '60%' },
           style,
           animatedStyle,
         ]}
-      >
-        <Animated.View
-          style={[
-            {
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            },
-            styles.shimmerGradient,
-            shimmerGradientStyle,
-          ]}
-        />
-      </Animated.View>
+      />
     </View>
   );
 
@@ -113,25 +93,12 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
       <Animated.View
         style={[
           styles.skeleton,
+          { backgroundColor: theme.colors.backgroundSecondary },
           getVariantStyle(),
           style,
           animatedStyle,
         ]}
-      >
-        <Animated.View
-          style={[
-            {
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            },
-            styles.shimmerGradient,
-            shimmerGradientStyle,
-          ]}
-        />
-      </Animated.View>
+      />
     </View>
   );
 };
@@ -141,17 +108,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   skeleton: {
-    backgroundColor: '#e5e7eb',
     overflow: 'hidden',
   },
-  shimmerGradient: {
-    width: 200,
-    height: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-    transform: [{ skewX: '-15deg' }],
-  },
   lineContainer: {
-    marginBottom: 8,
+    width: '100%',
   },
 });
 

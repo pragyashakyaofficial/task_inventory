@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { DashboardScreen } from '../screens/main/DashboardScreen';
-import { InventoryListScreen } from '../screens/main/InventoryListScreen';
+import InventoryListScreen from '../features/inventory/screens/InventoryListScreen';
 import { ItemDetailScreen } from '../screens/main/ItemDetailScreen';
 import { AddEditItemScreen } from '../screens/main/AddEditItemScreen';
 import { MainStackParamList } from './types';
