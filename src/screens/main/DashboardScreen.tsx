@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { MainStackScreenProps } from '../../navigation/types';
 import { useAppDispatch } from '../../store/hooks';
 import { useThemedStyle } from '../../theme/ThemeContext';
 import { createGlobalStyles } from '../../theme/globalStyles';
 import { ThemeToggle } from '../../components/common';
+import ButtonTest from '../../components/common/ButtonTest';
 
 type Props = MainStackScreenProps<'Dashboard'>;
 
@@ -21,18 +22,17 @@ export const DashboardScreen: React.FC<Props> = () => {
   return (
     <View style={globalStyles.screenContainer}>
       <View style={globalStyles.header}>
-        <Text style={globalStyles.headerTitle}>Dashboard</Text>
+        <Text style={globalStyles.headerTitle}>Component Test</Text>
         <ThemeToggle />
       </View>
       
-      <View style={globalStyles.container}>
-        <Text style={globalStyles.title}>Welcome!</Text>
-        <Text style={globalStyles.body}>This is your inventory dashboard.</Text>
+      <ScrollView style={globalStyles.container}>
+        <ButtonTest />
         
         <TouchableOpacity style={globalStyles.button} onPress={handleLogout}>
           <Text style={globalStyles.buttonText}>Logout</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 };
