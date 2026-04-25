@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Filter, Plus, PackageX, Package, Edit2, Trash2, ChevronRight, type LucideProps } from 'lucide-react-native';
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
@@ -27,6 +28,7 @@ const FILTER_OPTIONS: { label: string; value: StockStatus | 'all' }[] = [
 
 const InventoryListScreen = () => {
   const { theme } = useTheme();
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<StockStatus | 'all'>('all');
@@ -70,9 +72,9 @@ const InventoryListScreen = () => {
     >
       <InventoryCard
         item={item}
-        onEdit={(i) => console.log('Edit', i.id)}
+        onEdit={(i) => navigation.navigate('AddEditItem', { item: i })}
         onDelete={(i) => console.log('Delete', i.id)}
-        onPress={(i) => console.log('Press', i.id)}
+        onPress={(i) => navigation.navigate('ItemDetail', { item: i })}
       />
     </Animated.View>
   );
@@ -201,7 +203,7 @@ const InventoryListScreen = () => {
             bottom: insets.bottom + 20,
           },
         ]}
-        onPress={() => console.log('Add Item')}
+        onPress={() => navigation.navigate('AddEditItem')}
       >
         <Plus size={28} {...({ color: 'white' } as any)} />
       </TouchableOpacity>
