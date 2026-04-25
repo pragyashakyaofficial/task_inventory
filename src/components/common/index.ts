@@ -10,3 +10,4 @@ export { default as LoadingSkeletonSimple } from './LoadingSkeletonSimple';
 export { default as ErrorAlert } from './ErrorAlert';
 export { default as StatusBadge } from './StatusBadge';
 export { default as Toast, ToastManager } from './Toast';
+export { default as ButtonTest } from './ButtonTest';

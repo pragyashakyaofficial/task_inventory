@@ -1,1 +1,1 @@
-export { RippleButton, ThemeToggle } from './common';
+export { RippleButton, ThemeToggle, ButtonTest } from './common';

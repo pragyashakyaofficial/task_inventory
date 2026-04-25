@@ -5,7 +5,7 @@ import { useAppDispatch } from '../../store/hooks';
 import { useThemedStyle } from '../../theme/ThemeContext';
 import { createGlobalStyles } from '../../theme/globalStyles';
 import { ThemeToggle } from '../../components/common';
-import ButtonTest from '../../components/common/ButtonTest';
+import StockCalculatorTest from '../../components/common/StockCalculatorTest';
 
 type Props = MainStackScreenProps<'Dashboard'>;
 
@@ -26,13 +26,7 @@ export const DashboardScreen: React.FC<Props> = () => {
         <ThemeToggle />
       </View>
       
-      <ScrollView style={globalStyles.container}>
-        <ButtonTest />
-        
-        <TouchableOpacity style={globalStyles.button} onPress={handleLogout}>
-          <Text style={globalStyles.buttonText}>Logout</Text>
-        </TouchableOpacity>
-      </ScrollView>
+      <StockCalculatorTest />
     </View>
   );
 };
