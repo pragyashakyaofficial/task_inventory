@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useDebouncedPress } from '../../hooks/useDebouncedPress';
+import { useTheme } from '../../theme/ThemeContext';
 
 interface RippleButtonProps extends PressableProps {
   children: React.ReactNode;
@@ -17,14 +18,18 @@ interface RippleButtonProps extends PressableProps {
 
 export const RippleButton: React.FC<RippleButtonProps> = ({
   children,
-  rippleColor = 'rgba(0, 0, 0, 0.1)',
+  rippleColor,
   style,
   delay = 300,
   onPress,
   ...props
 }) => {
+  const { theme } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const { handlePress } = useDebouncedPress({ onPress, delay });
+  
+  // Use theme-based ripple color if none provided
+  const finalRippleColor = rippleColor || theme.colors.overlay;
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
@@ -56,7 +61,7 @@ export const RippleButton: React.FC<RippleButtonProps> = ({
         style={[
           styles.ripple,
           {
-            backgroundColor: rippleColor,
+            backgroundColor: finalRippleColor,
             transform: [{ scale: scaleAnim }],
           },
         ]}
