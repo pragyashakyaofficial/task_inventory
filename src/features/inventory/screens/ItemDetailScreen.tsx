@@ -24,6 +24,7 @@ import {
   RefreshCw,
 } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
+import { spacingSemantic } from '../../../theme/spacing';
 import Button from '../../../components/common/Button';
 import GlassCard from '../../../components/common/GlassCard';
 import StatusBadge from '../../../components/common/StatusBadge';
@@ -179,14 +180,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    padding: spacingSemantic.screen,
     paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 32,
+    marginBottom: spacingSemantic.xl,
   },
   titleSection: {
     flex: 1,
@@ -196,12 +197,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 4,
+    marginBottom: spacingSemantic.xs,
   },
   name: {
     fontSize: 28,
     fontWeight: '800',
-    marginBottom: 4,
+    marginBottom: spacingSemantic.xs,
   },
   sku: {
     fontSize: 14,
@@ -209,21 +210,21 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    marginBottom: spacingSemantic.xl,
   },
   statCard: {
     width: 105,
-    padding: 12,
+    padding: spacingSemantic.md,
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: spacingSemantic.borderRadius.xl,
   },
   iconBox: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: spacingSemantic.borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacingSemantic.md,
   },
   statValue: {
     fontSize: 18,
@@ -234,21 +235,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: spacingSemantic.xl,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 16,
+    marginBottom: spacingSemantic.md,
   },
   aiInsightsCard: {
-    padding: 20,
+    padding: spacingSemantic.xl,
     borderRadius: 24,
   },
   aiInsightRow: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 20,
+    gap: spacingSemantic.md,
+    marginBottom: spacingSemantic.xl,
   },
   aiInsightText: {
     flex: 1,
@@ -256,22 +257,22 @@ const styles = StyleSheet.create({
   insightTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: spacingSemantic.xs,
   },
   insightDesc: {
     fontSize: 14,
     lineHeight: 20,
   },
   reorderButton: {
-    marginTop: 8,
+    marginTop: spacingSemantic.sm,
   },
   activityList: {
-    gap: 12,
+    gap: spacingSemantic.sm * 1.5,
   },
   activityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacingSemantic.sm * 1.5,
   },
   activityText: {
     fontSize: 14,
@@ -282,9 +283,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     flexDirection: 'row',
-    padding: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
-    gap: 12,
+    padding: spacingSemantic.screen,
+    paddingBottom: Platform.OS === 'ios' ? 40 : spacingSemantic.screen,
+    gap: spacingSemantic.md,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderTopWidth: 1,
   },

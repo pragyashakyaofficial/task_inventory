@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
+import { spacingSemantic } from '../../../theme/spacing';
 import GlassCard from '../../../components/common/GlassCard';
 import { InventoryItem } from '../../inventory/types/inventory.types';
 import { useInventory } from '../../inventory/hooks/useInventory';
@@ -55,11 +56,15 @@ const StatCard: React.FC<StatCardProps> = memo(({ title, value, icon, color }) =
 
   return (
     <GlassCard style={styles.statCard}>
-      <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
-        {icon}
+      <View style={styles.statHeader}>
+        <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
+          {React.cloneElement(icon as React.ReactElement<any>, { size: 20 })}
+        </View>
+        <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+          {title}
+        </Text>
       </View>
-      <View>
-        <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>{title}</Text>
+      <View style={styles.statValueContainer}>
         <AnimatedText style={[styles.statValue, { color: theme.colors.text }]}>
           {animatedText.value}
         </AnimatedText>
@@ -149,8 +154,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Critical Stock Alerts</Text>
-          <TouchableOpacity onPress={handleViewAll}>
-            <Text style={{ color: theme.colors.primary }}>View All</Text>
+          <TouchableOpacity 
+            onPress={handleViewAll} 
+            style={styles.viewAllButton}
+          >
+            <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>View All</Text>
+            <ChevronRight size={14} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -175,10 +184,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           ))
         ) : (
           <GlassCard style={styles.emptyAlert}>
-            <CheckCircle2 size={32} color="#10B981" />
-            <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-              All items are sufficiently stocked!
-            </Text>
+            <View style={styles.emptyAlertContent}>
+              <CheckCircle2 size={24} color="#10B981" />
+              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                All items are sufficiently stocked!
+              </Text>
+            </View>
           </GlassCard>
         )}
       </View>
@@ -194,101 +205,138 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 24,
+    paddingHorizontal: spacingSemantic.screen,
+    marginBottom: spacingSemantic.lg,
   },
   greeting: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   profileButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: spacingSemantic.borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 14,
+    paddingHorizontal: spacingSemantic.sm,
     justifyContent: 'space-between',
   },
   statCard: {
     width: '46%',
     margin: '2%',
-    padding: 16,
-    borderRadius: 20,
+    padding: spacingSemantic.md,
+    borderRadius: spacingSemantic.borderRadius.xl,
+    flexDirection: 'column',
+    minHeight: 120,
+  },
+  statHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 6,
+    marginBottom: spacingSemantic.sm,
+    width: '100%',
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 28,
+    height: 28,
+    borderRadius: spacingSemantic.borderRadius.sm * 1.5,
     justifyContent: 'center',
     alignItems: 'center',
   },
   statLabel: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    flex: 1,
+  },
+  statValueContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
   },
   statValue: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '900',
+    textAlign: 'center',
   },
   section: {
-    marginTop: 32,
-    paddingHorizontal: 20,
+    marginTop: spacingSemantic.xl,
+    paddingHorizontal: spacingSemantic.screen,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacingSemantic.md,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  viewAllText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   alertItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 12,
+    padding: spacingSemantic.md,
+    borderRadius: spacingSemantic.borderRadius.lg,
+    marginBottom: spacingSemantic.sm,
   },
   alertIcon: {
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: spacingSemantic.borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: spacingSemantic.md,
   },
   alertContent: {
     flex: 1,
   },
   itemName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   itemStock: {
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '500',
   },
   emptyAlert: {
-    padding: 24,
+    padding: spacingSemantic.lg,
+    borderRadius: spacingSemantic.borderRadius.xl,
+  },
+  emptyAlertContent: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 12,
-    borderRadius: 20,
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: '500',
     textAlign: 'center',
   },
 });

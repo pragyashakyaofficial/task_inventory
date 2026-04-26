@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Animated } from 'react-native';
+import { Animated, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lightColors, darkColors, Colors } from './colors';
 import { typography, TypographyStyle } from './typography';
@@ -120,6 +120,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         animatedValue,
       }}
     >
+      <StatusBar
+        backgroundColor={theme.colors.background}
+        barStyle="light-content"
+        translucent={true}
+      />
       {children}
     </ThemeContext.Provider>
   );

@@ -1,10 +1,12 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AuthStack } from './AuthStack';
-import { MainStack } from './MainStack';
 import { RootStackParamList } from './types';
 import { useAppSelector } from '../store/hooks';
+
+// Delay imports to prevent circular dependency issues
+import { AuthStack } from './AuthStack';
+import { MainStack } from './MainStack';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

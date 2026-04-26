@@ -48,36 +48,72 @@ export const MainStack = () => {
         tabBarShowLabel: true,
         tabBarStyle: {
           position: 'absolute',
-          bottom: Platform.OS === 'ios' ? insets.bottom : 10,
-          left: 10,
-          right: 10,
-          elevation: 5,
+          bottom: Platform.OS === 'ios' ? insets.bottom : 20,
+          marginLeft: '2.5%',
+          right: '2.5%',
+          width: '95%',
           backgroundColor: theme.colors.backgroundSecondary,
-          borderRadius: 20,
-          height: 70,
+          borderRadius: 65,
+          height: 65,
           borderTopWidth: 0,
-          paddingBottom: 10,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
+          // shadowColor: '#000',
+          // shadowOffset: { width: 0, height: 10 },
+          // shadowOpacity: 0.1,
+          // shadowRadius: 10,
+          paddingTop: 8,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        tabBarItemStyle: {
+          height: 58,
+          paddingBottom: 0,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '700',
+          marginTop: -2,
+          marginBottom: 0,
         },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
+        tabBarButton: (props: any) => {
+          const { style, ...rest } = props;
+          return (
+            <TouchableOpacity
+              {...rest}
+              style={style}
+              activeOpacity={1}
+            />
+          );
+        },
       }}
     >
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Home 
+              size={size} 
+              color={color} 
+              fill={focused ? color : 'transparent'} 
+            />
+          ),
         }}
       />
       <Tab.Screen
         name="Inventory"
         component={InventoryStack}
         options={{
-          tabBarIcon: ({ color, size }) => <Package size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Package 
+              size={size} 
+              color={color} 
+              fill={focused ? color : 'transparent'} 
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -95,7 +131,13 @@ export const MainStack = () => {
         name="AI"
         component={AISuggestionsScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <Sparkles size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Sparkles 
+              size={size} 
+              color={color} 
+              fill={focused ? color : 'transparent'} 
+            />
+          ),
           tabBarLabel: 'Suggestions',
         }}
       />
@@ -103,7 +145,13 @@ export const MainStack = () => {
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <User 
+              size={size} 
+              color={color} 
+              fill={focused ? color : 'transparent'} 
+            />
+          ),
         }}
       />
     </Tab.Navigator>

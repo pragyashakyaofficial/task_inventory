@@ -16,6 +16,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme/ThemeContext';
+import { spacingSemantic } from '../../theme/spacing';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -132,21 +133,21 @@ const Button: React.FC<ButtonProps> = memo(({
     switch (size) {
       case 'small':
         return {
-          paddingHorizontal: 12,
-          paddingVertical: 8,
-          borderRadius: 8,
+          paddingHorizontal: spacingSemantic.sm * 1.5,
+          paddingVertical: spacingSemantic.sm,
+          borderRadius: spacingSemantic.borderRadius.md,
         };
       case 'large':
         return {
-          paddingHorizontal: 24,
-          paddingVertical: 16,
-          borderRadius: 12,
+          paddingHorizontal: spacingSemantic.lg,
+          paddingVertical: spacingSemantic.md,
+          borderRadius: spacingSemantic.borderRadius.lg,
         };
       default:
         return {
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-          borderRadius: 10,
+          paddingHorizontal: spacingSemantic.md,
+          paddingVertical: spacingSemantic.md * 0.75,
+          borderRadius: spacingSemantic.borderRadius.md * 1.25,
         };
     }
   };
@@ -235,6 +236,7 @@ const styles = StyleSheet.create({
   text: {
     fontWeight: '600',
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   loader: {
     padding: 2,

@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Brain, Save, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
+import { spacingSemantic } from '../../../theme/spacing';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Toast from 'react-native-toast-message';
@@ -265,12 +266,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacingSemantic.screen,
+    paddingVertical: spacingSemantic.md,
     borderBottomWidth: 1,
   },
   backButton: {
-    padding: 8,
+    padding: spacingSemantic.sm,
     minWidth: 44,
   },
   headerTitle: {
@@ -281,16 +282,16 @@ const styles = StyleSheet.create({
     width: 44,
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: spacingSemantic.screen,
+    paddingBottom: spacingSemantic.xl,
   },
   formSection: {
-    gap: 16,
+    gap: spacingSemantic.md,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 12,
+    gap: spacingSemantic.md,
   },
   flex1: {
     flex: 1,
@@ -300,10 +301,10 @@ const styles = StyleSheet.create({
     width: 52,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacingSemantic.sm,
   },
   footer: {
-    marginTop: 32,
+    marginTop: spacingSemantic.xl,
   },
 });
 

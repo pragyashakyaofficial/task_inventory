@@ -14,6 +14,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme/ThemeContext';
+import { spacingSemantic } from '../../theme/spacing';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -190,40 +191,42 @@ Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: spacingSemantic.md,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: spacingSemantic.xs * 1.5,
     alignSelf: 'flex-start',
-    marginLeft: 12,
+    marginLeft: spacingSemantic.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   required: {
-    // Color will be set dynamically
   },
   inputContainer: {
-    borderRadius: 8,
+    borderRadius: spacingSemantic.borderRadius.md,
     position: 'relative',
+    borderWidth: 1,
   },
   input: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacingSemantic.md,
+    paddingVertical: spacingSemantic.sm * 1.5,
     fontSize: 16,
-    borderRadius: 8,
+    borderRadius: spacingSemantic.borderRadius.md,
   },
   errorInput: {
-    borderRadius: 8,
+    borderRadius: spacingSemantic.borderRadius.md,
   },
   errorText: {
     fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
+    marginTop: spacingSemantic.xs,
+    marginLeft: spacingSemantic.xs,
   },
   helperText: {
     fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
+    marginTop: spacingSemantic.xs,
+    marginLeft: spacingSemantic.xs,
   },
 });
 

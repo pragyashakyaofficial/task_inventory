@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Plus, PackageX } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
 import { useInventory } from '../hooks/useInventory';
+import { spacingSemantic } from '../../../theme/spacing';
 import InventoryCard from '../components/InventoryCard';
 import { StockStatus, InventoryItem } from '../types/inventory.types';
 import LoadingSkeleton from '../../../components/common/LoadingSkeleton';
@@ -217,32 +218,32 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacingSemantic.screen,
+    paddingVertical: spacingSemantic.md,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: spacingSemantic.md,
     height: 48,
-    borderRadius: 12,
-    marginBottom: 12,
+    borderRadius: spacingSemantic.borderRadius.md,
+    marginBottom: spacingSemantic.md,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: spacingSemantic.sm,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
   },
   filterContainer: {
-    paddingBottom: 4,
+    paddingBottom: spacingSemantic.xs,
   },
   filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
+    paddingHorizontal: spacingSemantic.md,
+    paddingVertical: spacingSemantic.sm,
+    borderRadius: spacingSemantic.borderRadius.full,
+    marginRight: spacingSemantic.sm,
   },
   filterChipText: {
     fontSize: 14,
@@ -253,23 +254,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 100,
+    paddingHorizontal: spacingSemantic.screen,
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 16,
+    marginTop: spacingSemantic.md,
   },
   emptySubtitle: {
     fontSize: 14,
-    marginTop: 8,
+    marginTop: spacingSemantic.sm,
+    textAlign: 'center',
   },
   skeletonContainer: {
-    padding: 16,
+    padding: spacingSemantic.screen,
   },
   skeletonCard: {
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 16,
+    padding: spacingSemantic.sm * 1.5,
+    borderRadius: spacingSemantic.borderRadius.lg,
+    marginBottom: spacingSemantic.md,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
@@ -279,7 +282,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: 20,
+    right: spacingSemantic.md,
     width: 56,
     height: 56,
     borderRadius: 28,
