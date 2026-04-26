@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, memo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Animated, { 
   useSharedValue, 
-  useAnimatedProps, 
   withTiming, 
   Easing,
   useDerivedValue
@@ -17,8 +16,11 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
 import GlassCard from '../../../components/common/GlassCard';
+import { InventoryItem } from '../../inventory/types/inventory.types';
 import { useInventory } from '../../inventory/hooks/useInventory';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MainStackParamList } from '../../../navigation/types';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 
@@ -30,7 +32,13 @@ interface StatCardProps {
   delay?: number;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
+type DashboardNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Dashboard'>;
+
+interface DashboardScreenProps {
+  navigation: DashboardNavigationProp;
+}
+
+const StatCard: React.FC<StatCardProps> = memo(({ title, value, icon, color }) => {
   const { theme } = useTheme();
   const count = useSharedValue(0);
 
@@ -52,30 +60,51 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
       </View>
       <View>
         <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>{title}</Text>
-        <Text style={[styles.statValue, { color: theme.colors.text }]}>{value}</Text>
+        <AnimatedText style={[styles.statValue, { color: theme.colors.text }]}>
+          {animatedText.value}
+        </AnimatedText>
       </View>
     </GlassCard>
   );
-};
+});
 
-const DashboardScreen = ({ navigation }: any) => {
+const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { items, isLoading } = useInventory({});
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: items.length,
-    inStock: items.filter(i => i.status === 'in-stock').length,
-    lowStock: items.filter(i => i.status === 'low-stock').length,
-    outOfStock: items.filter(i => i.status === 'out-of-stock').length,
-  };
+    inStock: items.filter((i: InventoryItem) => i.status === 'in-stock').length,
+    lowStock: items.filter((i: InventoryItem) => i.status === 'low-stock').length,
+    outOfStock: items.filter((i: InventoryItem) => i.status === 'out-of-stock').length,
+  }), [items]);
 
-  const lowStockItems = items.filter(i => i.status === 'low-stock').slice(0, 5);
+  const lowStockItems = useMemo(() => 
+    items.filter((i: InventoryItem) => i.status === 'low-stock').slice(0, 5)
+  , [items]);
+
+  const handleViewAll = useCallback(() => navigation.navigate('InventoryList'), [navigation]);
+  const handleProfilePress = useCallback(() => navigation.navigate('Profile'), [navigation]);
+  const handleItemPress = useCallback((item: InventoryItem) => {
+    navigation.navigate('ItemDetail', { itemId: item.id });
+  }, [navigation]);
+
+  const contentContainerStyle = useMemo(() => ({ 
+    paddingTop: insets.top + 20, 
+    paddingBottom: 100 
+  }), [insets.top]);
+
+  const containerStyle = useMemo(() => [
+    styles.container, 
+    { backgroundColor: theme.colors.background }
+  ], [theme.colors.background]);
 
   return (
     <ScrollView 
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      contentContainerStyle={{ paddingTop: insets.top + 20, paddingBottom: 100 }}
+      style={containerStyle}
+      contentContainerStyle={contentContainerStyle}
+      removeClippedSubviews={true}
     >
       <View style={styles.header}>
         <View>
@@ -84,7 +113,7 @@ const DashboardScreen = ({ navigation }: any) => {
         </View>
         <TouchableOpacity 
           style={[styles.profileButton, { backgroundColor: theme.colors.backgroundSecondary }]}
-          onPress={() => navigation.navigate('Profile')}
+          onPress={handleProfilePress}
         >
           <TrendingUp size={20} color={theme.colors.primary} />
         </TouchableOpacity>
@@ -120,17 +149,17 @@ const DashboardScreen = ({ navigation }: any) => {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Critical Stock Alerts</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Inventory')}>
+          <TouchableOpacity onPress={handleViewAll}>
             <Text style={{ color: theme.colors.primary }}>View All</Text>
           </TouchableOpacity>
         </View>
 
         {lowStockItems.length > 0 ? (
-          lowStockItems.map((item) => (
+          lowStockItems.map((item: InventoryItem) => (
             <TouchableOpacity 
               key={item.id}
               style={[styles.alertItem, { backgroundColor: theme.colors.backgroundSecondary }]}
-              onPress={() => navigation.navigate('Inventory', { screen: 'ItemDetail', params: { item } })}
+              onPress={() => handleItemPress(item)}
             >
               <View style={[styles.alertIcon, { backgroundColor: '#F59E0B20' }]}>
                 <AlertTriangle size={18} color="#F59E0B" />

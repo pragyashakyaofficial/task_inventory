@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, ViewStyle, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -16,7 +16,7 @@ interface GlassCardProps {
   onPress?: () => void;
 }
 
-const GlassCard: React.FC<GlassCardProps> = ({
+const GlassCard: React.FC<GlassCardProps> = memo(({
   children,
   style,
   blurType = 'light',
@@ -81,7 +81,9 @@ const GlassCard: React.FC<GlassCardProps> = ({
       <View style={styles.content}>{children}</View>
     </CardComponent>
   );
-};
+});
+
+GlassCard.displayName = 'GlassCard';
 
 const styles = StyleSheet.create({
   container: {

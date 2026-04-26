@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import {
   TextInput,
   View,
@@ -12,7 +12,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme/ThemeContext';
 
@@ -26,9 +25,11 @@ interface InputProps extends TextInputProps {
   errorStyle?: TextStyle;
   helperTextStyle?: TextStyle;
   required?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
-const Input: React.FC<InputProps> = ({
+const Input: React.FC<InputProps> = memo(({
   label,
   error,
   helperText,
@@ -41,6 +42,8 @@ const Input: React.FC<InputProps> = ({
   onChangeText,
   onFocus,
   onBlur,
+  accessibilityLabel,
+  accessibilityHint,
   ...props
 }) => {
   const { theme } = useTheme();
@@ -151,6 +154,11 @@ const Input: React.FC<InputProps> = ({
         ]}
       >
         <TextInput
+          accessibilityLabel={accessibilityLabel || label}
+          accessibilityHint={accessibilityHint}
+          accessibilityState={{
+            disabled: props.editable === false,
+          }}
           style={[
             styles.input,
             error && styles.errorInput,
@@ -176,7 +184,9 @@ const Input: React.FC<InputProps> = ({
       )}
     </View>
   );
-};
+});
+
+Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   container: {

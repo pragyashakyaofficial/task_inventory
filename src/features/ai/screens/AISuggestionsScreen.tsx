@@ -45,7 +45,6 @@ const AISuggestionsScreen = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [confidenceFilter, setConfidenceFilter] = useState<number>(0);
 
-  // Mocking AI Suggestions based on inventory data
   const suggestions: SuggestionItem[] = useMemo(() => {
     return items
       .filter(item => item.status === 'low-stock' || item.status === 'out-of-stock')
@@ -70,7 +69,7 @@ const AISuggestionsScreen = () => {
     setIsRefreshing(false);
   }, [refetchItems]);
 
-  const handleApplyAll = () => {
+  const handleApplyAll = useCallback(() => {
     Alert.alert(
       'Apply All Suggestions',
       `Are you sure you want to apply all ${filteredSuggestions.length} suggested reorders?`,
@@ -82,9 +81,9 @@ const AISuggestionsScreen = () => {
         }
       ]
     );
-  };
+  }, [filteredSuggestions.length]);
 
-  const renderItem = ({ item, index }: { item: SuggestionItem; index: number }) => (
+  const renderItem = useCallback(({ item, index }: { item: SuggestionItem; index: number }) => (
     <Animated.View entering={FadeInDown.delay(index * 100)}>
       <GlassCard style={styles.card}>
         <View style={styles.cardHeader}>
@@ -150,7 +149,7 @@ const AISuggestionsScreen = () => {
         </View>
       </GlassCard>
     </Animated.View>
-  );
+  ), [theme.colors]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>

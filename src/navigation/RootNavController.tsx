@@ -9,7 +9,7 @@ import { useAppSelector } from '../store/hooks';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavController = () => {
-  const isAuthenticated = useAppSelector((state) => state.placeholder.isAuthenticated); // TODO: Update with actual auth state
+  const isAuthenticated = useAppSelector((state) => state.placeholder.isAuthenticated); 
 
   return (
     <NavigationContainer>

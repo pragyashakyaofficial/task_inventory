@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Alert } from 'react-native';
 import {
   useGetItemsQuery,
@@ -125,7 +125,7 @@ export const useInventory = (initialParams?: GetItemsParams) => {
               style: 'destructive',
               onPress: async () => {
                 try {
-                  await deleteItem(itemData).unwrap();
+                  await deleteItem(itemData.id).unwrap();
                   resolve(true);
                 } catch (error: any) {
                   const errorMessage = error.data?.message || 'Failed to delete item';
@@ -159,12 +159,17 @@ export const useInventory = (initialParams?: GetItemsParams) => {
     setRefreshInterval(interval);
   }, []);
 
-  return {
+  return useMemo(() => ({
     // Data
     items: itemsData?.items || [],
-    pagination: itemsData?.pagination,
-    filters: itemsData?.filters,
-    sort: itemsData?.sort,
+    pagination: itemsData ? {
+      page: itemsData.page,
+      limit: itemsData.limit,
+      total: itemsData.total,
+      totalPages: itemsData.totalPages,
+    } : undefined,
+    filters: undefined,
+    sort: undefined,
 
     // Loading states
     isLoading: isGetItemsLoading,
@@ -201,7 +206,33 @@ export const useInventory = (initialParams?: GetItemsParams) => {
     createItemData,
     updateItemData,
     deleteItemData,
-  };
+  }), [
+    itemsData,
+    isGetItemsLoading,
+    isCreateItemLoading,
+    isUpdateItemLoading,
+    isDeleteItemLoading,
+    getItemsError,
+    createItemError,
+    updateItemError,
+    deleteItemError,
+    isCreateItemSuccess,
+    isUpdateItemSuccess,
+    isDeleteItemSuccess,
+    handleCreateItem,
+    handleUpdateItem,
+    handleDeleteItem,
+    updateQuantity,
+    refetchItems,
+    updateParams,
+    autoRefresh,
+    toggleAutoRefresh,
+    setRefreshIntervalTime,
+    refreshInterval,
+    createItemData,
+    updateItemData,
+    deleteItemData,
+  ]);
 };
 
 // Hook for AI suggestions
@@ -313,8 +344,8 @@ export const useInventoryItem = (itemId: string) => {
     try {
       // This would typically be a specific API call to get one item
       // For now, we'll use the existing hook and filter
-      const result = await updateItem({ id: itemId });
-      setItem(result.item);
+      const result = await updateItem({ id: itemId }) as unknown as InventoryItem;
+      setItem(result);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch item');
     } finally {

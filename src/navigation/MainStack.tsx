@@ -11,6 +11,7 @@ import InventoryListScreen from '../features/inventory/screens/InventoryListScre
 import ItemDetailScreen from '../features/inventory/screens/ItemDetailScreen';
 import AddEditItemScreen from '../features/inventory/screens/AddEditItemScreen';
 import AISuggestionsScreen from '../features/ai/screens/AISuggestionsScreen';
+import ProfileScreen from '../features/profile/screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -100,7 +101,7 @@ export const MainStack = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={View} // Placeholder for Profile
+        component={ProfileScreen}
         options={{
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}

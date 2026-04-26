@@ -1,18 +1,18 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   RefreshControl,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Filter, Plus, PackageX, Package, Edit2, Trash2, ChevronRight, type LucideProps } from 'lucide-react-native';
-import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
+import { Search, Plus, PackageX } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
 import { useInventory } from '../hooks/useInventory';
 import InventoryCard from '../components/InventoryCard';
@@ -65,19 +65,14 @@ const InventoryListScreen = () => {
     updateParams({ status: status === 'all' ? undefined : status as any });
   };
 
-  const renderItem = ({ item, index }: { item: InventoryItem; index: number }) => (
-    <Animated.View
-      entering={FadeInDown.delay(index * 100).springify()}
-      layout={Layout.springify()}
-    >
-      <InventoryCard
-        item={item}
-        onEdit={(i) => navigation.navigate('AddEditItem', { item: i })}
-        onDelete={(i) => console.log('Delete', i.id)}
-        onPress={(i) => navigation.navigate('ItemDetail', { item: i })}
-      />
-    </Animated.View>
-  );
+  const renderItem = useCallback(({ item }: { item: InventoryItem; index: number }) => (
+    <InventoryCard
+      item={item}
+      onEdit={(i) => navigation.navigate('AddEditItem', { item: i })}
+      onDelete={(i) => console.log('Delete', i.id)}
+      onPress={(i) => navigation.navigate('ItemDetail', { item: i })}
+    />
+  ), [navigation]);
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -179,13 +174,14 @@ const InventoryListScreen = () => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: theme.colors.background }]}>
-      <FlatList
+      <FlashList
         data={items as InventoryItem[]}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 80 }]}
+        estimatedItemSize={100}
         refreshControl={
           <RefreshControl
             refreshing={false}
@@ -211,8 +207,7 @@ const InventoryListScreen = () => {
   );
 };
 
-import { ScrollView, Dimensions } from 'react-native';
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: _SCREEN_WIDTH } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {

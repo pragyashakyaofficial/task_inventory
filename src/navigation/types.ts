@@ -12,6 +12,7 @@ export type MainStackParamList = {
   InventoryList: undefined;
   ItemDetail: { itemId: string };
   AddEditItem: { itemId?: string };
+  Profile: undefined;
 };
 
 // Root Stack Params

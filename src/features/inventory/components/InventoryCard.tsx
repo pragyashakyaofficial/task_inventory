@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -26,7 +26,7 @@ interface InventoryCardProps {
   onDelete?: (item: InventoryItem) => void;
 }
 
-const InventoryCard: React.FC<InventoryCardProps> = ({
+const InventoryCard: React.FC<InventoryCardProps> = memo(({
   item,
   onPress,
   onEdit,
@@ -119,7 +119,9 @@ const InventoryCard: React.FC<InventoryCardProps> = ({
       </GestureDetector>
     </View>
   );
-};
+});
+
+InventoryCard.displayName = 'InventoryCard';
 
 const styles = StyleSheet.create({
   container: {

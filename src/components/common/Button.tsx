@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -6,6 +6,7 @@ import {
   TextStyle,
   ActivityIndicator,
   StyleSheet,
+  TouchableOpacityProps,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -18,21 +19,24 @@ import { useTheme } from '../../theme/ThemeContext';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
-export type ButtonVariant = 'primary' | 'secondary' | 'error' | 'outline';
+export type ButtonVariant = 'primary' | 'secondary' | 'error' | 'outline' | 'ghost';
+export type ButtonSize = 'small' | 'medium' | 'large';
 
-interface ButtonProps {
+interface ButtonProps extends Omit<TouchableOpacityProps, 'onPress'> {
   title: string;
   onPress: () => void;
   variant?: ButtonVariant;
   loading?: boolean;
   disabled?: boolean;
-  size?: 'small' | 'medium' | 'large';
+  size?: ButtonSize;
   style?: ViewStyle;
   textStyle?: TextStyle;
   fullWidth?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
-const Button: React.FC<ButtonProps> = ({
+const Button: React.FC<ButtonProps> = memo(({
   title,
   onPress,
   variant = 'primary',
@@ -42,6 +46,12 @@ const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
   fullWidth = false,
+  leftIcon,
+  rightIcon,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityRole = 'button',
+  ...props
 }) => {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
@@ -146,6 +156,13 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <AnimatedTouchableOpacity
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole={accessibilityRole}
+      accessibilityState={{
+        disabled: !!(disabled || loading),
+        busy: !!loading,
+      }}
       style={[
         styles.button,
         {
@@ -163,6 +180,7 @@ const Button: React.FC<ButtonProps> = ({
       onPressOut={handlePressOut}
       disabled={disabled || loading}
       activeOpacity={0.8}
+      {...props}
     >
       <Animated.View
         style={[
@@ -184,22 +202,28 @@ const Button: React.FC<ButtonProps> = ({
           style={styles.loader}
         />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            {
-              color: colors.textColor,
-              fontSize: size === 'small' ? 14 : size === 'large' ? 18 : 16,
-            },
-            textStyle,
-          ]}
-        >
-          {title}
-        </Text>
+        <React.Fragment>
+          {leftIcon}
+          <Text
+            style={[
+              styles.text,
+              {
+                color: colors.textColor,
+                fontSize: size === 'small' ? 14 : size === 'large' ? 18 : 16,
+              },
+              textStyle,
+            ]}
+          >
+            {title}
+          </Text>
+          {rightIcon}
+        </React.Fragment>
       )}
     </AnimatedTouchableOpacity>
   );
-};
+});
+
+Button.displayName = 'Button';
 
 const styles = StyleSheet.create({
   button: {
