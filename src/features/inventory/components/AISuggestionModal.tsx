@@ -14,7 +14,7 @@ import Animated, {
   withTiming,
   interpolate,
 } from 'react-native-reanimated';
-import { Brain, Check, X, AlertCircle } from 'lucide-react-native';
+import { Brain, X, AlertCircle } from 'lucide-react-native';
 import GlassCard from '../../../components/common/GlassCard';
 import Button from '../../../components/common/Button';
 import { useTheme } from '../../../theme/ThemeContext';

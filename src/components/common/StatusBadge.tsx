@@ -6,7 +6,6 @@ import Animated, {
   withSpring,
   withRepeat,
   withTiming,
-  interpolate,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme/ThemeContext';
 

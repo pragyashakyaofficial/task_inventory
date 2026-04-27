@@ -12,19 +12,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   Sparkles, 
   Brain, 
-  ChevronRight, 
   CheckCircle2, 
-  Filter, 
   ArrowRight,
   RefreshCcw,
-  Package
 } from 'lucide-react-native';
 import Animated, { 
   FadeInDown, 
-  interpolate, 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withTiming 
 } from 'react-native-reanimated';
 import { useTheme } from '../../../theme/ThemeContext';
 import GlassCard from '../../../components/common/GlassCard';
@@ -41,7 +34,7 @@ interface SuggestionItem extends InventoryItem {
 const AISuggestionsScreen = () => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { items, isLoading, refetchItems } = useInventory({});
+  const { items, refetchItems } = useInventory({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [confidenceFilter, setConfidenceFilter] = useState<number>(0);
 

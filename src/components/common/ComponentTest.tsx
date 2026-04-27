@@ -13,13 +13,11 @@ import {
   LoadingSkeletonSimple,
   ErrorAlert,
   StatusBadge,
-  Toast,
   ToastManager,
 } from './index';
 
 const ComponentTest: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
-  const [showError, setShowError] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const showToast = () => {
@@ -147,7 +145,7 @@ const ComponentTest: React.FC = () => {
         <ErrorAlert
           error="Something went wrong while processing your request. Please try again."
           onRetry={() => console.log('Retry pressed')}
-          onDismiss={() => setShowError(false)}
+          onDismiss={() => {}}
         />
 
         {/* Loading Skeleton */}

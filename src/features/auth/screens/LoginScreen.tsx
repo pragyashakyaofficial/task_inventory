@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,6 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Animated, {
-  FadeInDown,
-  FadeInUp,
-  Layout,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -27,10 +24,15 @@ import Button from '../../../components/common/Button';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 import { useThemedStyle, createThemedStyle, Theme } from '../../../theme/ThemeContext';
 
+import { useLoginMutation } from '../api/authApi';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../store/authSlice';
+
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const buttonScale = useSharedValue(1);
   const styles = useThemedStyle(themedStyles);
 
@@ -45,23 +47,25 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setIsLoading(true);
       buttonScale.value = withSpring(0.95);
       
-      // TODO: Implement actual login logic
-      console.log('Login data:', data);
+      const response = await login(data).unwrap();
       
-      // Simulate API call
-      await new Promise<void>(resolve => setTimeout(() => resolve(), 2000));
-      
+      dispatch(setCredentials({
+        user: response.user,
+        token: response.token,
+      }));
+
       Alert.alert('Success', 'Login successful!');
-    } catch (error) {
-      Alert.alert('Error', 'Login failed. Please try again.');
+    } catch (error: any) {
+      const message = error?.data?.message || 'Login failed. Please try again.';
+      Alert.alert('Error', message);
     } finally {
-      setIsLoading(false);
       buttonScale.value = withSpring(1);
     }
   };
+
+  const isLoading = isLoginLoading;
 
   const buttonAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -80,25 +84,17 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       >
         <View style={styles.content}>
           {/* Header */}
-          <Animated.View
-            entering={FadeInDown.duration(1000).springify()}
-            style={styles.header}
-          >
+          <View style={styles.header}>
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Sign in to your account</Text>
-          </Animated.View>
+          </View>
 
           {/* Login Form */}
-          <Animated.View
-            entering={FadeInUp.duration(1000).springify()}
-            layout={Layout.springify()}
-          >
+          <View style={styles.formCardContainer}>
             <GlassCard style={styles.formCard}>
               <View style={styles.formContent}>
                 {/* Email Field */}
-                <Animated.View
-                  entering={FadeInUp.delay(200).duration(800).springify()}
-                >
+                <View style={styles.inputWrapper}>
                   <Controller
                     control={control}
                     name="email"
@@ -117,12 +113,10 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
                       />
                     )}
                   />
-                </Animated.View>
+                </View>
 
                 {/* Password Field */}
-                <Animated.View
-                  entering={FadeInUp.delay(400).duration(800).springify()}
-                >
+                <View style={styles.inputWrapper}>
                   <Controller
                     control={control}
                     name="password"
@@ -140,42 +134,31 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
                       />
                     )}
                   />
-                </Animated.View>
+                </View>
 
                 {/* Forgot Password */}
-                <Animated.View
-                  entering={FadeInUp.delay(600).duration(800).springify()}
-                >
-                  <TouchableOpacity style={styles.forgotPassword}>
-                    <Text style={styles.forgotPasswordText}>
-                      Forgot Password?
-                    </Text>
-                  </TouchableOpacity>
-                </Animated.View>
+                {/* <TouchableOpacity style={styles.forgotPassword}>
+                  <Text style={styles.forgotPasswordText}>
+                    Forgot Password?
+                  </Text>
+                </TouchableOpacity> */}
 
                 {/* Login Button */}
-                <Animated.View
-                  entering={FadeInUp.delay(800).duration(800).springify()}
-                >
-                  <Animated.View style={buttonAnimatedStyle}>
-                    <Button
-                      title={isLoading ? 'Signing In...' : 'Sign In'}
-                      onPress={handleSubmit(onSubmit)}
-                      disabled={!isValid || isLoading}
-                      loading={isLoading}
-                      style={styles.loginButton}
-                    />
-                  </Animated.View>
+                <Animated.View style={buttonAnimatedStyle}>
+                  <Button
+                    title={isLoading ? 'Signing In...' : 'Sign In'}
+                    onPress={handleSubmit(onSubmit)}
+                    disabled={!isValid || isLoading}
+                    loading={isLoading}
+                    style={styles.loginButton}
+                  />
                 </Animated.View>
               </View>
             </GlassCard>
-          </Animated.View>
+          </View>
 
           {/* Register Link */}
-          <Animated.View
-            entering={FadeInUp.delay(1000).duration(800).springify()}
-            style={styles.registerLink}
-          >
+          <View style={styles.registerLink}>
             <Text style={styles.registerText}>Don't have an account? </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Register')}
@@ -183,7 +166,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             >
               <Text style={styles.registerLinkText}>Sign Up</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -222,12 +205,18 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
   },
+  formCardContainer: {
+    marginBottom: 20,
+  },
   formCard: {
     padding: 0,
     overflow: 'hidden',
   },
   formContent: {
     padding: 24,
+  },
+  inputWrapper: {
+    marginBottom: 16,
   },
   forgotPassword: {
     alignSelf: 'flex-end',

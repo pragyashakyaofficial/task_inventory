@@ -44,7 +44,7 @@ const InventoryListScreen = () => {
     status: selectedStatus === 'all' ? undefined : selectedStatus as any,
   });
 
-  const handleRefresh = useCallback(() => {
+  const onRefresh = React.useCallback(() => {
     refetchItems();
   }, [refetchItems]);
 
@@ -89,8 +89,10 @@ const InventoryListScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.header}>
+      <Text style={[styles.title, { color: theme.colors.text }]}>Inventory</Text>
+      
       <View style={[styles.searchContainer, { backgroundColor: theme.colors.backgroundSecondary }]}>
-        <Search size={20} {...({ color: theme.colors.textSecondary } as any)} style={styles.searchIcon} />
+        <Search size={20} color={theme.colors.textSecondary} style={styles.searchIcon} />
         <TextInput
           placeholder="Search items..."
           placeholderTextColor={theme.colors.textTertiary}
@@ -103,6 +105,7 @@ const InventoryListScreen = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterContainer}
+        style={styles.filterScrollView}
       >
         {FILTER_OPTIONS.map((option) => (
           <TouchableOpacity
@@ -115,6 +118,8 @@ const InventoryListScreen = () => {
                   selectedStatus === option.value
                     ? theme.colors.primary
                     : theme.colors.backgroundSecondary,
+                borderWidth: 1,
+                borderColor: selectedStatus === option.value ? theme.colors.primary : 'transparent',
               },
             ]}
           >
@@ -175,7 +180,7 @@ const InventoryListScreen = () => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: theme.colors.background }]}>
-      <FlashList
+      <FlashList<InventoryItem>
         data={items as InventoryItem[]}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
@@ -183,13 +188,14 @@ const InventoryListScreen = () => {
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 80 }]}
         estimatedItemSize={100}
-        refreshControl={
+        {...({ refreshControl: (
           <RefreshControl
-            refreshing={false}
-            onRefresh={handleRefresh}
+            refreshing={isLoading}
+            onRefresh={onRefresh}
             tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
           />
-        }
+        )} as any)}
       />
 
       <TouchableOpacity
@@ -219,15 +225,24 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacingSemantic.screen,
-    paddingVertical: spacingSemantic.md,
+    paddingTop: spacingSemantic.md,
+    paddingBottom: spacingSemantic.sm,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginBottom: spacingSemantic.lg,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacingSemantic.md,
-    height: 48,
-    borderRadius: spacingSemantic.borderRadius.md,
-    marginBottom: spacingSemantic.md,
+    height: 52,
+    borderRadius: spacingSemantic.borderRadius.lg,
+    marginBottom: spacingSemantic.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   searchIcon: {
     marginRight: spacingSemantic.sm,
@@ -235,15 +250,20 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
+    fontWeight: '500',
   },
   filterContainer: {
+    paddingHorizontal: spacingSemantic.screen,
     paddingBottom: spacingSemantic.xs,
+    gap: spacingSemantic.xs,
+  },
+  filterScrollView: {
+    marginHorizontal: -spacingSemantic.screen,
   },
   filterChip: {
-    paddingHorizontal: spacingSemantic.md,
+    paddingHorizontal: spacingSemantic.lg,
     paddingVertical: spacingSemantic.sm,
     borderRadius: spacingSemantic.borderRadius.full,
-    marginRight: spacingSemantic.sm,
   },
   filterChipText: {
     fontSize: 14,

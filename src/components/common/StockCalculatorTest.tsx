@@ -14,7 +14,6 @@ import {
   formatQuantity,
   formatCurrency,
   calculateStockPercentage,
-  getStockLevel,
   shouldRestock,
   calculateOptimalStock,
   calculateInventoryValue,

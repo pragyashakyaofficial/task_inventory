@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Brain, Save, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
 import { spacingSemantic } from '../../../theme/spacing';
 import Input from '../../../components/common/Input';

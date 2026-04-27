@@ -11,7 +11,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  runOnJS,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme/ThemeContext';
 
@@ -25,7 +24,6 @@ interface ToastProps {
   actionLabel?: string;
   onAction?: () => void;
   position?: 'top' | 'bottom';
-  showIcon?: boolean;
 }
 
 const Toast: React.FC<ToastProps> = ({
@@ -36,7 +34,6 @@ const Toast: React.FC<ToastProps> = ({
   actionLabel,
   onAction,
   position = 'top',
-  showIcon = true,
 }) => {
   const { theme } = useTheme();
   const translateY = useSharedValue(position === 'top' ? -100 : 100);

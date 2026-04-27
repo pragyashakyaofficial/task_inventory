@@ -1,15 +1,6 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { ENV } from '../../config/env';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { baseQueryWithReauth } from '../baseQuery';
 import { InventoryItem as FeatureInventoryItem } from '../../features/inventory/types/inventory.types';
-
-// API configuration
-const API_CONFIG = {
-  baseURL: ENV.API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-};
 
 // API endpoints
 const ENDPOINTS = {
@@ -112,24 +103,7 @@ export const inventoryTags = {
 
 export const inventoryApi = createApi({
   reducerPath: 'inventoryApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_CONFIG.baseURL,
-    timeout: API_CONFIG.timeout,
-    prepareHeaders: async (headers) => {
-        headers.set('Content-Type', 'application/json');
-        // Add auth token if available
-        try {
-          const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-          const token = await AsyncStorage.getItem('authToken');
-          if (token) {
-            headers.set('authorization', `Bearer ${token}`);
-          }
-        } catch (error) {
-          console.warn('Failed to get auth token:', error);
-        }
-        return headers;
-      },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['ITEMS', 'DASHBOARD', 'AI_SUGGESTION'],
   endpoints: (builder) => ({
     // Get all inventory items

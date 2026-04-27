@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Animated } from 'react-native';
-import { useTheme, useAnimatedColor, useThemedStyle } from '../../theme/ThemeContext';
+import { useTheme, useThemedStyle } from '../../theme/ThemeContext';
 import { createGlobalStyles } from '../../theme/globalStyles';
 
 interface ThemeToggleProps {
@@ -8,15 +8,9 @@ interface ThemeToggleProps {
 }
 
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ size = 24 }) => {
-  const { theme, toggleTheme, animatedValue } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const globalStyles = useThemedStyle(createGlobalStyles);
   
-  // Animate icon color
-  const iconColor = useAnimatedColor(
-    theme.colors.text,
-    theme.colors.text
-  );
-
   return (
     <TouchableOpacity
       onPress={toggleTheme}

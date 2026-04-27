@@ -14,8 +14,6 @@ import Animated, {
   Layout,
 } from 'react-native-reanimated';
 import {
-  Edit2,
-  Trash2,
   Package,
   Layers,
   DollarSign,

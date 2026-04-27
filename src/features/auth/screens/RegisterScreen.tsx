@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,6 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Animated, {
-  FadeInDown,
-  FadeInUp,
-  Layout,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -27,10 +24,15 @@ import Button from '../../../components/common/Button';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 import { useThemedStyle, createThemedStyle, Theme } from '../../../theme/ThemeContext';
 
+import { useRegisterMutation } from '../api/authApi';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../store/authSlice';
+
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+  const [register, { isLoading: isRegisterLoading }] = useRegisterMutation();
   const buttonScale = useSharedValue(1);
   const styles = useThemedStyle(themedStyles);
 
@@ -48,24 +50,34 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      setIsLoading(true);
-      buttonScale.value = withSpring(0.95, undefined, (finished?: boolean) => {});
+      buttonScale.value = withSpring(0.95);
       
-      // TODO: Implement actual registration logic
-      console.log('Register data:', data);
+      // Prepare request data matching backend requirements
+      const requestData = {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        username: data.email.split('@')[0], // Fallback username
+        fullName: data.name,
+      };
+
+      const response = await register(requestData).unwrap();
       
-      // Simulate API call
-      await new Promise<void>(resolve => setTimeout(() => resolve(), 2000));
+      dispatch(setCredentials({
+        user: response.user,
+        token: response.token,
+      }));
       
       Alert.alert('Success', 'Account created successfully!');
-      navigation.navigate('Login');
-    } catch (error) {
-      Alert.alert('Error', 'Registration failed. Please try again.');
+    } catch (error: any) {
+      const message = error?.data?.message || 'Registration failed. Please try again.';
+      Alert.alert('Error', message);
     } finally {
-      setIsLoading(false);
-      buttonScale.value = withSpring(1, undefined, (finished?: boolean) => {});
+      buttonScale.value = withSpring(1);
     }
   };
+
+  const isLoading = isRegisterLoading;
 
   const buttonAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -111,25 +123,17 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       >
         <View style={styles.content}>
           {/* Header */}
-          <Animated.View
-            entering={FadeInDown.duration(1000).springify()}
-            style={styles.header}
-          >
+          <View style={styles.header}>
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Sign up to get started</Text>
-          </Animated.View>
+          </View>
 
           {/* Register Form */}
-          <Animated.View
-            entering={FadeInUp.duration(1000).springify()}
-            layout={Layout.springify()}
-          >
+          <View style={styles.formCardContainer}>
             <GlassCard style={styles.formCard}>
               <View style={styles.formContent}>
                 {/* Name Field */}
-                <Animated.View
-                  entering={FadeInUp.delay(200).duration(800).springify()}
-                >
+                <View style={styles.inputWrapper}>
                   <Controller
                     control={control}
                     name="name"
@@ -147,12 +151,10 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                       />
                     )}
                   />
-                </Animated.View>
+                </View>
 
                 {/* Email Field */}
-                <Animated.View
-                  entering={FadeInUp.delay(300).duration(800).springify()}
-                >
+                <View style={styles.inputWrapper}>
                   <Controller
                     control={control}
                     name="email"
@@ -171,12 +173,10 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                       />
                     )}
                   />
-                </Animated.View>
+                </View>
 
                 {/* Password Field */}
-                <Animated.View
-                  entering={FadeInUp.delay(400).duration(800).springify()}
-                >
+                <View style={styles.inputWrapper}>
                   <Controller
                     control={control}
                     name="password"
@@ -224,12 +224,10 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                       </View>
                     )}
                   />
-                </Animated.View>
+                </View>
 
                 {/* Confirm Password Field */}
-                <Animated.View
-                  entering={FadeInUp.delay(500).duration(800).springify()}
-                >
+                <View style={styles.inputWrapper}>
                   <Controller
                     control={control}
                     name="confirmPassword"
@@ -247,42 +245,31 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                       />
                     )}
                   />
-                </Animated.View>
+                </View>
 
                 {/* Terms and Conditions */}
-                <Animated.View
-                  entering={FadeInUp.delay(600).duration(800).springify()}
-                >
-                  <Text style={styles.termsText}>
-                    By creating an account, you agree to our{' '}
-                    <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-                    <Text style={styles.termsLink}>Privacy Policy</Text>
-                  </Text>
-                </Animated.View>
+                <Text style={styles.termsText}>
+                  By creating an account, you agree to our{' '}
+                  <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
+                  <Text style={styles.termsLink}>Privacy Policy</Text>
+                </Text>
 
                 {/* Register Button */}
-                <Animated.View
-                  entering={FadeInUp.delay(700).duration(800).springify()}
-                >
-                  <Animated.View style={buttonAnimatedStyle}>
-                    <Button
-                      title={isLoading ? 'Creating Account...' : 'Create Account'}
-                      onPress={handleSubmit(onSubmit)}
-                      disabled={!isValid || isLoading}
-                      loading={isLoading}
-                      style={styles.registerButton}
-                    />
-                  </Animated.View>
+                <Animated.View style={buttonAnimatedStyle}>
+                  <Button
+                    title={isLoading ? 'Creating Account...' : 'Create Account'}
+                    onPress={handleSubmit(onSubmit)}
+                    disabled={!isValid || isLoading}
+                    loading={isLoading}
+                    style={styles.registerButton}
+                  />
                 </Animated.View>
               </View>
             </GlassCard>
-          </Animated.View>
+          </View>
 
           {/* Login Link */}
-          <Animated.View
-            entering={FadeInUp.delay(800).duration(800).springify()}
-            style={styles.loginLink}
-          >
+          <View style={styles.loginLink}>
             <Text style={styles.loginText}>Already have an account? </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Login')}
@@ -290,7 +277,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             >
               <Text style={styles.loginLinkText}>Sign In</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -329,12 +316,18 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
   },
+  formCardContainer: {
+    marginBottom: 20,
+  },
   formCard: {
     padding: 0,
     overflow: 'hidden',
   },
   formContent: {
     padding: 24,
+  },
+  inputWrapper: {
+    marginBottom: 16,
   },
   passwordStrength: {
     marginTop: 8,

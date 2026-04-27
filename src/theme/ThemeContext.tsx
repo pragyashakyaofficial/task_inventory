@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Animated, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lightColors, darkColors, Colors } from './colors';
-import { typography, TypographyStyle } from './typography';
-import { spacing, SpacingValue } from './spacing';
+import { typography } from './typography';
+import { spacing } from './spacing';
 
 export type ThemeMode = 'light' | 'dark';
 

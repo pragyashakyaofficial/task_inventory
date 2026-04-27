@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, RefreshControl, Modal, Pressable } from 'react-native';
 import { 
   User, 
   Settings, 
@@ -8,19 +8,40 @@ import {
   LogOut, 
   ChevronRight,
   Mail,
-  UserCircle
+  UserCircle,
+  X
 } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../../../components/common/GlassCard';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../../auth/store/authSlice';
+import { RootState } from '../../../store';
+import { spacingSemantic } from '../../../theme/spacing';
 
 const ProfileScreen = () => {
   const { theme, toggleTheme } = useTheme();
   const insets = useSafeAreaInsets();
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const [refreshing, setRefreshing] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Simulate data refresh/auth check
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const handleLogout = () => {
-    // Placeholder for logout logic
-    console.log('Logging out...');
+    setLogoutModalVisible(true);
+  };
+
+  const confirmLogout = () => {
+    setLogoutModalVisible(false);
+    dispatch(logout());
   };
 
   const ProfileOption = ({ icon, title, subtitle, value, onValueChange, type = 'link' }: any) => (
@@ -52,13 +73,26 @@ const ProfileScreen = () => {
     <ScrollView 
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       contentContainerStyle={{ paddingTop: insets.top + 20, paddingBottom: 100 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={theme.colors.primary}
+          colors={[theme.colors.primary]}
+          progressBackgroundColor={theme.colors.backgroundSecondary}
+        />
+      }
     >
       <View style={styles.header}>
         <View style={[styles.avatarContainer, { backgroundColor: theme.colors.backgroundSecondary }]}>
           <UserCircle size={80} color={theme.colors.primary} />
         </View>
-        <Text style={[styles.userName, { color: theme.colors.text }]}>John Doe</Text>
-        <Text style={[styles.userEmail, { color: theme.colors.textSecondary }]}>john.doe@example.com</Text>
+        <Text style={[styles.userName, { color: theme.colors.text }]}>
+          {user?.name || 'User'}
+        </Text>
+        <Text style={[styles.userEmail, { color: theme.colors.textSecondary }]}>
+          {user?.email || 'user@example.com'}
+        </Text>
       </View>
 
       <View style={styles.section}>
@@ -104,16 +138,67 @@ const ProfileScreen = () => {
       </View>
 
       <TouchableOpacity 
-        style={[styles.logoutButton, { backgroundColor: '#EF4444' + '15' }]}
+        style={[styles.logoutButton, { backgroundColor: theme.colors.error + '15' }]}
         onPress={handleLogout}
       >
-        <LogOut size={20} color="#EF4444" />
-        <Text style={styles.logoutText}>Log Out</Text>
+        <LogOut size={20} color={theme.colors.error} />
+        <Text style={[styles.logoutText, { color: theme.colors.error }]}>Log Out</Text>
       </TouchableOpacity>
 
       <Text style={[styles.versionText, { color: theme.colors.textTertiary }]}>
         Version 1.0.0
       </Text>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={logoutModalVisible}
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => setLogoutModalVisible(false)}
+        >
+          <View style={styles.modalCenteredView}>
+            <GlassCard style={styles.modalView}>
+              <View style={styles.modalHeader}>
+                <View style={[styles.modalIconContainer, { backgroundColor: theme.colors.error + '20' }]}>
+                  <LogOut size={24} color={theme.colors.error} />
+                </View>
+                <TouchableOpacity 
+                  onPress={() => setLogoutModalVisible(false)}
+                  style={styles.closeButton}
+                >
+                  <X size={20} color={theme.colors.textTertiary} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalContent}>
+                <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Logout</Text>
+                <Text style={[styles.modalSubtitle, { color: theme.colors.textSecondary }]}>
+                  Are you sure you want to log out of your account?
+                </Text>
+              </View>
+
+              <View style={styles.modalFooter}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton, { backgroundColor: theme.colors.backgroundSecondary }]}
+                  onPress={() => setLogoutModalVisible(false)}
+                >
+                  <Text style={[styles.cancelButtonText, { color: theme.colors.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.confirmButton, { backgroundColor: theme.colors.error }]}
+                  onPress={confirmLogout}
+                >
+                  <Text style={styles.confirmButtonText}>Logout</Text>
+                </TouchableOpacity>
+              </View>
+            </GlassCard>
+          </View>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 };
@@ -199,7 +284,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   logoutText: {
-    color: '#EF4444',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -207,6 +291,81 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
     fontSize: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCenteredView: {
+    width: '85%',
+    maxWidth: 340,
+  },
+  modalView: {
+    padding: spacingSemantic.lg,
+    borderRadius: spacingSemantic.borderRadius.xl,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacingSemantic.md,
+  },
+  modalIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalContent: {
+    marginBottom: spacingSemantic.xl,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    marginBottom: 8,
+    letterSpacing: -0.5,
+  },
+  modalSubtitle: {
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: spacingSemantic.md,
+  },
+  modalButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: spacingSemantic.borderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelButton: {
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  confirmButton: {
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  cancelButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
 

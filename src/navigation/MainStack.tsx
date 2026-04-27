@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Home, Package, Plus, Sparkles, User } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

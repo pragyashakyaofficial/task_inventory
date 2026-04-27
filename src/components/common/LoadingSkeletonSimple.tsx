@@ -18,7 +18,6 @@ const LoadingSkeletonSimple: React.FC<LoadingSkeletonSimpleProps> = ({
   borderRadius = 4,
   variant = 'rectangular',
   lines = 1,
-  spacing = 8,
 }) => {
   const getVariantStyle = (): ViewStyle => {
     switch (variant) {

@@ -1,17 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { combineReducers } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { rootReducer } from './rootReducer';
+import { authApi } from '../features/auth/api/authApi';
 import { inventoryApi } from '../api/slices/inventoryApi';
 
 // Redux persist configuration
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: [], // Add reducers you want to persist here
-  blacklist: ['inventoryApi'], // Don't persist api cache
+  whitelist: ['auth'], // Persist auth state
+  blacklist: ['inventoryApi', 'authApi'], // Don't persist api cache
 };
 
 // Create persisted reducer
@@ -33,9 +33,15 @@ export const store = configureStore({
           'inventoryApi/executeMutation/pending',
           'inventoryApi/executeMutation/fulfilled',
           'inventoryApi/executeMutation/rejected',
+          'authApi/executeQuery/pending',
+          'authApi/executeQuery/fulfilled',
+          'authApi/executeQuery/rejected',
+          'authApi/executeMutation/pending',
+          'authApi/executeMutation/fulfilled',
+          'authApi/executeMutation/rejected',
         ],
       },
-    }).concat(inventoryApi.middleware),
+    }).concat(inventoryApi.middleware, authApi.middleware),
   devTools: __DEV__,
 });
 

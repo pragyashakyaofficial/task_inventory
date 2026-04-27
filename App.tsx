@@ -8,7 +8,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/es/integration/react';
-import { StatusBar, Text, View } from 'react-native';
+import { Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { store, persistor } from './src/store';

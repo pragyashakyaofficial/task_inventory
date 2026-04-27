@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, memo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import Animated, { 
   useSharedValue, 
   withTiming, 
@@ -76,7 +76,11 @@ const StatCard: React.FC<StatCardProps> = memo(({ title, value, icon, color }) =
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { items, isLoading } = useInventory({});
+  const { items, isLoading, refetchItems } = useInventory({});
+
+  const onRefresh = useCallback(() => {
+    refetchItems();
+  }, [refetchItems]);
 
   const stats = useMemo(() => ({
     total: items.length,
@@ -110,6 +114,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       style={containerStyle}
       contentContainerStyle={contentContainerStyle}
       removeClippedSubviews={true}
+      refreshControl={
+        <RefreshControl
+          refreshing={isLoading}
+          onRefresh={onRefresh}
+          tintColor={theme.colors.primary}
+          colors={[theme.colors.primary]}
+          progressBackgroundColor={theme.colors.backgroundSecondary}
+        />
+      }
     >
       <View style={styles.header}>
         <View>

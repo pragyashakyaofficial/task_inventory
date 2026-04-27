@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { Pressable, PressableProps, GestureResponderEvent } from 'react-native';
+import { GestureResponderEvent } from 'react-native';
 
 interface DebouncedPressProps {
   onPress?: ((event: GestureResponderEvent) => void) | null;

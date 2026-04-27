@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { View, ViewStyle, StyleSheet, TouchableOpacity } from 'react-native';
-import Animated, {
+import {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -10,8 +10,6 @@ import { useTheme } from '../../theme/ThemeContext';
 interface GlassCardProps {
   children: React.ReactNode;
   style?: ViewStyle;
-  blurType?: 'light' | 'dark' | 'xlight';
-  blurAmount?: number;
   reducedTransparencyFallbackColor?: string;
   onPress?: () => void;
 }
@@ -19,8 +17,6 @@ interface GlassCardProps {
 const GlassCard: React.FC<GlassCardProps> = memo(({
   children,
   style,
-  blurType = 'light',
-  blurAmount = 10,
   reducedTransparencyFallbackColor,
   onPress,
 }) => {
