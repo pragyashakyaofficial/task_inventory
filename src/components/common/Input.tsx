@@ -7,7 +7,9 @@ import {
   ViewStyle,
   TextStyle,
   TextInputProps,
+  TouchableOpacity,
 } from 'react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -28,6 +30,8 @@ interface InputProps extends TextInputProps {
   required?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  showPasswordToggle?: boolean;
+  leftIcon?: React.ReactNode;
 }
 
 const Input: React.FC<InputProps> = memo(({
@@ -45,10 +49,14 @@ const Input: React.FC<InputProps> = memo(({
   onBlur,
   accessibilityLabel,
   accessibilityHint,
+  showPasswordToggle = false,
+  secureTextEntry,
+  leftIcon,
   ...props
 }) => {
   const { theme } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const borderColor = useSharedValue(theme.colors.border);
   const borderWidth = useSharedValue(1);
   const labelScale = useSharedValue(1);
@@ -125,6 +133,10 @@ const Input: React.FC<InputProps> = memo(({
     }
   }, [props.value, error]);
 
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
+
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
@@ -133,7 +145,7 @@ const Input: React.FC<InputProps> = memo(({
             styles.label,
             {
               color: error ? theme.colors.error : isFocused ? theme.colors.primary : theme.colors.textSecondary,
-              backgroundColor: theme.colors.background,
+              // backgroundColor: theme.colors.background,
               paddingHorizontal: 4,
               zIndex: 1,
             },
@@ -164,14 +176,29 @@ const Input: React.FC<InputProps> = memo(({
             styles.input,
             error && styles.errorInput,
             { color: theme.colors.text },
+            showPasswordToggle && styles.inputWithToggle,
             inputStyle,
           ]}
           onChangeText={handleTextChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholderTextColor={theme.colors.textTertiary}
+          secureTextEntry={secureTextEntry && !isPasswordVisible}
           {...props}
         />
+        {showPasswordToggle && secureTextEntry && (
+          <TouchableOpacity
+            style={styles.toggleButton}
+            onPress={togglePasswordVisibility}
+            activeOpacity={0.7}
+          >
+            {isPasswordVisible ? (
+              <EyeOff size={20} color={theme.colors.textSecondary} />
+            ) : (
+              <Eye size={20} color={theme.colors.textSecondary} />
+            )}
+          </TouchableOpacity>
+        )}
       </Animated.View>
       
       {error && (
@@ -214,6 +241,22 @@ const styles = StyleSheet.create({
     paddingVertical: spacingSemantic.sm * 1.5,
     fontSize: 16,
     borderRadius: spacingSemantic.borderRadius.md,
+    flex: 1,
+  },
+  leftIconContainer: {
+    paddingLeft: spacingSemantic.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputWithToggle: {
+    paddingRight: 45,
+  },
+  toggleButton: {
+    position: 'absolute',
+    right: 12,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorInput: {
     borderRadius: spacingSemantic.borderRadius.md,

@@ -5,8 +5,11 @@ import { InventoryItem as FeatureInventoryItem } from '../../features/inventory/
 // API endpoints
 const ENDPOINTS = {
   // Inventory endpoints
-  INVENTORY: '/inventory',
-  INVENTORY_ITEM: (id: string) => `/inventory/${id}`,
+  INVENTORY: '/items',
+  INVENTORY_ITEM: (id: string) => `/items/${id}`,
+
+  // Dashboard endpoints
+  DASHBOARD_STATS: '/api/dashboard',
   
   // Auth endpoints
   LOGIN: '/auth/login',
@@ -54,17 +57,15 @@ export interface GetItemsParams {
 export interface GetItemsResponse {
   items: InventoryItem[];
   total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 }
 
 export interface DashboardStats {
   totalItems: number;
-  totalValue: number;
-  lowStockItems: number;
-  outOfStockItems: number;
-  categoriesCount: number;
+  inStockCount: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+  totalQuantity: number;
+  criticalStockAlerts: InventoryItem[];
   recentActivity: {
     action: 'created' | 'updated' | 'deleted';
     itemName: string;
@@ -112,6 +113,35 @@ export const inventoryApi = createApi({
         url: ENDPOINTS.INVENTORY,
         params,
       }),
+      transformResponse: (response: any[] | GetItemsResponse) => {
+        const mapItem = (item: any): InventoryItem => ({
+          ...item,
+          id: item._id || item.id,
+          status: (item.status || 'in-stock').toLowerCase().replace(' ', '-'),
+          minQuantity: item.minQuantity || item.minimumStock || 0,
+          maxQuantity: item.maxQuantity || 100,
+          price: item.price || 0,
+          cost: item.cost || 0,
+          sku: item.sku || '',
+          category: item.category || 'Uncategorized',
+        });
+
+        if (Array.isArray(response)) {
+          return {
+            items: response.map(mapItem),
+            total: response.length,
+          };
+        }
+        
+        if (response && response.items) {
+          return {
+            ...response,
+            items: response.items.map(mapItem),
+          };
+        }
+
+        return response;
+      },
       providesTags: [inventoryTags.items],
     }),
 
@@ -262,7 +292,7 @@ export const inventoryApi = createApi({
 
     // Get dashboard statistics
     getDashboardStats: builder.query<DashboardStats, void>({
-      query: () => `${ENDPOINTS.INVENTORY}/dashboard/stats`,
+      query: () => ENDPOINTS.DASHBOARD_STATS,
       providesTags: [inventoryTags.dashboard],
     }),
   }),

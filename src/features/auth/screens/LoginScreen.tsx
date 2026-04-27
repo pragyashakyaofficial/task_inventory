@@ -8,32 +8,30 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Dimensions,
+  ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { loginSchema, LoginFormData } from '../schemas/auth.schemas';
 import GlassCard from '../../../components/common/GlassCard';
 import Input from '../../../components/common/Input';
-import Button from '../../../components/common/Button';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
-import { useThemedStyle, createThemedStyle, Theme } from '../../../theme/ThemeContext';
+import { useThemedStyle, createThemedStyle, Theme, useTheme } from '../../../theme/ThemeContext';
 
 import { useLoginMutation } from '../api/authApi';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../store/authSlice';
+
+const { width, height } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const dispatch = useDispatch();
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
-  const buttonScale = useSharedValue(1);
   const styles = useThemedStyle(themedStyles);
 
   const {
@@ -43,12 +41,14 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      buttonScale.value = withSpring(0.95);
-      
       const response = await login(data).unwrap();
       
       dispatch(setCredentials({
@@ -56,120 +56,192 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         token: response.token,
       }));
 
-      Alert.alert('Success', 'Login successful!');
+      Alert.alert(
+        'Welcome Back!',
+        `Successfully logged in as ${response.user?.email || 'user'}`,
+        [{ text: 'Continue', style: 'default' }]
+      );
     } catch (error: any) {
-      const message = error?.data?.message || 'Login failed. Please try again.';
-      Alert.alert('Error', message);
-    } finally {
-      buttonScale.value = withSpring(1);
+      const message = error?.data?.message || 'Invalid email or password. Please try again.';
+      Alert.alert('Authentication Failed', message);
     }
+  };
+
+  const handleForgotPassword = () => {
+    Alert.alert(
+      'Reset Password',
+      'Password reset link will be sent to your email',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Send', style: 'default' },
+      ]
+    );
   };
 
   const isLoading = isLoginLoading;
 
-  const buttonAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: buttonScale.value }],
-    };
-  });
+  const { theme } = useTheme();
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <View style={styles.container}>
+      <StatusBar
+        backgroundColor="transparent"
+        barStyle="light-content"
+        translucent
+      />
+      {/* Gradient Background using pure React Native */}
+      <View style={styles.gradientBackground}>
+        <View style={styles.gradientOverlay1} />
+        <View style={styles.gradientOverlay2} />
+        <View style={styles.gradientOverlay3} />
+      </View>
+
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to your account</Text>
-          </View>
-
-          {/* Login Form */}
-          <View style={styles.formCardContainer}>
-            <GlassCard style={styles.formCard}>
-              <View style={styles.formContent}>
-                {/* Email Field */}
-                <View style={styles.inputWrapper}>
-                  <Controller
-                    control={control}
-                    name="email"
-                    render={({ field: { onChange, onBlur, value } }: any) => (
-                      <Input
-                        label="Email"
-                        placeholder="Enter your email"
-                        value={value}
-                        onChangeText={onChange}
-                        onBlur={onBlur}
-                        error={errors.email?.message}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        textContentType="emailAddress"
-                      />
-                    )}
-                  />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            {/* Logo/Brand Section */}
+            <View style={styles.brandSection}>
+              {/* <View style={styles.logoContainer}>
+                <View style={styles.logoPlaceholder}>
+                  <Text style={styles.logoText}>📦</Text>
                 </View>
+              </View>
+              <Text style={styles.appName}>InventoryApp</Text> */}
+            </View>
 
-                {/* Password Field */}
-                <View style={styles.inputWrapper}>
-                  <Controller
-                    control={control}
-                    name="password"
-                    render={({ field: { onChange, onBlur, value } }: any) => (
-                      <Input
-                        label="Password"
-                        placeholder="Enter your password"
-                        value={value}
-                        onChangeText={onChange}
-                        onBlur={onBlur}
-                        error={errors.password?.message}
-                        secureTextEntry
-                        autoComplete="password"
-                        textContentType="password"
-                      />
-                    )}
-                  />
-                </View>
+            {/* Header Section */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.subtitle}>Sign in to manage your inventory</Text>
+            </View>
 
-                {/* Forgot Password */}
-                {/* <TouchableOpacity style={styles.forgotPassword}>
-                  <Text style={styles.forgotPasswordText}>
-                    Forgot Password?
-                  </Text>
-                </TouchableOpacity> */}
+            {/* Login Form Card */}
+            <View style={styles.formCardContainer}>
+              <GlassCard style={styles.formCard}>
+                <View style={styles.formContent}>
+                  {/* Email Field */}
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.inputLabel}>Email Address</Text>
+                    <Controller
+                      control={control}
+                      name="email"
+                      render={({ field: { onChange, onBlur, value } }) => (
+                        <Input
+                          placeholder="john@example.com"
+                          value={value}
+                          onChangeText={onChange}
+                          onBlur={onBlur}
+                          error={errors.email?.message}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                          autoComplete="email"
+                          textContentType="emailAddress"
+                        />
+                      )}
+                    />
+                  </View>
 
-                {/* Login Button */}
-                <Animated.View style={buttonAnimatedStyle}>
-                  <Button
-                    title={isLoading ? 'Signing In...' : 'Sign In'}
+                  {/* Password Field */}
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.inputLabel}>Password</Text>
+                    <Controller
+                      control={control}
+                      name="password"
+                      render={({ field: { onChange, onBlur, value } }) => (
+                        <Input
+                          placeholder="••••••••"
+                          value={value}
+                          onChangeText={onChange}
+                          onBlur={onBlur}
+                          error={errors.password?.message}
+                          secureTextEntry
+                          showPasswordToggle
+                        />
+                      )}
+                    />
+                  </View>
+
+                  {/* Remember Me & Forgot Password Row */}
+                  <View style={styles.optionsRow}>
+                    <TouchableOpacity
+                      onPress={handleForgotPassword}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Login Button */}
+                  <TouchableOpacity
+                    style={[
+                      styles.loginButton,
+                      (!isValid || isLoading) && styles.loginButtonDisabled
+                    ]}
                     onPress={handleSubmit(onSubmit)}
                     disabled={!isValid || isLoading}
-                    loading={isLoading}
-                    style={styles.loginButton}
-                  />
-                </Animated.View>
-              </View>
-            </GlassCard>
-          </View>
+                    activeOpacity={0.8}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.loginButtonText}>Sign In</Text>
+                    )}
+                  </TouchableOpacity>
 
-          {/* Register Link */}
-          <View style={styles.registerLink}>
-            <Text style={styles.registerText}>Don't have an account? </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Register')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.registerLinkText}>Sign Up</Text>
-            </TouchableOpacity>
+                  {/* Divider */}
+                  {/* <View style={styles.divider}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>or continue with</Text>
+                    <View style={styles.dividerLine} />
+                  </View> */}
+
+                  {/* Social Login Buttons */}
+                  {/* <View style={styles.socialButtons}>
+                    <TouchableOpacity style={styles.socialButton}>
+                      <Text style={styles.socialIcon}>G</Text>
+                      <Text style={styles.socialButtonText}>Google</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.socialButton}>
+                      <Text style={styles.socialIcon}>f</Text>
+                      <Text style={styles.socialButtonText}>Facebook</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.socialButton}>
+                      <Text style={styles.socialIcon}>🐦</Text>
+                      <Text style={styles.socialButtonText}>Twitter</Text>
+                    </TouchableOpacity>
+                  </View> */}
+                </View>
+              </GlassCard>
+            </View>
+
+            {/* Register Link */}
+            <View style={styles.registerLink}>
+              <Text style={styles.registerText}>New to our platform? </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Register')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.registerLinkText}>Create Account →</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Terms & Privacy */}
+            {/* <Text style={styles.termsText}>
+              By signing in, you agree to our{' '}
+              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
+              <Text style={styles.termsLink}>Privacy Policy</Text>
+            </Text> */}
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -178,20 +250,85 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  gradientOverlay1: {
+    position: 'absolute',
+    top: -50,
+    left: -50,
+    width: width * 0.6,
+    height: width * 0.6,
+    borderRadius: width * 0.3,
+    backgroundColor: theme.colors.primary + '20',
+    opacity: 0.3,
+  },
+  gradientOverlay2: {
+    position: 'absolute',
+    bottom: -30,
+    right: -30,
+    width: width * 0.7,
+    height: width * 0.7,
+    borderRadius: width * 0.35,
+    backgroundColor: theme.colors.secondary + '20',
+    opacity: 0.3,
+  },
+  gradientOverlay3: {
+    position: 'absolute',
+    top: height * 0.3,
+    right: -20,
+    width: width * 0.5,
+    height: width * 0.5,
+    borderRadius: width * 0.25,
+    backgroundColor: '#FF6B6B20',
+    opacity: 0.2,
+  },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingVertical: 40,
   },
   content: {
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 500,
     alignSelf: 'center',
+  },
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logoContainer: {
+    marginBottom: 12,
+  },
+  logoPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+
+  },
+  logoText: {
+    fontSize: 40,
+  },
+  appName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    letterSpacing: 1,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
   title: {
     fontSize: 32,
@@ -199,50 +336,158 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     color: theme.colors.text,
     marginBottom: 8,
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   formCardContainer: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   formCard: {
     padding: 0,
     overflow: 'hidden',
+    borderRadius: 20,
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   formContent: {
     padding: 24,
   },
   inputWrapper: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginBottom: 8,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 12,
+    // marginTop: 4,
+  },
+  rememberMe: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  checkboxChecked: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  rememberMeText: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
   },
   forgotPasswordText: {
     fontSize: 14,
     color: theme.colors.primary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   loginButton: {
-    marginBottom: 16,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
+    shadowOpacity: 0.1,
+  },
+  loginButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.border,
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    color: theme.colors.textSecondary,
+    fontSize: 12,
+  },
+  socialButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  socialButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: theme.colors.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    gap: 8,
+  },
+  socialIcon: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  socialButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: theme.colors.textSecondary,
   },
   registerLink: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 24,
+    marginBottom: 16,
   },
   registerText: {
-    fontSize: 14,
+    fontSize: 15,
     color: theme.colors.textSecondary,
   },
   registerLinkText: {
-    fontSize: 14,
+    fontSize: 15,
     color: theme.colors.primary,
     fontWeight: '600',
+  },
+  termsText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  termsLink: {
+    color: theme.colors.primary,
+    textDecorationLine: 'underline',
   },
 }));

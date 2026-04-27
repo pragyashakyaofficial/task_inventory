@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import {
   useGetItemsQuery,
   useCreateItemMutation,
   useUpdateItemMutation,
   useDeleteItemMutation,
+  useGetDashboardStatsQuery,
 } from '../../../api/slices/inventoryApi';
 import {
   InventoryItem,
@@ -17,10 +18,7 @@ import {
 
 export const useInventory = (initialParams?: GetItemsParams) => {
   const [params, setParams] = useState<GetItemsParams>(initialParams || {});
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds
 
-  // Get items with auto-refresh
   const {
     data: itemsData,
     error: getItemsError,
@@ -60,17 +58,6 @@ export const useInventory = (initialParams?: GetItemsParams) => {
       isSuccess: isDeleteItemSuccess,
     },
   ] = useDeleteItemMutation();
-
-  // Auto-refresh effect
-  useEffect(() => {
-    if (!autoRefresh) return;
-
-    const interval = setInterval(() => {
-      refetchItems();
-    }, refreshInterval);
-
-    return () => clearInterval(interval);
-  }, [autoRefresh, refreshInterval, refetchItems]);
 
   // Update params with auto-refetch
   const updateParams = useCallback((newParams: Partial<GetItemsParams>) => {
@@ -149,24 +136,11 @@ export const useInventory = (initialParams?: GetItemsParams) => {
     [handleUpdateItem]
   );
 
-  // Toggle auto-refresh
-  const toggleAutoRefresh = useCallback(() => {
-    setAutoRefresh(prev => !prev);
-  }, []);
-
-  // Set refresh interval
-  const setRefreshIntervalTime = useCallback((interval: number) => {
-    setRefreshInterval(interval);
-  }, []);
-
   return useMemo(() => ({
     // Data
     items: itemsData?.items || [],
     pagination: itemsData ? {
-      page: itemsData.page,
-      limit: itemsData.limit,
       total: itemsData.total,
-      totalPages: itemsData.totalPages,
     } : undefined,
     filters: undefined,
     sort: undefined,
@@ -196,12 +170,6 @@ export const useInventory = (initialParams?: GetItemsParams) => {
     refetchItems,
     updateParams,
 
-    // Auto-refresh
-    autoRefresh,
-    toggleAutoRefresh,
-    setRefreshInterval: setRefreshIntervalTime,
-    refreshInterval,
-
     // Response data
     createItemData,
     updateItemData,
@@ -225,10 +193,6 @@ export const useInventory = (initialParams?: GetItemsParams) => {
     updateQuantity,
     refetchItems,
     updateParams,
-    autoRefresh,
-    toggleAutoRefresh,
-    setRefreshIntervalTime,
-    refreshInterval,
     createItemData,
     updateItemData,
     deleteItemData,
@@ -319,6 +283,23 @@ export const useAISuggestion = () => {
     error,
     generateSuggestions,
     clearSuggestions,
+  };
+};
+
+// Hook for dashboard statistics
+export const useDashboardStats = () => {
+  const {
+    data: stats,
+    error,
+    isLoading,
+    refetch: refetchStats,
+  } = useGetDashboardStatsQuery();
+
+  return {
+    stats,
+    error,
+    isLoading,
+    refetchStats,
   };
 };
 

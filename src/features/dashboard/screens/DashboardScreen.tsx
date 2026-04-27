@@ -1,11 +1,5 @@
-import React, { useEffect, useMemo, memo, useCallback } from 'react';
+import React, { useMemo, memo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import Animated, { 
-  useSharedValue, 
-  withTiming, 
-  Easing,
-  useDerivedValue
-} from 'react-native-reanimated';
 import { 
   Package, 
   AlertTriangle, 
@@ -18,12 +12,10 @@ import { useTheme } from '../../../theme/ThemeContext';
 import { spacingSemantic } from '../../../theme/spacing';
 import GlassCard from '../../../components/common/GlassCard';
 import { InventoryItem } from '../../inventory/types/inventory.types';
-import { useInventory } from '../../inventory/hooks/useInventory';
+import { useInventory, useDashboardStats } from '../../inventory/hooks/useInventory';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainStackParamList } from '../../../navigation/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-const AnimatedText = Animated.createAnimatedComponent(Text);
 
 interface StatCardProps {
   title: string;
@@ -41,18 +33,6 @@ interface DashboardScreenProps {
 
 const StatCard: React.FC<StatCardProps> = memo(({ title, value, icon, color }) => {
   const { theme } = useTheme();
-  const count = useSharedValue(0);
-
-  useEffect(() => {
-    count.value = withTiming(value, {
-      duration: 1500,
-      easing: Easing.out(Easing.exp),
-    });
-  }, [value]);
-
-  const animatedText = useDerivedValue(() => {
-    return Math.floor(count.value).toString();
-  });
 
   return (
     <GlassCard style={styles.statCard}>
@@ -65,9 +45,9 @@ const StatCard: React.FC<StatCardProps> = memo(({ title, value, icon, color }) =
         </Text>
       </View>
       <View style={styles.statValueContainer}>
-        <AnimatedText style={[styles.statValue, { color: theme.colors.text }]}>
-          {animatedText.value}
-        </AnimatedText>
+        <Text style={[styles.statValue, { color: theme.colors.text }]}>
+          {value}
+        </Text>
       </View>
     </GlassCard>
   );
@@ -76,27 +56,40 @@ const StatCard: React.FC<StatCardProps> = memo(({ title, value, icon, color }) =
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { items, isLoading, refetchItems } = useInventory({});
+  const { items, isLoading: isInventoryLoading, refetchItems } = useInventory({});
+  const { stats: dashboardStats, isLoading: isStatsLoading, refetchStats } = useDashboardStats();
+
+  // Log API calls and data
+  React.useEffect(() => {
+    console.log('Dashboard Data Updated:', {
+      inventoryItemsCount: items.length,
+      dashboardStats: dashboardStats,
+      isLoading: isInventoryLoading || isStatsLoading
+    });
+  }, [items, dashboardStats, isInventoryLoading, isStatsLoading]);
+
+  const isLoading = isInventoryLoading || isStatsLoading;
 
   const onRefresh = useCallback(() => {
     refetchItems();
-  }, [refetchItems]);
+    refetchStats();
+  }, [refetchItems, refetchStats]);
 
   const stats = useMemo(() => ({
-    total: items.length,
-    inStock: items.filter((i: InventoryItem) => i.status === 'in-stock').length,
-    lowStock: items.filter((i: InventoryItem) => i.status === 'low-stock').length,
-    outOfStock: items.filter((i: InventoryItem) => i.status === 'out-of-stock').length,
-  }), [items]);
+    total: dashboardStats?.totalItems ?? items.length,
+    inStock: dashboardStats?.inStockCount ?? items.filter((i: InventoryItem) => i.status === 'in-stock').length,
+    lowStock: dashboardStats?.lowStockCount ?? items.filter((i: InventoryItem) => i.status === 'low-stock').length,
+    outOfStock: dashboardStats?.outOfStockCount ?? items.filter((i: InventoryItem) => i.status === 'out-of-stock').length,
+  }), [items, dashboardStats]);
 
-  const lowStockItems = useMemo(() => 
-    items.filter((i: InventoryItem) => i.status === 'low-stock').slice(0, 5)
-  , [items]);
+  const criticalAlerts = useMemo(() => 
+    dashboardStats?.criticalStockAlerts ?? items.filter((i: InventoryItem) => i.status !== 'in-stock').slice(0, 5)
+  , [items, dashboardStats]);
 
   const handleViewAll = useCallback(() => navigation.navigate('InventoryList'), [navigation]);
   const handleProfilePress = useCallback(() => navigation.navigate('Profile'), [navigation]);
-  const handleItemPress = useCallback((item: InventoryItem) => {
-    navigation.navigate('ItemDetail', { itemId: item.id });
+  const handleItemPress = useCallback((item: any) => {
+    navigation.navigate('ItemDetail', { itemId: item.id || item._id });
   }, [navigation]);
 
   const contentContainerStyle = useMemo(() => ({ 
@@ -176,20 +169,20 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {lowStockItems.length > 0 ? (
-          lowStockItems.map((item: InventoryItem) => (
+        {criticalAlerts.length > 0 ? (
+          criticalAlerts.map((item: any) => (
             <TouchableOpacity 
-              key={item.id}
+              key={item.id || item._id}
               style={[styles.alertItem, { backgroundColor: theme.colors.backgroundSecondary }]}
               onPress={() => handleItemPress(item)}
             >
-              <View style={[styles.alertIcon, { backgroundColor: '#F59E0B20' }]}>
-                <AlertTriangle size={18} color="#F59E0B" />
+              <View style={[styles.alertIcon, { backgroundColor: (item.status === 'Out of Stock' || item.status === 'out-of-stock') ? '#EF444420' : '#F59E0B20' }]}>
+                <AlertTriangle size={18} color={(item.status === 'Out of Stock' || item.status === 'out-of-stock') ? '#EF4444' : '#F59E0B'} />
               </View>
               <View style={styles.alertContent}>
                 <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
                 <Text style={[styles.itemStock, { color: theme.colors.textSecondary }]}>
-                  Only {item.quantity} left in stock
+                  {item.status}: {item.quantity} units
                 </Text>
               </View>
               <ChevronRight size={20} color={theme.colors.textTertiary} />

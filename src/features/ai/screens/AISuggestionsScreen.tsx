@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
@@ -16,9 +17,6 @@ import {
   ArrowRight,
   RefreshCcw,
 } from 'lucide-react-native';
-import Animated, { 
-  FadeInDown, 
-} from 'react-native-reanimated';
 import { useTheme } from '../../../theme/ThemeContext';
 import GlassCard from '../../../components/common/GlassCard';
 import Button from '../../../components/common/Button';
@@ -37,6 +35,15 @@ const AISuggestionsScreen = () => {
   const { items, refetchItems } = useInventory({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [confidenceFilter, setConfidenceFilter] = useState<number>(0);
+
+  // Log dynamic data updates
+  useEffect(() => {
+    console.log('AI Suggestions dynamic data source (Inventory) updated:', {
+      totalItems: items.length,
+      outOfStock: items.filter(i => i.status === 'out-of-stock').length,
+      lowStock: items.filter(i => i.status === 'low-stock').length,
+    });
+  }, [items]);
 
   const suggestions: SuggestionItem[] = useMemo(() => {
     return items
@@ -76,8 +83,13 @@ const AISuggestionsScreen = () => {
     );
   }, [filteredSuggestions.length]);
 
-  const renderItem = useCallback(({ item, index }: { item: SuggestionItem; index: number }) => (
-    <Animated.View entering={FadeInDown.delay(index * 100)}>
+  const handleItemPress = useCallback((item: SuggestionItem) => {
+    // Navigate or show details
+    console.log('Suggestion pressed:', item.name);
+  }, []);
+
+  const renderItem = useCallback(({ item }: { item: SuggestionItem; index: number }) => (
+    <View>
       <GlassCard style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.itemInfo}>
@@ -141,8 +153,8 @@ const AISuggestionsScreen = () => {
           />
         </View>
       </GlassCard>
-    </Animated.View>
-  ), [theme.colors]);
+    </View>
+  ), [theme.colors, handleItemPress]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -379,7 +391,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
 });
-
-import { ScrollView } from 'react-native-gesture-handler';
 
 export default AISuggestionsScreen;

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,8 +16,9 @@ import { Search, Plus, PackageX } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
 import { useInventory } from '../hooks/useInventory';
 import { spacingSemantic } from '../../../theme/spacing';
-import InventoryCard from '../components/InventoryCard';
 import { StockStatus, InventoryItem } from '../types/inventory.types';
+import StatusBadge from '../../../components/common/StatusBadge';
+import GlassCard from '../../../components/common/GlassCard';
 import LoadingSkeleton from '../../../components/common/LoadingSkeleton';
 
 const FILTER_OPTIONS: { label: string; value: StockStatus | 'all' }[] = [
@@ -41,14 +42,27 @@ const InventoryListScreen = () => {
     updateParams,
   } = useInventory({
     search: searchQuery,
-    status: selectedStatus === 'all' ? undefined : selectedStatus as any,
+    // Status is handled client-side for filtering to ensure immediate feedback
   });
+
+  // Log API data
+  useEffect(() => {
+    console.log('Inventory List Data Updated:', {
+      count: items.length,
+      isLoading,
+      firstItem: items[0] ? { name: items[0].name, status: items[0].status } : 'none'
+    });
+  }, [items, isLoading]);
+
+  const filteredItems = useMemo(() => {
+    if (selectedStatus === 'all') return items;
+    return items.filter(item => item.status === selectedStatus);
+  }, [items, selectedStatus]);
 
   const onRefresh = React.useCallback(() => {
     refetchItems();
   }, [refetchItems]);
 
-  // Debounced search
   useEffect(() => {
     const handler = setTimeout(() => {
       updateParams({ search: searchQuery });
@@ -63,17 +77,43 @@ const InventoryListScreen = () => {
 
   const handleStatusFilter = (status: StockStatus | 'all') => {
     setSelectedStatus(status);
-    updateParams({ status: status === 'all' ? undefined : status as any });
   };
 
-  const renderItem = useCallback(({ item }: { item: InventoryItem; index: number }) => (
-    <InventoryCard
-      item={item}
-      onEdit={(i) => navigation.navigate('AddEditItem', { item: i })}
-      onDelete={(i) => console.log('Delete', i.id)}
-      onPress={(i) => navigation.navigate('ItemDetail', { item: i })}
-    />
-  ), [navigation]);
+  const renderItem = useCallback(({ item }: { item: InventoryItem }) => (
+    <TouchableOpacity
+      onPress={() => navigation.navigate('ItemDetail', { item: item })}
+      activeOpacity={0.7}
+      style={styles.itemWrapper}
+    >
+      <GlassCard style={styles.itemCard}>
+        <View style={styles.itemHeader}>
+          <View style={styles.itemInfo}>
+            <Text style={[styles.itemName, { color: theme.colors.text }]} numberOfLines={1}>
+              {item.name}
+            </Text>
+            <Text style={[styles.itemCategory, { color: theme.colors.textSecondary }]}>
+              {item.category}
+            </Text>
+          </View>
+          <StatusBadge status={item.status} size="small" />
+        </View>
+
+        <View style={styles.itemFooter}>
+          <View style={styles.itemStat}>
+            <PackageX size={14} color={theme.colors.textTertiary} />
+            <Text style={[styles.itemStatText, { color: theme.colors.textSecondary }]}>
+              {item.quantity} units
+            </Text>
+          </View>
+          <View style={styles.itemStat}>
+            <Text style={[styles.itemPrice, { color: theme.colors.primary }]}>
+              ${item.price.toFixed(2)}
+            </Text>
+          </View>
+        </View>
+      </GlassCard>
+    </TouchableOpacity>
+  ), [navigation, theme.colors]);
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -181,7 +221,7 @@ const InventoryListScreen = () => {
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: theme.colors.background }]}>
       <FlashList<InventoryItem>
-        data={items as InventoryItem[]}
+        data={filteredItems}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}
@@ -268,6 +308,54 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  itemWrapper: {
+    paddingHorizontal: spacingSemantic.screen,
+    marginBottom: spacingSemantic.md,
+  },
+  itemCard: {
+    padding: spacingSemantic.md,
+    borderRadius: spacingSemantic.borderRadius.lg,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacingSemantic.sm,
+  },
+  itemInfo: {
+    flex: 1,
+    marginRight: spacingSemantic.md,
+  },
+  itemName: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  itemCategory: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  itemFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: spacingSemantic.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  itemStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  itemStatText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  itemPrice: {
+    fontSize: 16,
+    fontWeight: '800',
   },
   emptyContainer: {
     flex: 1,
