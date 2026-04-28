@@ -17,7 +17,7 @@ import {
   ArrowRight,
   RefreshCcw,
 } from 'lucide-react-native';
-import { useTheme } from '../../../theme/ThemeContext';
+import { colors } from '../../../theme/constants';
 import GlassCard from '../../../components/common/GlassCard';
 import Button from '../../../components/common/Button';
 import { useInventory } from '../../inventory/hooks/useInventory';
@@ -30,7 +30,6 @@ interface SuggestionItem extends InventoryItem {
 }
 
 const AISuggestionsScreen = () => {
-  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { items, refetchItems } = useInventory({});
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -93,12 +92,12 @@ const AISuggestionsScreen = () => {
       <GlassCard style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.itemInfo}>
-            <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
-            <Text style={[styles.itemSku, { color: theme.colors.textSecondary }]}>SKU: {item.sku}</Text>
+            <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+            <Text style={[styles.itemSku, { color: colors.textSecondary }]}>SKU: {item.sku}</Text>
           </View>
-          <View style={[styles.confidenceBadge, { backgroundColor: theme.colors.primary + '15' }]}>
-            <Sparkles size={14} color={theme.colors.primary} />
-            <Text style={[styles.confidenceText, { color: theme.colors.primary }]}>
+          <View style={[styles.confidenceBadge, { backgroundColor: colors.primary + '15' }]}>
+            <Sparkles size={14} color={colors.primary} />
+            <Text style={[styles.confidenceText, { color: colors.primary }]}>
               {Math.round(item.confidence * 100)}% Match
             </Text>
           </View>
@@ -107,33 +106,33 @@ const AISuggestionsScreen = () => {
         <View style={styles.suggestionBody}>
           <View style={styles.quantityRow}>
             <View style={styles.quantityBox}>
-              <Text style={[styles.quantityLabel, { color: theme.colors.textSecondary }]}>Current</Text>
-              <Text style={[styles.quantityValue, { color: theme.colors.text }]}>{item.quantity}</Text>
+              <Text style={[styles.quantityLabel, { color: colors.textSecondary }]}>Current</Text>
+              <Text style={[styles.quantityValue, { color: colors.text }]}>{item.quantity}</Text>
             </View>
-            <ArrowRight size={20} color={theme.colors.textTertiary} />
+            <ArrowRight size={20} color={colors.textTertiary} />
             <View style={styles.quantityBox}>
-              <Text style={[styles.quantityLabel, { color: theme.colors.primary }]}>Suggested</Text>
-              <Text style={[styles.quantityValue, { color: theme.colors.primary }]}>{item.suggestedQuantity}</Text>
+              <Text style={[styles.quantityLabel, { color: colors.primary }]}>Suggested</Text>
+              <Text style={[styles.quantityValue, { color: colors.primary }]}>{item.suggestedQuantity}</Text>
             </View>
           </View>
 
           <View style={styles.progressSection}>
-            <View style={[styles.progressTrack, { backgroundColor: theme.colors.borderLight }]}>
+            <View style={[styles.progressTrack, { backgroundColor: colors.borderLight }]}>
               <View 
                 style={[
                   styles.progressBar, 
                   { 
                     width: `${item.confidence * 100}%`,
-                    backgroundColor: item.confidence > 0.9 ? '#10B981' : theme.colors.primary 
+                    backgroundColor: item.confidence > 0.9 ? '#10B981' : colors.primary 
                   }
                 ]} 
               />
             </View>
           </View>
 
-          <View style={[styles.reasonBox, { backgroundColor: theme.colors.backgroundSecondary }]}>
-            <Brain size={16} color={theme.colors.textSecondary} style={styles.reasonIcon} />
-            <Text style={[styles.reasonText, { color: theme.colors.textSecondary }]}>{item.reason}</Text>
+          <View style={[styles.reasonBox, { backgroundColor: colors.backgroundSecondary }]}>
+            <Brain size={16} color={colors.textSecondary} style={styles.reasonIcon} />
+            <Text style={[styles.reasonText, { color: colors.textSecondary }]}>{item.reason}</Text>
           </View>
         </View>
 
@@ -154,22 +153,22 @@ const AISuggestionsScreen = () => {
         </View>
       </GlassCard>
     </View>
-  ), [theme.colors, handleItemPress]);
+  ), [handleItemPress]);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View>
-          <Text style={[styles.title, { color: theme.colors.text }]}>AI Optimization</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+          <Text style={[styles.title, { color: colors.text }]}>AI Optimization</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             {filteredSuggestions.length} Smart Reorder Suggestions
           </Text>
         </View>
         <TouchableOpacity 
-          style={[styles.iconButton, { backgroundColor: theme.colors.backgroundSecondary }]}
+          style={[styles.iconButton, { backgroundColor: colors.backgroundSecondary }]}
           onPress={onRefresh}
         >
-          <RefreshCcw size={20} color={theme.colors.text} />
+          <RefreshCcw size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -185,14 +184,14 @@ const AISuggestionsScreen = () => {
               style={[
                 styles.filterChip,
                 { 
-                  backgroundColor: confidenceFilter === val ? theme.colors.primary : theme.colors.backgroundSecondary,
+                  backgroundColor: confidenceFilter === val ? colors.primary : colors.backgroundSecondary,
                 }
               ]}
               onPress={() => setConfidenceFilter(val)}
             >
               <Text style={[
                 styles.filterText,
-                { color: confidenceFilter === val ? 'white' : theme.colors.textSecondary }
+                { color: confidenceFilter === val ? 'white' : colors.textSecondary }
               ]}>
                 {val === 0 ? 'All' : `${Math.round(val * 100)}%+ Confidence`}
               </Text>
@@ -210,7 +209,7 @@ const AISuggestionsScreen = () => {
           <RefreshControl 
             refreshing={isRefreshing} 
             onRefresh={onRefresh}
-            tintColor={theme.colors.primary}
+            tintColor={colors.primary}
           />
         }
         ListHeaderComponent={
@@ -224,9 +223,9 @@ const AISuggestionsScreen = () => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <CheckCircle2 size={64} color={theme.colors.textTertiary} />
-            <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>All Clear!</Text>
-            <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
+            <CheckCircle2 size={64} color={colors.textTertiary} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>All Clear!</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
               No items currently require AI-driven reordering.
             </Text>
           </View>

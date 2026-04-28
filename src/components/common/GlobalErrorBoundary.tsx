@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../theme/ThemeContext';
+import { colors } from '../../theme/constants';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -46,16 +46,14 @@ class GlobalErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBound
 }
 
 const DefaultErrorFallback: React.FC<{ onReset: () => void; error: Error | null }> = ({ onReset, error }) => {
-  const { theme } = useTheme();
-
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>Oops! Something went wrong.</Text>
-      <Text style={[styles.message, { color: theme.colors.textSecondary }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>Oops! Something went wrong.</Text>
+      <Text style={[styles.message, { color: colors.textSecondary }]}>
         {error?.message || 'An unexpected error occurred.'}
       </Text>
       <TouchableOpacity 
-        style={[styles.button, { backgroundColor: theme.colors.primary }]} 
+        style={[styles.button, { backgroundColor: colors.primary }]} 
         onPress={onReset}
       >
         <Text style={styles.buttonText}>Try Again</Text>

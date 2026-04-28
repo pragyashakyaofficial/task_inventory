@@ -13,7 +13,7 @@ import {
 import GlassCard from '../../../components/common/GlassCard';
 import StatusBadge from '../../../components/common/StatusBadge';
 import { InventoryItem } from '../types/inventory.types';
-import { useTheme } from '../../../theme/ThemeContext';
+import { colors } from '../../../theme/constants';
 import { Package, Edit2, Trash2, ChevronRight, LucideProps } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -32,7 +32,6 @@ const InventoryCard: React.FC<InventoryCardProps> = memo(({
   onEdit,
   onDelete,
 }) => {
-  const { theme } = useTheme();
   const translateX = useSharedValue(0);
   const context = useSharedValue({ x: 0 });
 
@@ -62,7 +61,7 @@ const InventoryCard: React.FC<InventoryCardProps> = memo(({
       {/* Background Actions */}
       <View style={styles.actionsContainer}>
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
+          style={[styles.actionButton, { backgroundColor: colors.primary }]}
           onPress={() => {
             translateX.value = withSpring(0);
             onEdit?.(item);
@@ -71,7 +70,7 @@ const InventoryCard: React.FC<InventoryCardProps> = memo(({
           <Edit2 {...({ size: 20, color: 'white' } as LucideProps)} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: theme.colors.error }]}
+          style={[styles.actionButton, { backgroundColor: colors.error }]}
           onPress={() => {
             translateX.value = withSpring(0);
             onDelete?.(item);
@@ -88,30 +87,30 @@ const InventoryCard: React.FC<InventoryCardProps> = memo(({
             onPress={() => onPress?.(item)}
           >
             <View style={styles.content}>
-              <View style={[styles.iconContainer, { backgroundColor: theme.colors.primary + '20' }]}>
-                <Package {...({ size: 24, color: theme.colors.primary } as LucideProps)} />
+              <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                <Package {...({ size: 24, color: colors.primary } as LucideProps)} />
               </View>
 
               <View style={styles.mainInfo}>
-                <Text style={[styles.name, { color: theme.colors.text }]} numberOfLines={1}>
+                <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
                   {item.name}
                 </Text>
-                <Text style={[styles.sku, { color: theme.colors.textSecondary }]}>
+                <Text style={[styles.sku, { color: colors.textSecondary }]}>
                   SKU: {item.sku}
                 </Text>
                 <View style={styles.stockRow}>
-                  <Text style={[styles.quantity, { color: theme.colors.text }]}>
+                  <Text style={[styles.quantity, { color: colors.text }]}>
                     {item.quantity} units
                   </Text>
-                  <StatusBadge status={item.status} size="small" showPulse />
+                  <StatusBadge status={item.status} size="small" />
                 </View>
               </View>
 
               <View style={styles.rightInfo}>
-                <Text style={[styles.price, { color: theme.colors.primary }]}>
+                <Text style={[styles.price, { color: colors.primary }]}>
                   ${item.price.toFixed(2)}
                 </Text>
-                <ChevronRight {...({ size: 20, color: theme.colors.textTertiary } as LucideProps)} />
+                <ChevronRight {...({ size: 20, color: colors.textTertiary } as LucideProps)} />
               </View>
             </View>
           </GlassCard>

@@ -11,7 +11,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { useTheme } from '../../theme/ThemeContext';
+import { colors } from '../../theme/constants';
 
 interface ErrorAlertProps {
   error: string;
@@ -36,7 +36,6 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({
   variant = 'danger',
   style,
 }) => {
-  const { theme } = useTheme();
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
 
@@ -72,17 +71,17 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({
     switch (variant) {
       case 'warning':
         return {
-          backgroundColor: theme.colors.warning + '20',
-          borderColor: theme.colors.warning,
-          iconColor: theme.colors.warning,
-          textColor: theme.colors.warningDark,
+          backgroundColor: colors.warning + '20',
+          borderColor: colors.warning,
+          iconColor: colors.warning,
+          textColor: colors.warningDark,
         };
       default:
         return {
-          backgroundColor: theme.colors.error + '20',
-          borderColor: theme.colors.error,
-          iconColor: theme.colors.error,
-          textColor: theme.colors.errorDark,
+          backgroundColor: colors.error + '20',
+          borderColor: colors.error,
+          iconColor: colors.error,
+          textColor: colors.errorDark,
         };
     }
   };
@@ -133,11 +132,11 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({
         
         {showDismiss && onDismiss && (
           <TouchableOpacity
-            style={[styles.button, styles.dismissButton, { borderColor: theme.colors.border }]}
+            style={[styles.button, styles.dismissButton, { borderColor: colors.border }]}
             onPress={handleDismiss}
             activeOpacity={0.8}
           >
-            <Text style={[styles.dismissButtonText, { color: theme.colors.gray }]}>
+            <Text style={[styles.dismissButtonText, { color: colors.gray }]}>
               {dismissText}
             </Text>
           </TouchableOpacity>

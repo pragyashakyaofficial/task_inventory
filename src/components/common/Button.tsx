@@ -15,8 +15,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
-import { useTheme } from '../../theme/ThemeContext';
-import { spacingSemantic } from '../../theme/spacing';
+import { colors, spacingSemantic } from '../../theme/constants';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -54,7 +53,6 @@ const Button: React.FC<ButtonProps> = memo(({
   accessibilityRole = 'button',
   ...props
 }) => {
-  const { theme } = useTheme();
   const scale = useSharedValue(1);
   const rippleOpacity = useSharedValue(0);
   const rippleScale = useSharedValue(0);
@@ -94,37 +92,37 @@ const Button: React.FC<ButtonProps> = memo(({
     }
   };
 
-  const getButtonColors = () => {
+  const getButtonColors = (): { backgroundColor: string; borderColor: string; textColor: string } => {
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: disabled ? theme.colors.borderLight : theme.colors.primary,
-          borderColor: theme.colors.primary,
-          textColor: theme.colors.white,
+          backgroundColor: disabled ? colors.borderLight : colors.primary,
+          borderColor: colors.primary,
+          textColor: colors.white,
         };
       case 'secondary':
         return {
-          backgroundColor: disabled ? theme.colors.borderLight : theme.colors.gray,
-          borderColor: theme.colors.gray,
-          textColor: theme.colors.white,
+          backgroundColor: disabled ? colors.borderLight : colors.gray,
+          borderColor: colors.gray,
+          textColor: colors.white,
         };
       case 'error':
         return {
-          backgroundColor: disabled ? theme.colors.error : theme.colors.error,
-          borderColor: theme.colors.error,
-          textColor: theme.colors.white,
+          backgroundColor: disabled ? colors.error : colors.error,
+          borderColor: colors.error,
+          textColor: colors.white,
         };
       case 'outline':
         return {
           backgroundColor: 'transparent',
-          borderColor: disabled ? theme.colors.border : theme.colors.primary,
-          textColor: disabled ? theme.colors.gray : theme.colors.primary,
+          borderColor: disabled ? colors.border : colors.primary,
+          textColor: disabled ? colors.gray : colors.primary,
         };
       default:
         return {
-          backgroundColor: theme.colors.primary,
-          borderColor: theme.colors.primary,
-          textColor: theme.colors.white,
+          backgroundColor: colors.primary,
+          borderColor: colors.primary,
+          textColor: colors.white,
         };
     }
   };
@@ -152,7 +150,7 @@ const Button: React.FC<ButtonProps> = memo(({
     }
   };
 
-  const colors = getButtonColors();
+  const buttonColors = getButtonColors();
   const sizeStyles = getSizeStyles();
 
   return (
@@ -167,8 +165,8 @@ const Button: React.FC<ButtonProps> = memo(({
       style={[
         styles.button,
         {
-          backgroundColor: colors.backgroundColor,
-          borderColor: colors.borderColor,
+          backgroundColor: buttonColors.backgroundColor,
+          borderColor: buttonColors.borderColor,
           borderWidth: variant === 'outline' ? 1 : 0,
           width: fullWidth ? '100%' : undefined,
         },
@@ -199,7 +197,7 @@ const Button: React.FC<ButtonProps> = memo(({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={colors.textColor}
+          color={buttonColors.textColor}
           style={styles.loader}
         />
       ) : (
@@ -209,7 +207,7 @@ const Button: React.FC<ButtonProps> = memo(({
             style={[
               styles.text,
               {
-                color: colors.textColor,
+                color: buttonColors.textColor,
                 fontSize: size === 'small' ? 14 : size === 'large' ? 18 : 16,
               },
               textStyle,

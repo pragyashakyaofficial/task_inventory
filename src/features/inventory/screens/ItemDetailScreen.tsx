@@ -21,8 +21,7 @@ import {
   History,
   RefreshCw,
 } from 'lucide-react-native';
-import { useTheme } from '../../../theme/ThemeContext';
-import { spacingSemantic } from '../../../theme/spacing';
+import { colors, spacingSemantic } from '../../../theme/constants';
 import Button from '../../../components/common/Button';
 import GlassCard from '../../../components/common/GlassCard';
 import StatusBadge from '../../../components/common/StatusBadge';
@@ -34,7 +33,6 @@ type RootStackParamList = {
 };
 
 const ItemDetailScreen = () => {
-  const { theme } = useTheme();
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<RootStackParamList, 'ItemDetail'>>();
   const { item } = route.params;
@@ -72,13 +70,13 @@ const ItemDetailScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Animated.View entering={FadeInDown.duration(600)} style={styles.header}>
           <View style={styles.titleSection}>
-            <Text style={[styles.category, { color: theme.colors.primary }]}>{item.category}</Text>
-            <Text style={[styles.name, { color: theme.colors.text }]}>{item.name}</Text>
-            <Text style={[styles.sku, { color: theme.colors.textSecondary }]}>SKU: {item.sku}</Text>
+            <Text style={[styles.category, { color: colors.primary }]}>{item.category}</Text>
+            <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
+            <Text style={[styles.sku, { color: colors.textSecondary }]}>SKU: {item.sku}</Text>
           </View>
           <StatusBadge status={item.status} />
         </Animated.View>
@@ -86,43 +84,43 @@ const ItemDetailScreen = () => {
         <View style={styles.statsRow}>
           <Animated.View entering={FadeInRight.delay(100)} layout={Layout.springify()}>
             <GlassCard style={styles.statCard}>
-              <View style={[styles.iconBox, { backgroundColor: theme.colors.primary + '20' }]}>
-                <Package size={20} color={theme.colors.primary} />
+              <View style={[styles.iconBox, { backgroundColor: colors.primary + '20' }]}>
+                <Package size={20} color={colors.primary} />
               </View>
-              <Text style={[styles.statValue, { color: theme.colors.text }]}>{item.quantity}</Text>
-              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>In Stock</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{item.quantity}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>In Stock</Text>
             </GlassCard>
           </Animated.View>
 
           <Animated.View entering={FadeInRight.delay(200)} layout={Layout.springify()}>
             <GlassCard style={styles.statCard}>
-              <View style={[styles.iconBox, { backgroundColor: theme.colors.primary + '20' }]}>
-                <DollarSign size={20} color={theme.colors.primary} />
+              <View style={[styles.iconBox, { backgroundColor: colors.primary + '20' }]}>
+                <DollarSign size={20} color={colors.primary} />
               </View>
-              <Text style={[styles.statValue, { color: theme.colors.text }]}>${item.price.toFixed(2)}</Text>
-              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Price</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>${item.price.toFixed(2)}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Price</Text>
             </GlassCard>
           </Animated.View>
 
           <Animated.View entering={FadeInRight.delay(300)} layout={Layout.springify()}>
             <GlassCard style={styles.statCard}>
-              <View style={[styles.iconBox, { backgroundColor: theme.colors.primary + '20' }]}>
-                <Layers size={20} color={theme.colors.primary} />
+              <View style={[styles.iconBox, { backgroundColor: colors.primary + '20' }]}>
+                <Layers size={20} color={colors.primary} />
               </View>
-              <Text style={[styles.statValue, { color: theme.colors.text }]}>{item.minQuantity}</Text>
-              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Min Alert</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{item.minQuantity}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Min Alert</Text>
             </GlassCard>
           </Animated.View>
         </View>
 
         <Animated.View entering={FadeInDown.delay(400)} style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>AI Insights</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>AI Insights</Text>
           <GlassCard style={styles.aiInsightsCard}>
             <View style={styles.aiInsightRow}>
-              <BarChart2 size={20} color={theme.colors.primary} />
+              <BarChart2 size={20} color={colors.primary} />
               <View style={styles.aiInsightText}>
-                <Text style={[styles.insightTitle, { color: theme.colors.text }]}>Demand Outlook</Text>
-                <Text style={[styles.insightDesc, { color: theme.colors.textSecondary }]}>
+                <Text style={[styles.insightTitle, { color: colors.text }]}>Demand Outlook</Text>
+                <Text style={[styles.insightDesc, { color: colors.textSecondary }]}>
                   Stable demand predicted for the next 14 days. Current stock is optimal.
                 </Text>
               </View>
@@ -137,17 +135,17 @@ const ItemDetailScreen = () => {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(500)} style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recent Activity</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
           <View style={styles.activityList}>
             <View style={styles.activityItem}>
-              <History size={16} color={theme.colors.textSecondary} />
-              <Text style={[styles.activityText, { color: theme.colors.text }]}>
+              <History size={16} color={colors.textSecondary} />
+              <Text style={[styles.activityText, { color: colors.text }]}>
                 Inventory updated 2 days ago
               </Text>
             </View>
             <View style={styles.activityItem}>
-              <RefreshCw size={16} color={theme.colors.textSecondary} />
-              <Text style={[styles.activityText, { color: theme.colors.text }]}>
+              <RefreshCw size={16} color={colors.textSecondary} />
+              <Text style={[styles.activityText, { color: colors.text }]}>
                 Stock check completed yesterday
               </Text>
             </View>
@@ -155,7 +153,7 @@ const ItemDetailScreen = () => {
         </Animated.View>
       </ScrollView>
 
-      <View style={[styles.bottomActions, { borderTopColor: theme.colors.borderLight }]}>
+      <View style={[styles.bottomActions, { borderTopColor: colors.borderLight }]}>
         <Button
           title="Delete"
           variant="error"
@@ -284,7 +282,7 @@ const styles = StyleSheet.create({
     padding: spacingSemantic.screen,
     paddingBottom: Platform.OS === 'ios' ? 40 : spacingSemantic.screen,
     gap: spacingSemantic.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgba(26, 31, 46, 0.8)',
     borderTopWidth: 1,
   },
   actionButton: {

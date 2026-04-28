@@ -131,8 +131,8 @@ const ComponentTest: React.FC = () => {
         <Text style={styles.sectionTitle}>Status Badges</Text>
         <View style={styles.row}>
           <StatusBadge status="in-stock" />
-          <StatusBadge status="low-stock" showPulse />
-          <StatusBadge status="out-of-stock" showPulse />
+          <StatusBadge status="low-stock" />
+          <StatusBadge status="out-of-stock" />
         </View>
         <View style={styles.row}>
           <StatusBadge status="discontinued" />

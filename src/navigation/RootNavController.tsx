@@ -4,13 +4,17 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { MainStack } from './MainStack';
 import { AuthNavigator as AuthStack } from '../features/auth/navigation/AuthNavigator';
+import { StatusBar } from 'react-native';
 
 export const RootNavController = () => {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   return (
-    <NavigationContainer>
-      {isAuthenticated ? <MainStack /> : <AuthStack />}
-    </NavigationContainer>
+    <>
+      <StatusBar barStyle="light-content" />
+      <NavigationContainer>
+        {isAuthenticated ? <MainStack /> : <AuthStack />}
+      </NavigationContainer>
+    </>
   );
 };

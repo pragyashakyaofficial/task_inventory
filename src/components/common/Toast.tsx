@@ -12,7 +12,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { useTheme } from '../../theme/ThemeContext';
+import { colors } from '../../theme/constants';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -35,7 +35,6 @@ const Toast: React.FC<ToastProps> = ({
   onAction,
   position = 'top',
 }) => {
-  const { theme } = useTheme();
   const translateY = useSharedValue(position === 'top' ? -100 : 100);
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.8);
@@ -88,28 +87,28 @@ const Toast: React.FC<ToastProps> = ({
     switch (type) {
       case 'success':
         return {
-          backgroundColor: theme.colors.success,
-          textColor: theme.colors.white,
+          backgroundColor: colors.success,
+          textColor: colors.white,
         };
       case 'error':
         return {
-          backgroundColor: theme.colors.error,
-          textColor: theme.colors.white,
+          backgroundColor: colors.error,
+          textColor: colors.white,
         };
       case 'warning':
         return {
-          backgroundColor: theme.colors.warning,
-          textColor: theme.colors.white,
+          backgroundColor: colors.warning,
+          textColor: colors.white,
         };
       case 'info':
         return {
-          backgroundColor: theme.colors.info,
-          textColor: theme.colors.white,
+          backgroundColor: colors.info,
+          textColor: colors.white,
         };
       default:
         return {
-          backgroundColor: theme.colors.gray,
-          textColor: theme.colors.white,
+          backgroundColor: colors.gray,
+          textColor: colors.white,
         };
     }
   };

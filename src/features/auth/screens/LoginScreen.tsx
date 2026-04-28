@@ -19,7 +19,7 @@ import { loginSchema, LoginFormData } from '../schemas/auth.schemas';
 import GlassCard from '../../../components/common/GlassCard';
 import Input from '../../../components/common/Input';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
-import { useThemedStyle, createThemedStyle, Theme, useTheme } from '../../../theme/ThemeContext';
+import { colors } from '../../../theme/constants';
 
 import { useLoginMutation } from '../api/authApi';
 import { useDispatch } from 'react-redux';
@@ -32,7 +32,6 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const dispatch = useDispatch();
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
-  const styles = useThemedStyle(themedStyles);
 
   const {
     control,
@@ -79,8 +78,6 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const isLoading = isLoginLoading;
-
-  const { theme } = useTheme();
 
   return (
     <View style={styles.container}>
@@ -245,10 +242,10 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -267,7 +264,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     width: width * 0.6,
     height: width * 0.6,
     borderRadius: width * 0.3,
-    backgroundColor: theme.colors.primary + '20',
+    backgroundColor: colors.primary + '20',
     opacity: 0.3,
   },
   gradientOverlay2: {
@@ -277,7 +274,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     width: width * 0.7,
     height: width * 0.7,
     borderRadius: width * 0.35,
-    backgroundColor: theme.colors.secondary + '20',
+    backgroundColor: colors.secondary + '20',
     opacity: 0.3,
   },
   gradientOverlay3: {
@@ -312,7 +309,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
 
@@ -323,7 +320,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
   appName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: theme.colors.text,
+    color: colors.text,
     letterSpacing: 1,
   },
   header: {
@@ -333,14 +330,14 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: theme.colors.text,
+    color: colors.text,
     marginBottom: 8,
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 15,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   formCardContainer: {
@@ -350,7 +347,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     padding: 0,
     overflow: 'hidden',
     borderRadius: 20,
-    backgroundColor: theme.colors.backgroundSecondary,
+    backgroundColor: colors.backgroundSecondary,
   },
   formContent: {
     padding: 24,
@@ -361,7 +358,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: theme.colors.text,
+    color: colors.text,
     marginBottom: 8,
   },
   optionsRow: {
@@ -380,15 +377,15 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
+    borderColor: colors.primary,
     marginRight: 8,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
   checkboxChecked: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   checkmark: {
     color: '#fff',
@@ -397,15 +394,15 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
   },
   rememberMeText: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: theme.colors.primary,
+    color: colors.primary,
     fontWeight: '600',
   },
   loginButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     borderRadius: 12,
     height: 50,
     justifyContent: 'center',
@@ -430,11 +427,11 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: theme.colors.border,
+    backgroundColor: colors.border,
   },
   dividerText: {
     marginHorizontal: 10,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: 12,
   },
   socialButtons: {
@@ -449,20 +446,20 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: theme.colors.backgroundSecondary,
+    backgroundColor: colors.backgroundSecondary,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: colors.border,
     gap: 8,
   },
   socialIcon: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: theme.colors.text,
+    color: colors.text,
   },
   socialButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
   },
   registerLink: {
     flexDirection: 'row',
@@ -473,21 +470,21 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
   },
   registerText: {
     fontSize: 15,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
   },
   registerLinkText: {
     fontSize: 15,
-    color: theme.colors.primary,
+    color: colors.primary,
     fontWeight: '600',
   },
   termsText: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 16,
   },
   termsLink: {
-    color: theme.colors.primary,
+    color: colors.primary,
     textDecorationLine: 'underline',
   },
-}));
+});

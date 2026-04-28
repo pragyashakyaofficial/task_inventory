@@ -20,11 +20,10 @@ import GlassCard from '../../../components/common/GlassCard';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
-import { useThemedStyle, createThemedStyle, Theme, useTheme } from '../../../theme/ThemeContext';
+import { colors } from '../../../theme/constants';
 import { useRegisterMutation } from '../api/authApi';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../store/authSlice';
-import Icon from 'react-native-vector-icons/Feather';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,7 +32,6 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const dispatch = useDispatch();
   const [register, { isLoading: isRegisterLoading }] = useRegisterMutation();
-  const styles = useThemedStyle(themedStyles);
 
   const {
     control,
@@ -51,7 +49,37 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     },
   });
 
+  const getPasswordStrength = (password: string) => {
+    if (!password) return { strength: 0, color: colors.border, text: '', score: 0, width: '0%' as DimensionValue };
+    
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^a-zA-Z0-9]/.test(password)) score++;
+
+    const strengthConfig = [
+      { color: '#EF4444', text: 'Too weak', width: '20%' as DimensionValue },
+      { color: '#F59E0B', text: 'Weak', width: '40%' as DimensionValue },
+      { color: '#F59E0B', text: 'Fair', width: '60%' as DimensionValue },
+      { color: '#10B981', text: 'Good', width: '80%' as DimensionValue },
+      { color: '#10B981', text: 'Strong', width: '100%' as DimensionValue },
+    ];
+
+    const config = strengthConfig[Math.min(score, 4)];
+    return {
+      strength: score,
+      color: config.color,
+      text: config.text,
+      width: config.width,
+      score,
+    };
+  };
+
   const password = watch('password');
+  const passwordStrength = getPasswordStrength(password);
+  const isFormValid = isValid && !isRegisterLoading;
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -81,38 +109,6 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const getPasswordStrength = (password: string, theme: Theme) => {
-    if (!password) return { strength: 0, color: theme.colors.border, text: '', score: 0, width: '0%' as DimensionValue };
-    
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
-
-    const strengthConfig = [
-      { color: '#EF4444', text: 'Too weak', width: '20%' as DimensionValue },
-      { color: '#F59E0B', text: 'Weak', width: '40%' as DimensionValue },
-      { color: '#F59E0B', text: 'Fair', width: '60%' as DimensionValue },
-      { color: '#10B981', text: 'Good', width: '80%' as DimensionValue },
-      { color: '#10B981', text: 'Strong', width: '100%' as DimensionValue },
-    ];
-
-    const config = strengthConfig[Math.min(score, 4)];
-    return {
-      strength: score,
-      color: config.color,
-      text: config.text,
-      width: config.width,
-      score,
-    };
-  };
-
-  const { theme } = useTheme();
-  const passwordStrength = getPasswordStrength(password, theme);
-  const isFormValid = isValid && !isRegisterLoading;
-
   return (
     <View style={styles.container}>
       <StatusBar
@@ -120,12 +116,8 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         barStyle="light-content"
         translucent
       />
-      {/* Gradient Background using pure React Native */}
-      <View style={styles.gradientBackground}>
-        <View style={styles.gradientOverlay1} />
-        <View style={styles.gradientOverlay2} />
-        <View style={styles.gradientOverlay3} />
-      </View>
+      {/* Background stays static as per request */}
+      <View style={styles.gradientBackground} />
 
       <KeyboardAvoidingView
         style={styles.keyboardView}
@@ -140,9 +132,6 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.content}>
             {/* Header */}
             <View style={styles.header}>
-              <View style={styles.iconContainer}>
-                {/* <Icon name="user-plus" size={32} color={theme.colors.primary} /> */}
-              </View>
               <Text style={styles.title}>Create Account</Text>
               <Text style={styles.subtitle}>
                 Join us and start your journey today
@@ -166,7 +155,6 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                           onChangeText={onChange}
                           onBlur={onBlur}
                           error={errors.name?.message}
-                          leftIcon={<Icon name="user" size={20} color={theme.colors.textSecondary} />}
                           autoCapitalize="words"
                           autoComplete="name"
                           textContentType="name"
@@ -188,7 +176,6 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                           onChangeText={onChange}
                           onBlur={onBlur}
                           error={errors.email?.message}
-                          leftIcon={<Icon name="mail" size={20} color={theme.colors.textSecondary} />}
                           keyboardType="email-address"
                           autoCapitalize="none"
                           autoComplete="email"
@@ -212,7 +199,6 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                             onChangeText={onChange}
                             onBlur={onBlur}
                             error={errors.password?.message}
-                            leftIcon={<Icon name="lock" size={20} color={theme.colors.textSecondary} />}
                             secureTextEntry
                             showPasswordToggle
                             autoComplete="new-password"
@@ -254,7 +240,6 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                           onChangeText={onChange}
                           onBlur={onBlur}
                           error={errors.confirmPassword?.message}
-                          leftIcon={<Icon name="check-circle" size={20} color={theme.colors.textSecondary} />}
                           secureTextEntry
                           showPasswordToggle
                           autoComplete="new-password"
@@ -268,28 +253,24 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                   {password ? (
                     <View style={styles.requirementsContainer}>
                       <Text style={styles.requirementsTitle}>Password requirements:</Text>
-                      <div style={stylesInline.requirementsList}>
+                      <View style={stylesInline.requirementsList}>
                         <RequirementItem 
                           text="At least 8 characters"
                           met={password.length >= 8}
-                          theme={theme}
                         />
                         <RequirementItem 
                           text="Uppercase & lowercase letters"
                           met={/[a-z]/.test(password) && /[A-Z]/.test(password)}
-                          theme={theme}
                         />
                         <RequirementItem 
                           text="Contains a number"
                           met={/\d/.test(password)}
-                          theme={theme}
                         />
                         <RequirementItem 
                           text="Contains a special character"
                           met={/[^a-zA-Z0-9]/.test(password)}
-                          theme={theme}
                         />
-                      </div>
+                      </View>
                     </View>
                   ) : null}
 
@@ -335,14 +316,12 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 // Helper component for requirement items
-const RequirementItem: React.FC<{ text: string; met: boolean; theme: Theme }> = ({ text, met, theme }) => (
+const RequirementItem: React.FC<{ text: string; met: boolean }> = ({ text, met }) => (
   <View style={stylesInline.requirementItem}>
-    <Icon 
-      name={met ? "check-circle" : "circle"} 
-      size={14} 
-      color={met ? "#10B981" : theme.colors.textSecondary} 
-    />
-    <Text style={[stylesInline.requirementText, { color: theme.colors.textSecondary }]}>
+    <Text style={{ color: met ? "#10B981" : colors.textSecondary, marginRight: 8 }}>
+      {met ? "✓" : "○"}
+    </Text>
+    <Text style={[stylesInline.requirementText, { color: colors.textSecondary }]}>
       {text}
     </Text>
   </View>
@@ -365,10 +344,10 @@ const stylesInline = {
   },
 };
 
-const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -387,7 +366,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     width: width * 0.6,
     height: width * 0.6,
     borderRadius: width * 0.3,
-    backgroundColor: theme.colors.primary + '20',
+    backgroundColor: colors.primary + '20',
     opacity: 0.3,
   },
   gradientOverlay2: {
@@ -397,7 +376,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     width: width * 0.7,
     height: width * 0.7,
     borderRadius: width * 0.35,
-    backgroundColor: theme.colors.secondary + '20',
+    backgroundColor: colors.secondary + '20',
     opacity: 0.3,
   },
   gradientOverlay3: {
@@ -425,26 +404,17 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    // backgroundColor: `${theme.colors.primary}15`,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: theme.colors.text,
+    color: colors.text,
     marginBottom: 8,
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 15,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -455,7 +425,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     padding: 0,
     overflow: 'hidden',
     borderRadius: 20,
-    backgroundColor: theme.colors.backgroundSecondary,
+    backgroundColor: colors.backgroundSecondary,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -479,7 +449,7 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
   },
   strengthBarBackground: {
     height: 4,
-    backgroundColor: theme.colors.border,
+    backgroundColor: colors.border,
     borderRadius: 2,
     overflow: 'hidden',
     marginBottom: 8,
@@ -497,13 +467,13 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
     marginTop: 12,
     marginBottom: 20,
     padding: 12,
-    backgroundColor: `${theme.colors.textSecondary}08`,
+    backgroundColor: `${colors.textSecondary}08`,
     borderRadius: 12,
   },
   requirementsTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: 8,
     letterSpacing: -0.3,
   },
@@ -513,8 +483,8 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
   registerButton: {
     height: 52,
     borderRadius: 12,
-    backgroundColor: theme.colors.primary,
-    shadowColor: theme.colors.primary,
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -533,12 +503,12 @@ const themedStyles = createThemedStyle((theme: Theme) => StyleSheet.create({
   },
   loginText: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
   },
   loginLinkText: {
     fontSize: 14,
-    color: theme.colors.primary,
+    color: colors.primary,
     fontWeight: '600',
-    letterSpacing: -0.3,
+    textDecorationLine: 'underline',
   },
-}));
+});

@@ -12,11 +12,11 @@ import {
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Plus, PackageX } from 'lucide-react-native';
-import { useTheme } from '../../../theme/ThemeContext';
+import { Search, Plus, PackageX, ClipboardList, AlertCircle, RefreshCw } from 'lucide-react-native';
 import { useInventory } from '../hooks/useInventory';
-import { spacingSemantic } from '../../../theme/spacing';
-import { StockStatus, InventoryItem } from '../types/inventory.types';
+import { useLazyGetReorderPlanQuery, ReorderSuggestion, InventoryItem } from '../../../api/slices/inventoryApi';
+import { colors, spacingSemantic } from '../../../theme/constants';
+import { StockStatus } from '../types/inventory.types';
 import StatusBadge from '../../../components/common/StatusBadge';
 import GlassCard from '../../../components/common/GlassCard';
 import LoadingSkeleton from '../../../components/common/LoadingSkeleton';
@@ -29,11 +29,18 @@ const FILTER_OPTIONS: { label: string; value: StockStatus | 'all' }[] = [
 ];
 
 const InventoryListScreen = () => {
-  const { theme } = useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<StockStatus | 'all'>('all');
+  const [isReorderModalVisible, setIsReorderModalVisible] = useState(false);
+
+  const [triggerReorderPlan, { data: reorderData, isFetching: isReordering, error: reorderError }] = useLazyGetReorderPlanQuery();
+
+  const handleGetReorderPlan = async () => {
+    setIsReorderModalVisible(true);
+    await triggerReorderPlan();
+  };
 
   const {
     items,
@@ -56,7 +63,7 @@ const InventoryListScreen = () => {
 
   const filteredItems = useMemo(() => {
     if (selectedStatus === 'all') return items;
-    return items.filter(item => item.status === selectedStatus);
+    return items.filter((item: InventoryItem) => item.status === selectedStatus);
   }, [items, selectedStatus]);
 
   const onRefresh = React.useCallback(() => {
@@ -88,10 +95,10 @@ const InventoryListScreen = () => {
       <GlassCard style={styles.itemCard}>
         <View style={styles.itemHeader}>
           <View style={styles.itemInfo}>
-            <Text style={[styles.itemName, { color: theme.colors.text }]} numberOfLines={1}>
+            <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>
               {item.name}
             </Text>
-            <Text style={[styles.itemCategory, { color: theme.colors.textSecondary }]}>
+            <Text style={[styles.itemCategory, { color: colors.textSecondary }]}>
               {item.category}
             </Text>
           </View>
@@ -100,28 +107,28 @@ const InventoryListScreen = () => {
 
         <View style={styles.itemFooter}>
           <View style={styles.itemStat}>
-            <PackageX size={14} color={theme.colors.textTertiary} />
-            <Text style={[styles.itemStatText, { color: theme.colors.textSecondary }]}>
+            <PackageX size={14} color={colors.textTertiary} />
+            <Text style={[styles.itemStatText, { color: colors.textSecondary }]}>
               {item.quantity} units
             </Text>
           </View>
           <View style={styles.itemStat}>
-            <Text style={[styles.itemPrice, { color: theme.colors.primary }]}>
+            <Text style={[styles.itemPrice, { color: colors.primary }]}>
               ${item.price.toFixed(2)}
             </Text>
           </View>
         </View>
       </GlassCard>
     </TouchableOpacity>
-  ), [navigation, theme.colors]);
+  ), [navigation]);
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <PackageX size={64} {...({ color: theme.colors.textTertiary } as any)} />
-      <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
+      <PackageX size={64} {...({ color: colors.textTertiary } as any)} />
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>
         No items found
       </Text>
-      <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
+      <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
         Try adjusting your search or filters
       </Text>
     </View>
@@ -129,14 +136,26 @@ const InventoryListScreen = () => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>Inventory</Text>
+      <View style={styles.titleContainer}>
+        <Text style={[styles.title, { color: colors.text }]}>Inventory</Text>
+        <TouchableOpacity
+          style={[styles.reorderButton, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}
+          onPress={handleGetReorderPlan}
+          disabled={isReordering}
+        >
+          <ClipboardList size={20} color={colors.primary} />
+          <Text style={[styles.reorderButtonText, { color: colors.primary }]}>
+            Plan Reorder
+          </Text>
+        </TouchableOpacity>
+      </View>
       
-      <View style={[styles.searchContainer, { backgroundColor: theme.colors.backgroundSecondary }]}>
-        <Search size={20} color={theme.colors.textSecondary} style={styles.searchIcon} />
+      <View style={[styles.searchContainer, { backgroundColor: colors.backgroundSecondary }]}>
+        <Search size={20} color={colors.textSecondary} style={styles.searchIcon} />
         <TextInput
           placeholder="Search items..."
-          placeholderTextColor={theme.colors.textTertiary}
-          style={[styles.searchInput, { color: theme.colors.text }]}
+          placeholderTextColor={colors.textTertiary}
+          style={[styles.searchInput, { color: colors.text }]}
           value={searchQuery}
           onChangeText={handleSearch}
         />
@@ -156,10 +175,10 @@ const InventoryListScreen = () => {
               {
                 backgroundColor:
                   selectedStatus === option.value
-                    ? theme.colors.primary
-                    : theme.colors.backgroundSecondary,
+                    ? colors.primary
+                    : colors.backgroundSecondary,
                 borderWidth: 1,
-                borderColor: selectedStatus === option.value ? theme.colors.primary : 'transparent',
+                borderColor: selectedStatus === option.value ? colors.primary : 'transparent',
               },
             ]}
           >
@@ -170,7 +189,7 @@ const InventoryListScreen = () => {
                   color:
                     selectedStatus === option.value
                       ? 'white'
-                      : theme.colors.textSecondary,
+                      : colors.textSecondary,
                 },
               ]}
             >
@@ -184,7 +203,7 @@ const InventoryListScreen = () => {
 
   if (isLoading && items.length === 0) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: theme.colors.background }]}>
+      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
         <View style={styles.header}>
           <LoadingSkeleton height={48} borderRadius={12} style={{ marginBottom: 12 }} />
           <View style={{ flexDirection: 'row' }}>
@@ -195,7 +214,7 @@ const InventoryListScreen = () => {
         </View>
         <View style={styles.skeletonContainer}>
           {[1, 2, 3, 4, 5].map((i) => (
-            <View key={i} style={[styles.skeletonCard, { backgroundColor: theme.colors.backgroundSecondary + '40' }]}>
+            <View key={i} style={[styles.skeletonCard, { backgroundColor: colors.backgroundSecondary + '40' }]}>
               <View style={styles.skeletonContent}>
                 <LoadingSkeleton width={48} height={48} borderRadius={12} style={{ marginRight: 12 }} />
                 <View style={{ flex: 1 }}>
@@ -219,8 +238,9 @@ const InventoryListScreen = () => {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       <FlashList<InventoryItem>
+        // ... existing props
         data={filteredItems}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
@@ -232,17 +252,59 @@ const InventoryListScreen = () => {
           <RefreshControl
             refreshing={isLoading}
             onRefresh={onRefresh}
-            tintColor={theme.colors.primary}
-            colors={[theme.colors.primary]}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         )} as any)}
       />
+
+      {isReorderModalVisible && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1000, padding: 20, justifyContent: 'center' }]}>
+          <GlassCard style={{ maxHeight: '80%', padding: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: colors.text }}>Reorder Plan</Text>
+              <TouchableOpacity onPress={() => setIsReorderModalVisible(false)}>
+                <Text style={{ color: colors.primary, fontWeight: '600' }}>Close</Text>
+              </TouchableOpacity>
+            </View>
+
+            {isReordering ? (
+              <View style={{ alignItems: 'center', padding: 40 }}>
+                <RefreshCw size={32} color={colors.primary} style={{ marginBottom: 16 }} />
+                <Text style={{ color: colors.textSecondary }}>Analyzing inventory...</Text>
+              </View>
+            ) : reorderError ? (
+              <View style={{ alignItems: 'center', padding: 20 }}>
+                <AlertCircle size={32} color={colors.error} style={{ marginBottom: 16 }} />
+                <Text style={{ color: colors.error, textAlign: 'center' }}>Failed to fetch reorder plan</Text>
+              </View>
+            ) : reorderData?.suggestions.length === 0 ? (
+              <View style={{ alignItems: 'center', padding: 20 }}>
+                <PackageX size={32} color={colors.success} style={{ marginBottom: 16 }} />
+                <Text style={{ color: colors.textSecondary, textAlign: 'center' }}>All items are well stocked!</Text>
+              </View>
+            ) : (
+              <ScrollView style={{ flexGrow: 0 }}>
+                {reorderData?.suggestions.map((suggestion: ReorderSuggestion) => (
+                  <View key={suggestion.itemId} style={{ marginBottom: 16, padding: 12, borderRadius: 8, backgroundColor: colors.backgroundSecondary }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <Text style={{ fontWeight: 'bold', color: colors.text }}>{suggestion.name}</Text>
+                      <Text style={{ color: colors.primary, fontWeight: '700' }}>+{suggestion.suggestedQuantity}</Text>
+                    </View>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>{suggestion.reason}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+          </GlassCard>
+        </View>
+      )}
 
       <TouchableOpacity
         style={[
           styles.fab,
           {
-            backgroundColor: theme.colors.primary,
+            backgroundColor: colors.primary,
             bottom: insets.bottom + 20,
           },
         ]}
@@ -268,11 +330,29 @@ const styles = StyleSheet.create({
     paddingTop: spacingSemantic.md,
     paddingBottom: spacingSemantic.sm,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacingSemantic.lg,
+  },
+  reorderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 6,
+  },
+  reorderButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
   title: {
     fontSize: 28,
     fontWeight: '800',
     letterSpacing: -0.5,
-    marginBottom: spacingSemantic.lg,
   },
   searchContainer: {
     flexDirection: 'row',

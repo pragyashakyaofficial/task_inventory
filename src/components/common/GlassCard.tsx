@@ -5,7 +5,6 @@ import {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { useTheme } from '../../theme/ThemeContext';
 
 interface GlassCardProps {
   children: React.ReactNode;
@@ -20,7 +19,6 @@ const GlassCard: React.FC<GlassCardProps> = memo(({
   reducedTransparencyFallbackColor,
   onPress,
 }) => {
-  const { theme } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -49,8 +47,8 @@ const GlassCard: React.FC<GlassCardProps> = memo(({
       style={[
         styles.container,
         {
-          backgroundColor: reducedTransparencyFallbackColor || (theme.isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)'),
-          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.2)',
+          backgroundColor: reducedTransparencyFallbackColor || 'rgba(0, 0, 0, 0.8)',
+          borderColor: 'rgba(255, 255, 255, 0.1)',
         },
         cardStyle,
         style,
@@ -70,7 +68,7 @@ const GlassCard: React.FC<GlassCardProps> = memo(({
             bottom: 0,
           },
           {
-            backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
           },
         ]}
       />

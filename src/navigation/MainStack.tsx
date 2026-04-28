@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Home, Package, Plus, Sparkles, User } from 'lucide-react-native';
-import { useTheme } from '../theme/ThemeContext';
+import { colors } from '../theme/constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import DashboardScreen from '../features/dashboard/screens/DashboardScreen';
@@ -25,10 +25,9 @@ const InventoryStack = () => (
 );
 
 const CustomTabBarButton = ({ children, onPress }: any) => {
-  const { theme } = useTheme();
   return (
     <TouchableOpacity
-      style={[styles.fabContainer, { backgroundColor: theme.colors.primary }]}
+      style={[styles.fabContainer, { backgroundColor: colors.primary }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
@@ -38,7 +37,6 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 };
 
 export const MainStack = () => {
-  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -52,7 +50,7 @@ export const MainStack = () => {
           marginLeft: '2.5%',
           right: '2.5%',
           width: '95%',
-          backgroundColor: theme.colors.backgroundSecondary,
+          backgroundColor: colors.backgroundSecondary,
           borderRadius: 65,
           height: 65,
           borderTopWidth: 0,
@@ -76,8 +74,8 @@ export const MainStack = () => {
           marginTop: -2,
           marginBottom: 0,
         },
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textSecondary,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarButton: (props: any) => {
           const { style, ...rest } = props;
           return (

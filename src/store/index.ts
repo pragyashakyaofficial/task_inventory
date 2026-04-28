@@ -10,8 +10,8 @@ import { inventoryApi } from '../api/slices/inventoryApi';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth'], // Persist auth state
-  blacklist: ['inventoryApi', 'authApi'], // Don't persist api cache
+  whitelist: [], // No global state persistence needed for this simplified version
+  blacklist: ['inventoryApi', 'authApi', 'auth'], // Don't persist anything to speed up startup
 };
 
 // Create persisted reducer

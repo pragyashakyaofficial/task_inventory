@@ -12,8 +12,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useTheme } from '../../../theme/ThemeContext';
-import { spacingSemantic } from '../../../theme/spacing';
+import { colors, spacingSemantic } from '../../../theme/constants';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Toast from 'react-native-toast-message';
@@ -36,7 +35,6 @@ type RootStackParamList = {
 };
 
 const AddEditItemScreen = () => {
-  const { theme } = useTheme();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'AddEditItem'>>();
   const item = route.params?.item;
@@ -107,16 +105,16 @@ const AddEditItemScreen = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <View style={[styles.header, { borderBottomColor: theme.colors.borderLight }]}>
+      <View style={[styles.header, { borderBottomColor: colors.borderLight }]}>
         <Button
           variant="outline"
           onPress={() => navigation.goBack()}
           title="Back"
           style={styles.backButton}
         />
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
           {isEdit ? 'Edit Item' : 'New Item'}
         </Text>
         <View style={styles.headerRight} />

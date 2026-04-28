@@ -1,13 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
-import { useTheme } from '../../theme/ThemeContext';
+import { colors } from '../../theme/constants';
 
 export type StatusType = 'in-stock' | 'low-stock' | 'out-of-stock' | 'discontinued' | 'pending';
 
@@ -16,7 +9,6 @@ interface StatusBadgeProps {
   text?: string;
   size?: 'small' | 'medium' | 'large';
   style?: ViewStyle;
-  showPulse?: boolean;
   customColor?: string;
 }
 
@@ -25,94 +17,56 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   text,
   size = 'medium',
   style,
-  showPulse = false,
   customColor,
 }) => {
-  const { theme } = useTheme();
-  const scale = useSharedValue(1);
-  const pulseOpacity = useSharedValue(1);
-  const dotScale = useSharedValue(1);
-
-  React.useEffect(() => {
-    // Initial entrance animation
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-    
-    // Pulse animation for low stock and out of stock
-    if (showPulse && (status === 'low-stock' || status === 'out-of-stock')) {
-      pulseOpacity.value = withRepeat(
-        withTiming(0.3, { duration: 1000 }),
-        -1,
-        true
-      );
-      dotScale.value = withRepeat(
-        withTiming(1.2, { duration: 1000 }),
-        -1,
-        true
-      );
-    }
-  }, [status, showPulse]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }],
-    };
-  });
-
-  const pulseStyle = useAnimatedStyle(() => {
-    return {
-      opacity: pulseOpacity.value,
-      transform: [{ scale: dotScale.value }],
-    };
-  });
-
   const getStatusConfig = () => {
     switch (status) {
       case 'in-stock':
         return {
-          backgroundColor: customColor || theme.colors.success + '20',
-          borderColor: customColor || theme.colors.success,
-          textColor: customColor ? theme.colors.white : theme.colors.successDark,
-          dotColor: customColor || theme.colors.success,
+          backgroundColor: customColor || colors.success + '20',
+          borderColor: customColor || colors.success,
+          textColor: customColor ? colors.white : colors.successDark,
+          dotColor: customColor || colors.success,
           defaultText: 'In Stock',
         };
       case 'low-stock':
         return {
-          backgroundColor: customColor || theme.colors.warning + '20',
-          borderColor: customColor || theme.colors.warning,
-          textColor: customColor ? theme.colors.white : theme.colors.warningDark,
-          dotColor: customColor || theme.colors.warning,
+          backgroundColor: customColor || colors.warning + '20',
+          borderColor: customColor || colors.warning,
+          textColor: customColor ? colors.white : colors.warningDark,
+          dotColor: customColor || colors.warning,
           defaultText: 'Low Stock',
         };
       case 'out-of-stock':
         return {
-          backgroundColor: customColor || theme.colors.error + '20',
-          borderColor: customColor || theme.colors.error,
-          textColor: customColor ? theme.colors.white : theme.colors.errorDark,
-          dotColor: customColor || theme.colors.error,
+          backgroundColor: customColor || colors.error + '20',
+          borderColor: customColor || colors.error,
+          textColor: customColor ? colors.white : colors.errorDark,
+          dotColor: customColor || colors.error,
           defaultText: 'Out of Stock',
         };
       case 'discontinued':
         return {
-          backgroundColor: customColor || theme.colors.backgroundSecondary,
-          borderColor: customColor || theme.colors.gray,
-          textColor: customColor ? theme.colors.white : theme.colors.textSecondary,
-          dotColor: customColor || theme.colors.gray,
+          backgroundColor: customColor || colors.backgroundSecondary,
+          borderColor: customColor || colors.gray,
+          textColor: customColor ? colors.white : colors.textSecondary,
+          dotColor: customColor || colors.gray,
           defaultText: 'Discontinued',
         };
       case 'pending':
         return {
-          backgroundColor: customColor || theme.colors.info + '20',
-          borderColor: customColor || theme.colors.info,
-          textColor: customColor ? theme.colors.white : theme.colors.primaryDark,
-          dotColor: customColor || theme.colors.info,
+          backgroundColor: customColor || colors.info + '20',
+          borderColor: customColor || colors.info,
+          textColor: customColor ? colors.white : colors.primaryDark,
+          dotColor: customColor || colors.info,
           defaultText: 'Pending',
         };
       default:
         return {
-          backgroundColor: theme.colors.backgroundSecondary,
-          borderColor: theme.colors.gray,
-          textColor: theme.colors.textSecondary,
-          dotColor: theme.colors.gray,
+          backgroundColor: colors.backgroundSecondary,
+          borderColor: colors.gray,
+          textColor: colors.textSecondary,
+          dotColor: colors.gray,
           defaultText: 'Unknown',
         };
     }
@@ -151,7 +105,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   const sizeStyles = getSizeStyles();
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.container,
         {
@@ -161,26 +115,11 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
           paddingVertical: sizeStyles.paddingVertical,
           borderRadius: sizeStyles.borderRadius,
         },
-        animatedStyle,
         style,
       ]}
     >
       <View style={styles.content}>
         <View style={styles.dotContainer}>
-          {showPulse && (status === 'low-stock' || status === 'out-of-stock') && (
-            <Animated.View
-              style={[
-                styles.pulseDot,
-                {
-                  backgroundColor: config.dotColor,
-                  width: sizeStyles.dotSize,
-                  height: sizeStyles.dotSize,
-                  borderRadius: sizeStyles.dotSize / 2,
-                },
-                pulseStyle,
-              ]}
-            />
-          )}
           <View
             style={[
               styles.dot,
@@ -207,7 +146,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
           {text || config.defaultText}
         </Text>
       </View>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -228,15 +167,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dot: {
-    // Styles will be set dynamically
-  },
-  pulseDot: {
-    position: 'absolute',
-    // Styles will be set dynamically
+    // Styles set dynamically
   },
   text: {
     fontWeight: '500',
-    // Styles will be set dynamically
   },
 });
 

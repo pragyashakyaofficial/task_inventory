@@ -6,7 +6,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { useTheme } from '../../theme/ThemeContext';
+import { colors } from '../../theme/constants';
 
 interface LoadingSkeletonProps {
   width?: number | string;
@@ -27,7 +27,6 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   lines = 1,
   spacing = 8,
 }) => {
-  const { theme } = useTheme();
   const opacity = useSharedValue(0.3);
 
   useEffect(() => {
@@ -69,7 +68,7 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
       <Animated.View
         style={[
           styles.skeleton,
-          { backgroundColor: theme.colors.backgroundSecondary },
+          { backgroundColor: colors.backgroundSecondary },
           getVariantStyle(),
           index === lines - 1 && variant === 'text' && { width: '60%' },
           style,
@@ -92,7 +91,7 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
       <Animated.View
         style={[
           styles.skeleton,
-          { backgroundColor: theme.colors.backgroundSecondary },
+          { backgroundColor: colors.backgroundSecondary },
           getVariantStyle(),
           style,
           animatedStyle,

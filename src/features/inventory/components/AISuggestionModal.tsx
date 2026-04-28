@@ -17,7 +17,7 @@ import Animated, {
 import { Brain, X, AlertCircle } from 'lucide-react-native';
 import GlassCard from '../../../components/common/GlassCard';
 import Button from '../../../components/common/Button';
-import { useTheme } from '../../../theme/ThemeContext';
+import { colors } from '../../../theme/constants';
 
 interface AISuggestionModalProps {
   isVisible: boolean;
@@ -38,7 +38,6 @@ const AISuggestionModal: React.FC<AISuggestionModalProps> = ({
   onApply,
   suggestion,
 }) => {
-  const { theme } = useTheme();
   const progress = useSharedValue(0);
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.9);
@@ -85,42 +84,42 @@ const AISuggestionModal: React.FC<AISuggestionModalProps> = ({
         <Animated.View style={[styles.content, animatedContentStyle]}>
           <GlassCard style={styles.card}>
             <View style={styles.header}>
-              <View style={[styles.iconContainer, { backgroundColor: theme.colors.primary + '20' }]}>
-                <Brain size={24} color={theme.colors.primary} />
+              <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                <Brain size={24} color={colors.primary} />
               </View>
               <View style={styles.headerText}>
-                <Text style={[styles.title, { color: theme.colors.text }]}>AI Optimization</Text>
-                <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>Smart Inventory Analysis</Text>
+                <Text style={[styles.title, { color: colors.text }]}>AI Optimization</Text>
+                <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Smart Inventory Analysis</Text>
               </View>
               <Pressable onPress={onClose} style={styles.closeButton}>
-                <X size={20} color={theme.colors.textSecondary} />
+                <X size={20} color={colors.textSecondary} />
               </Pressable>
             </View>
 
             <View style={styles.body}>
               <View style={styles.suggestionBox}>
-                <Text style={[styles.label, { color: theme.colors.textSecondary }]}>Suggested Quantity</Text>
-                <Text style={[styles.suggestionValue, { color: theme.colors.primary }]}>{suggestion.value}</Text>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>Suggested Quantity</Text>
+                <Text style={[styles.suggestionValue, { color: colors.primary }]}>{suggestion.value}</Text>
               </View>
 
               <View style={styles.confidenceSection}>
                 <View style={styles.confidenceHeader}>
-                  <Text style={[styles.label, { color: theme.colors.textSecondary }]}>Confidence Score</Text>
-                  <Text style={[styles.confidenceValue, { color: theme.colors.primary }]}>
+                  <Text style={[styles.label, { color: colors.textSecondary }]}>Confidence Score</Text>
+                  <Text style={[styles.confidenceValue, { color: colors.primary }]}>
                     {Math.round(suggestion.confidence * 100)}%
                   </Text>
                 </View>
-                <View style={[styles.progressTrack, { backgroundColor: theme.colors.borderLight }]}>
+                <View style={[styles.progressTrack, { backgroundColor: colors.borderLight }]}>
                   <Animated.View style={[styles.progressBar, animatedProgressStyle]} />
                 </View>
               </View>
 
-              <View style={[styles.reasoningBox, { backgroundColor: theme.colors.primary + '08' }]}>
+              <View style={[styles.reasoningBox, { backgroundColor: colors.primary + '08' }]}>
                 <View style={styles.reasoningHeader}>
-                  <AlertCircle size={16} color={theme.colors.primary} />
-                  <Text style={[styles.reasoningTitle, { color: theme.colors.primary }]}>AI Reasoning</Text>
+                  <AlertCircle size={16} color={colors.primary} />
+                  <Text style={[styles.reasoningTitle, { color: colors.primary }]}>AI Reasoning</Text>
                 </View>
-                <Text style={[styles.reasoningText, { color: theme.colors.text }]}>{suggestion.reasoning}</Text>
+                <Text style={[styles.reasoningText, { color: colors.text }]}>{suggestion.reasoning}</Text>
               </View>
             </View>
 

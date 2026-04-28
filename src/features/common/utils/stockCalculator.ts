@@ -1,5 +1,5 @@
+import { colors } from '../../../theme/constants';
 import { StockStatus } from '../../inventory/types/inventory.types';
-import { lightColors } from '../../../theme/colors';
 
 export const getStockStatus = (
   quantity: number,
@@ -24,34 +24,34 @@ export const getStockStatus = (
 export const getStockColor = (status: StockStatus): string => {
   switch (status) {
     case 'in-stock':
-      return lightColors.success;
+      return colors.success;
     case 'low-stock':
-      return lightColors.warning;
+      return colors.warning;
     case 'out-of-stock':
-      return lightColors.error;
+      return colors.error;
     case 'discontinued':
-      return lightColors.gray;
+      return colors.textTertiary;
     case 'pending':
-      return lightColors.info;
+      return colors.info;
     default:
-      return lightColors.gray;
+      return colors.textTertiary;
   }
 };
 
 export const getStockBackgroundColor = (status: StockStatus): string => {
   switch (status) {
     case 'in-stock':
-      return lightColors.success + '20';
+      return colors.success + '20';
     case 'low-stock':
-      return lightColors.warning + '20';
+      return colors.warning + '20';
     case 'out-of-stock':
-      return lightColors.error + '20';
+      return colors.error + '20';
     case 'discontinued':
-      return lightColors.background;
+      return colors.backgroundSecondary;
     case 'pending':
-      return lightColors.primary + '20';
+      return colors.primary + '20';
     default:
-      return lightColors.background;
+      return colors.backgroundSecondary;
   }
 };
 

@@ -1,12 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
-import { useTheme } from '../../theme/ThemeContext';
+import { colors } from '../../theme/constants';
 import {
   getStockStatus,
   getStockColor,
@@ -22,10 +23,11 @@ import {
   getStockoutRisk,
   generateStockAlert,
 } from '../../features/common/utils/stockCalculator';
-import { StatusBadge } from './index';
+import StatusBadge from './StatusBadge';
 
 const StockCalculatorTest: React.FC = () => {
-  const { theme } = useTheme();
+  const [quantity, setQuantity] = useState('10');
+  const [minQuantity, setMinQuantity] = useState('10');
 
   // Test data
   const testItems = [
@@ -110,23 +112,52 @@ const StockCalculatorTest: React.FC = () => {
     console.log('Tests logged to console. Check Flipper or React Native Debugger.');
   };
 
+  const status = getStockStatus(parseInt(quantity), parseInt(minQuantity), 100);
+
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>
-        Stock Calculator Test
-      </Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>Stock Calculator Test</Text>
       
       <TouchableOpacity 
-        style={[styles.consoleButton, { backgroundColor: theme.colors.primary }]}
+        style={[styles.consoleButton, { backgroundColor: colors.primary }]}
         onPress={runTests}
       >
-        <Text style={[styles.consoleButtonText, { color: theme.colors.white }]}>
+        <Text style={[styles.consoleButtonText, { color: colors.white }]}>
           Check Console for Test Output
         </Text>
       </TouchableOpacity>
 
+      <View style={styles.inputContainer}>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Current Quantity:</Text>
+        <TextInput
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          value={quantity}
+          onChangeText={setQuantity}
+          keyboardType="numeric"
+          placeholderTextColor={colors.textTertiary}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Min Quantity:</Text>
+        <TextInput
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          value={minQuantity}
+          onChangeText={setMinQuantity}
+          keyboardType="numeric"
+          placeholderTextColor={colors.textTertiary}
+        />
+      </View>
+
+      <View style={styles.resultContainer}>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Status:</Text>
+        <Text style={[styles.statusText, { color: getStockColor(status) }]}>
+          {status.toUpperCase()}
+        </Text>
+      </View>
+
       {/* Visual Tests */}
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
         Visual Tests
       </Text>
 
@@ -160,69 +191,69 @@ const StockCalculatorTest: React.FC = () => {
             </View>
 
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Quantity:
               </Text>
-              <Text style={[styles.value, { color: theme.colors.text }]}>
+              <Text style={[styles.value, { color: colors.text }]}>
                 {formatQuantity(item.qty)} / {formatQuantity(item.max)}
               </Text>
             </View>
 
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Stock %:
               </Text>
-              <Text style={[styles.value, { color: theme.colors.text }]}>
+              <Text style={[styles.value, { color: colors.text }]}>
                 {percentage.toFixed(1)}%
               </Text>
             </View>
 
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Days of Supply:
               </Text>
-              <Text style={[styles.value, { color: theme.colors.text }]}>
+              <Text style={[styles.value, { color: colors.text }]}>
                 {days} days
               </Text>
             </View>
 
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Restock Needed:
               </Text>
               <Text style={[styles.value, { 
-                color: restock ? theme.colors.error : theme.colors.success 
+                color: restock ? colors.error : colors.success 
               }]}>
                 {restock ? 'YES' : 'NO'}
               </Text>
             </View>
 
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Risk Level:
               </Text>
               <Text style={[styles.value, { 
-                color: risk === 'critical' ? theme.colors.error : 
-                       risk === 'high' ? theme.colors.warning : theme.colors.success
+                color: risk === 'critical' ? colors.error : 
+                       risk === 'high' ? colors.warning : colors.success
               }]}>
                 {risk.toUpperCase()}
               </Text>
             </View>
 
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Trend:
               </Text>
-              <Text style={[styles.value, { color: theme.colors.text }]}>
+              <Text style={[styles.value, { color: colors.text }]}>
                 {trend === 'increasing' ? '↑' : trend === 'decreasing' ? '↓' : '→'} {trend}
               </Text>
             </View>
 
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Value:
               </Text>
-              <Text style={[styles.value, { color: theme.colors.text }]}>
+              <Text style={[styles.value, { color: colors.text }]}>
                 {formatCurrency(item.qty * item.cost)}
               </Text>
             </View>
@@ -232,28 +263,28 @@ const StockCalculatorTest: React.FC = () => {
                 styles.alertBox,
                 { 
                   backgroundColor: alert.type === 'critical' 
-                    ? theme.colors.error + '20' 
+                    ? colors.error + '20' 
                     : alert.type === 'warning' 
-                      ? theme.colors.warning + '20'
-                      : theme.colors.info + '20'
+                      ? colors.warning + '20'
+                      : colors.info + '20'
                 }
               ]}>
                 <Text style={[
                   styles.alertTitle,
                   { 
                     color: alert.type === 'critical' 
-                      ? theme.colors.error 
+                      ? colors.error 
                       : alert.type === 'warning' 
-                        ? theme.colors.warning
-                        : theme.colors.info
+                        ? colors.warning
+                        : colors.info
                   }
                 ]}>
                   {alert.type.toUpperCase()}
                 </Text>
-                <Text style={[styles.alertMessage, { color: theme.colors.text }]}>
+                <Text style={[styles.alertMessage, { color: colors.text }]}>
                   {alert.message}
                 </Text>
-                <Text style={[styles.alertAction, { color: theme.colors.textSecondary }]}>
+                <Text style={[styles.alertAction, { color: colors.textSecondary }]}>
                   Action: {alert.action}
                 </Text>
               </View>
@@ -263,7 +294,7 @@ const StockCalculatorTest: React.FC = () => {
       })}
 
       {/* Summary */}
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
         Inventory Summary
       </Text>
       
@@ -272,28 +303,28 @@ const StockCalculatorTest: React.FC = () => {
           testItems.map(i => ({ quantity: i.qty, cost: i.cost }))
         );
         return (
-          <View style={[styles.summaryCard, { backgroundColor: theme.colors.backgroundSecondary }]}>
+          <View style={[styles.summaryCard, { backgroundColor: colors.backgroundSecondary }]}>
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Total Items:
               </Text>
-              <Text style={[styles.value, { color: theme.colors.text }]}>
+              <Text style={[styles.value, { color: colors.text }]}>
                 {formatQuantity(summary.itemCount)}
               </Text>
             </View>
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Total Value:
               </Text>
-              <Text style={[styles.value, { color: theme.colors.text }]}>
+              <Text style={[styles.value, { color: colors.text }]}>
                 {formatCurrency(summary.totalCost)}
               </Text>
             </View>
             <View style={styles.row}>
-              <Text style={[styles.label, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
                 Avg Cost/Item:
               </Text>
-              <Text style={[styles.value, { color: theme.colors.text }]}>
+              <Text style={[styles.value, { color: colors.text }]}>
                 {formatCurrency(summary.itemCount > 0 ? summary.totalCost / summary.itemCount : 0)}
               </Text>
             </View>
@@ -392,6 +423,25 @@ const styles = StyleSheet.create({
   },
   spacer: {
     height: 40,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+  resultContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 12,
+  },
+  statusText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

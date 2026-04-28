@@ -1,11 +1,10 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import Button from '../Button';
-import { ThemeProvider } from '../../../theme/ThemeContext';
 
 // Mock the theme provider for testing
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <ThemeProvider>{children}</ThemeProvider>
+  <>{children}</>
 );
 
 describe('Button Component', () => {

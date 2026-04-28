@@ -8,8 +8,7 @@ import {
   TrendingUp,
   ChevronRight
 } from 'lucide-react-native';
-import { useTheme } from '../../../theme/ThemeContext';
-import { spacingSemantic } from '../../../theme/spacing';
+import { colors, spacingSemantic } from '../../../theme/constants';
 import GlassCard from '../../../components/common/GlassCard';
 import { InventoryItem } from '../../inventory/types/inventory.types';
 import { useInventory, useDashboardStats } from '../../inventory/hooks/useInventory';
@@ -32,20 +31,18 @@ interface DashboardScreenProps {
 }
 
 const StatCard: React.FC<StatCardProps> = memo(({ title, value, icon, color }) => {
-  const { theme } = useTheme();
-
   return (
     <GlassCard style={styles.statCard}>
       <View style={styles.statHeader}>
         <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
           {React.cloneElement(icon as React.ReactElement<any>, { size: 20 })}
         </View>
-        <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+        <Text style={[styles.statLabel, { color: colors.textSecondary }]} numberOfLines={1}>
           {title}
         </Text>
       </View>
       <View style={styles.statValueContainer}>
-        <Text style={[styles.statValue, { color: theme.colors.text }]}>
+        <Text style={[styles.statValue, { color: colors.text }]}>
           {value}
         </Text>
       </View>
@@ -54,7 +51,6 @@ const StatCard: React.FC<StatCardProps> = memo(({ title, value, icon, color }) =
 });
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
-  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { items, isLoading: isInventoryLoading, refetchItems } = useInventory({});
   const { stats: dashboardStats, isLoading: isStatsLoading, refetchStats } = useDashboardStats();
@@ -99,8 +95,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   const containerStyle = useMemo(() => [
     styles.container, 
-    { backgroundColor: theme.colors.background }
-  ], [theme.colors.background]);
+    { backgroundColor: colors.background }
+  ], []);
 
   return (
     <ScrollView 
@@ -111,22 +107,22 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <RefreshControl
           refreshing={isLoading}
           onRefresh={onRefresh}
-          tintColor={theme.colors.primary}
-          colors={[theme.colors.primary]}
-          progressBackgroundColor={theme.colors.backgroundSecondary}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+          progressBackgroundColor={colors.backgroundSecondary}
         />
       }
     >
       <View style={styles.header}>
         <View>
-          <Text style={[styles.greeting, { color: theme.colors.textSecondary }]}>Hello,</Text>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Inventory Overview</Text>
+          <Text style={[styles.greeting, { color: colors.textSecondary }]}>Hello,</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Inventory Overview</Text>
         </View>
         <TouchableOpacity 
-          style={[styles.profileButton, { backgroundColor: theme.colors.backgroundSecondary }]}
+          style={[styles.profileButton, { backgroundColor: colors.backgroundSecondary }]}
           onPress={handleProfilePress}
         >
-          <TrendingUp size={20} color={theme.colors.primary} />
+          <TrendingUp size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -134,8 +130,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <StatCard 
           title="Total Items" 
           value={stats.total} 
-          icon={<Package size={24} color={theme.colors.primary} />} 
-          color={theme.colors.primary} 
+          icon={<Package size={24} color={colors.primary} />} 
+          color={colors.primary} 
         />
         <StatCard 
           title="In Stock" 
@@ -159,13 +155,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Critical Stock Alerts</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Critical Stock Alerts</Text>
           <TouchableOpacity 
             onPress={handleViewAll} 
             style={styles.viewAllButton}
           >
-            <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>View All</Text>
-            <ChevronRight size={14} color={theme.colors.primary} />
+            <Text style={[styles.viewAllText, { color: colors.primary }]}>View All</Text>
+            <ChevronRight size={14} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -173,26 +169,26 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           criticalAlerts.map((item: any) => (
             <TouchableOpacity 
               key={item.id || item._id}
-              style={[styles.alertItem, { backgroundColor: theme.colors.backgroundSecondary }]}
+              style={[styles.alertItem, { backgroundColor: colors.backgroundSecondary }]}
               onPress={() => handleItemPress(item)}
             >
               <View style={[styles.alertIcon, { backgroundColor: (item.status === 'Out of Stock' || item.status === 'out-of-stock') ? '#EF444420' : '#F59E0B20' }]}>
                 <AlertTriangle size={18} color={(item.status === 'Out of Stock' || item.status === 'out-of-stock') ? '#EF4444' : '#F59E0B'} />
               </View>
               <View style={styles.alertContent}>
-                <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
-                <Text style={[styles.itemStock, { color: theme.colors.textSecondary }]}>
+                <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+                <Text style={[styles.itemStock, { color: colors.textSecondary }]}>
                   {item.status}: {item.quantity} units
                 </Text>
               </View>
-              <ChevronRight size={20} color={theme.colors.textTertiary} />
+              <ChevronRight size={20} color={colors.textTertiary} />
             </TouchableOpacity>
           ))
         ) : (
           <GlassCard style={styles.emptyAlert}>
             <View style={styles.emptyAlertContent}>
               <CheckCircle2 size={24} color="#10B981" />
-              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                 All items are sufficiently stocked!
               </Text>
             </View>

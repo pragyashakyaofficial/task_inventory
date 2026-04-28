@@ -1,5 +1,4 @@
 export { RippleButton } from './RippleButton';
-export { ThemeToggle } from './ThemeToggle';
 
 // New common components
 export { default as GlassCard } from './GlassCard';

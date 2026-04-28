@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
+  ScrollView,
 } from 'react-native';
-import { useTheme } from '../../theme/ThemeContext';
+import { colors } from '../../theme/constants';
 
 const ButtonTest: React.FC = () => {
-  const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
 
   const handleLoading = () => {
@@ -32,7 +32,7 @@ const ButtonTest: React.FC = () => {
     loading?: boolean;
     style?: any;
   }) => {
-    const scaleValue = React.useRef(new Animated.Value(1)).current;
+    const scaleValue = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
       if (!disabled && !loading) {
@@ -56,40 +56,40 @@ const ButtonTest: React.FC = () => {
       switch (variant) {
         case 'primary':
           return {
-            backgroundColor: disabled ? theme.colors.borderLight : theme.colors.primary,
-            borderColor: theme.colors.primary,
+            backgroundColor: disabled ? colors.borderLight : colors.primary,
+            borderColor: colors.primary,
           };
         case 'secondary':
           return {
-            backgroundColor: disabled ? theme.colors.borderLight : theme.colors.gray,
-            borderColor: theme.colors.gray,
+            backgroundColor: disabled ? colors.borderLight : colors.textTertiary,
+            borderColor: colors.textTertiary,
           };
         case 'error':
           return {
-            backgroundColor: disabled ? theme.colors.error : theme.colors.error,
-            borderColor: theme.colors.error,
+            backgroundColor: colors.error,
+            borderColor: colors.error,
           };
         case 'outline':
           return {
             backgroundColor: 'transparent',
-            borderColor: disabled ? theme.colors.border : theme.colors.primary,
+            borderColor: disabled ? colors.border : colors.primary,
           };
         default:
           return {
-            backgroundColor: theme.colors.primary,
-            borderColor: theme.colors.primary,
+            backgroundColor: colors.primary,
+            borderColor: colors.primary,
           };
       }
     };
 
-    const colors = getButtonColors();
+    const buttonColors = getButtonColors();
 
     return (
       <Animated.View style={[{ transform: [{ scale: scaleValue }] }, style]}>
         <TouchableOpacity
           style={[
             styles.button,
-            colors,
+            buttonColors,
             variant === 'outline' && styles.outlineButton,
           ]}
           onPress={onPress}
@@ -100,7 +100,7 @@ const ButtonTest: React.FC = () => {
         >
           <Text style={[
             styles.buttonText,
-            { color: variant === 'outline' ? (disabled ? theme.colors.gray : theme.colors.primary) : theme.colors.white }
+            { color: variant === 'outline' ? (disabled ? colors.textTertiary : colors.primary) : colors.white }
           ]}>
             {loading ? 'Loading...' : title}
           </Text>
@@ -110,11 +110,11 @@ const ButtonTest: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>Animated Button Test</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>Animated Button Test</Text>
       
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Button Variants</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Button Variants</Text>
         
         <View style={styles.row}>
           <SimpleAnimatedButton
@@ -163,7 +163,7 @@ const ButtonTest: React.FC = () => {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Button Sizes</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Button Sizes</Text>
         
         <View style={styles.row}>
           <SimpleAnimatedButton
@@ -183,7 +183,7 @@ const ButtonTest: React.FC = () => {
           />
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

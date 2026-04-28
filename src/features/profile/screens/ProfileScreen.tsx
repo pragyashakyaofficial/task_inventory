@@ -11,16 +11,14 @@ import {
   UserCircle,
   X
 } from 'lucide-react-native';
-import { useTheme } from '../../../theme/ThemeContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import GlassCard from '../../../components/common/GlassCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../auth/store/authSlice';
 import { RootState } from '../../../store';
-import { spacingSemantic } from '../../../theme/spacing';
+import { colors, spacingSemantic } from '../../../theme/constants';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import GlassCard from '../../../components/common/GlassCard';
 
 const ProfileScreen = () => {
-  const { theme, toggleTheme } = useTheme();
   const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
@@ -45,73 +43,73 @@ const ProfileScreen = () => {
   };
 
   const ProfileOption = ({ icon, title, subtitle, value, onValueChange, type = 'link' }: any) => (
-    <TouchableOpacity 
-      style={[styles.option, { borderBottomColor: theme.colors.border }]}
-      disabled={type === 'switch'}
-    >
-      <View style={[styles.optionIcon, { backgroundColor: theme.colors.backgroundSecondary }]}>
-        {icon}
-      </View>
-      <View style={styles.optionContent}>
-        <Text style={[styles.optionTitle, { color: theme.colors.text }]}>{title}</Text>
-        {subtitle && (
-          <Text style={[styles.optionSubtitle, { color: theme.colors.textSecondary }]}>{subtitle}</Text>
+      <TouchableOpacity 
+        style={[styles.option, { borderBottomColor: colors.border }]}
+        disabled={type === 'switch'}
+      >
+        <View style={[styles.optionIcon, { backgroundColor: colors.backgroundSecondary }]}>
+          {icon}
+        </View>
+        <View style={styles.optionContent}>
+          <Text style={[styles.optionTitle, { color: colors.text }]}>{title}</Text>
+          {subtitle && (
+            <Text style={[styles.optionSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+          )}
+        </View>
+        {type === 'link' && <ChevronRight size={20} color={colors.textTertiary} />}
+        {type === 'switch' && (
+          <Switch 
+            value={value} 
+            onValueChange={onValueChange}
+            trackColor={{ false: '#767577', true: colors.primary }}
+          />
         )}
-      </View>
-      {type === 'link' && <ChevronRight size={20} color={theme.colors.textTertiary} />}
-      {type === 'switch' && (
-        <Switch 
-          value={value} 
-          onValueChange={onValueChange}
-          trackColor={{ false: '#767577', true: theme.colors.primary }}
-        />
-      )}
-    </TouchableOpacity>
+      </TouchableOpacity>
   );
 
   return (
     <ScrollView 
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{ paddingTop: insets.top + 20, paddingBottom: 100 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor={theme.colors.primary}
-          colors={[theme.colors.primary]}
-          progressBackgroundColor={theme.colors.backgroundSecondary}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+          progressBackgroundColor={colors.backgroundSecondary}
         />
       }
     >
       <View style={styles.header}>
-        <View style={[styles.avatarContainer, { backgroundColor: theme.colors.backgroundSecondary }]}>
-          <UserCircle size={80} color={theme.colors.primary} />
+        <View style={[styles.avatarContainer, { backgroundColor: colors.backgroundSecondary }]}>
+          <UserCircle size={80} color={colors.primary} />
         </View>
-        <Text style={[styles.userName, { color: theme.colors.text }]}>
+        <Text style={[styles.userName, { color: colors.text }]}>
           {user?.name || 'User'}
         </Text>
-        <Text style={[styles.userEmail, { color: theme.colors.textSecondary }]}>
+        <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
           {user?.email || 'user@example.com'}
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>Account Settings</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Account Settings</Text>
         <GlassCard style={styles.card}>
           <ProfileOption 
-            icon={<User size={20} color={theme.colors.primary} />} 
+            icon={<User size={20} color={colors.primary} />} 
             title="Edit Profile" 
             subtitle="Change your personal details"
           />
           <ProfileOption 
-            icon={<Mail size={20} color={theme.colors.primary} />} 
+            icon={<Mail size={20} color={colors.primary} />} 
             title="Email Notifications" 
             subtitle="Manage your alerts"
             type="switch"
             value={true}
           />
           <ProfileOption 
-            icon={<Shield size={20} color={theme.colors.primary} />} 
+            icon={<Shield size={20} color={colors.primary} />} 
             title="Security" 
             subtitle="Password and biometric"
           />
@@ -119,17 +117,17 @@ const ProfileScreen = () => {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>Preferences</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Preferences</Text>
         <GlassCard style={styles.card}>
           <ProfileOption 
-            icon={<Settings size={20} color={theme.colors.primary} />} 
+            icon={<Settings size={20} color={colors.primary} />} 
             title="Dark Mode" 
             type="switch"
-            value={theme.isDark}
-            onValueChange={toggleTheme}
+            value={true}
+            onValueChange={() => {}}
           />
           <ProfileOption 
-            icon={<Bell size={20} color={theme.colors.primary} />} 
+            icon={<Bell size={20} color={colors.primary} />} 
             title="Push Notifications" 
             type="switch"
             value={true}
@@ -138,14 +136,14 @@ const ProfileScreen = () => {
       </View>
 
       <TouchableOpacity 
-        style={[styles.logoutButton, { backgroundColor: theme.colors.error + '15' }]}
+        style={[styles.logoutButton, { backgroundColor: colors.error + '15' }]}
         onPress={handleLogout}
       >
-        <LogOut size={20} color={theme.colors.error} />
-        <Text style={[styles.logoutText, { color: theme.colors.error }]}>Log Out</Text>
+        <LogOut size={20} color={colors.error} />
+        <Text style={[styles.logoutText, { color: colors.error }]}>Log Out</Text>
       </TouchableOpacity>
 
-      <Text style={[styles.versionText, { color: theme.colors.textTertiary }]}>
+      <Text style={[styles.versionText, { color: colors.textTertiary }]}>
         Version 1.0.0
       </Text>
 
@@ -163,33 +161,33 @@ const ProfileScreen = () => {
           <View style={styles.modalCenteredView}>
             <GlassCard style={styles.modalView}>
               <View style={styles.modalHeader}>
-                <View style={[styles.modalIconContainer, { backgroundColor: theme.colors.error + '20' }]}>
-                  <LogOut size={24} color={theme.colors.error} />
+                <View style={[styles.modalIconContainer, { backgroundColor: colors.error + '20' }]}>
+                  <LogOut size={24} color={colors.error} />
                 </View>
                 <TouchableOpacity 
                   onPress={() => setLogoutModalVisible(false)}
                   style={styles.closeButton}
                 >
-                  <X size={20} color={theme.colors.textTertiary} />
+                  <X size={20} color={colors.textTertiary} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.modalContent}>
-                <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Logout</Text>
-                <Text style={[styles.modalSubtitle, { color: theme.colors.textSecondary }]}>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Logout</Text>
+                <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
                   Are you sure you want to log out of your account?
                 </Text>
               </View>
 
               <View style={styles.modalFooter}>
                 <TouchableOpacity 
-                  style={[styles.modalButton, styles.cancelButton, { backgroundColor: theme.colors.backgroundSecondary }]}
+                  style={[styles.modalButton, styles.cancelButton, { backgroundColor: colors.backgroundSecondary }]}
                   onPress={() => setLogoutModalVisible(false)}
                 >
-                  <Text style={[styles.cancelButtonText, { color: theme.colors.textSecondary }]}>Cancel</Text>
+                  <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={[styles.modalButton, styles.confirmButton, { backgroundColor: theme.colors.error }]}
+                  style={[styles.modalButton, styles.confirmButton, { backgroundColor: colors.error }]}
                   onPress={confirmLogout}
                 >
                   <Text style={styles.confirmButtonText}>Logout</Text>

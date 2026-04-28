@@ -19,7 +19,8 @@ const ENDPOINTS = {
   // User endpoints
   PROFILE: '/user/profile',
   
-  // Add more endpoints as needed
+  // Reorder Planner endpoints
+  REORDER_PLAN: '/api/inventory/reorder-plan',
 } as const;
 
 // Re-export shared types
@@ -92,6 +93,21 @@ export interface AISuggestionResponse {
     confidence: number;
     reasoning: string;
   }[];
+}
+
+export interface ReorderSuggestion {
+  itemId: string;
+  name: string;
+  currentQuantity: number;
+  shouldReorder: boolean;
+  suggestedQuantity: number;
+  reason: string;
+}
+
+export interface ReorderPlanResponse {
+  success: boolean;
+  suggestions: ReorderSuggestion[];
+  message?: string;
 }
 
 // Cache tags
@@ -290,6 +306,12 @@ export const inventoryApi = createApi({
       invalidatesTags: [inventoryTags.aiSuggestion],
     }),
 
+    // Get reorder plan (lazy)
+    getReorderPlan: builder.query<ReorderPlanResponse, void>({
+      query: () => ENDPOINTS.REORDER_PLAN,
+      providesTags: [inventoryTags.aiSuggestion],
+    }),
+
     // Get dashboard statistics
     getDashboardStats: builder.query<DashboardStats, void>({
       query: () => ENDPOINTS.DASHBOARD_STATS,
@@ -307,6 +329,7 @@ export const {
   useDeleteItemMutation,
   useGetAISuggestionMutation,
   useGetDashboardStatsQuery,
+  useLazyGetReorderPlanQuery,
 } = inventoryApi;
 
 // Export selectors for advanced usage
