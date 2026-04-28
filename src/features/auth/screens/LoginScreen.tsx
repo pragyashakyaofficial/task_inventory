@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
   Dimensions,
   ActivityIndicator,
   StatusBar,
@@ -24,14 +23,22 @@ import { colors } from '../../../theme/constants';
 import { useLoginMutation } from '../api/authApi';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../store/authSlice';
+import Toast, { ToastManager, ToastItem } from '../../../components/common/Toast';
 
 const { width, height } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
-export const LoginScreen: React.FC<Props> = ({ navigation }) => {
+export const LoginScreen: React.FC<Props> = () => {
   const dispatch = useDispatch();
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [apiError, setApiError] = useState<string>('');
+
+  useEffect(() => {
+    const unsubscribe = ToastManager.getInstance().subscribe(setToasts);
+    return () => unsubscribe();
+  }, []);
 
   const {
     control,
@@ -47,6 +54,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    setApiError('');
     try {
       const response = await login(data).unwrap();
       
@@ -55,36 +63,41 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         token: response.token,
       }));
 
-      Alert.alert(
-        'Welcome Back!',
-        `Successfully logged in as ${response.user?.email || 'user'}`,
-        [{ text: 'Continue', style: 'default' }]
+      ToastManager.getInstance().success(
+        `Welcome Back! Successfully logged in as ${response.user?.email || 'user'}`,
+        { position: 'bottom' }
       );
     } catch (error: any) {
       const message = error?.data?.message || 'Invalid email or password. Please try again.';
-      Alert.alert('Authentication Failed', message);
+      setApiError(message);
+      ToastManager.getInstance().error(message, { position: 'bottom' });
     }
   };
 
   const handleForgotPassword = () => {
-    Alert.alert(
-      'Reset Password',
-      'Password reset link will be sent to your email',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Send', style: 'default' },
-      ]
-    );
+    ToastManager.getInstance().info('Password reset link will be sent to your email', { position: 'bottom' });
   };
 
   const isLoading = isLoginLoading;
 
   return (
     <View style={styles.container}>
+      {/* Toast Notifications */}
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          type={toast.type}
+          message={toast.message}
+          duration={toast.duration}
+          onHide={() => ToastManager.getInstance().removeToast(toast.id)}
+          actionLabel={toast.actionLabel}
+          onAction={toast.onAction}
+          position={toast.position}
+        />
+      ))}
       <StatusBar
-        backgroundColor="transparent"
+        backgroundColor={colors.background}
         barStyle="light-content"
-        translucent
       />
       {/* Gradient Background using pure React Native */}
       <View style={styles.gradientBackground}>
@@ -175,6 +188,14 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
                     </TouchableOpacity>
                   </View>
 
+                  {/* API Error Helper Text */}
+                  {!!apiError && (
+                    <View style={styles.errorHelperContainer}>
+                      <Text style={styles.errorHelperIcon}>⚠</Text>
+                      <Text style={styles.errorHelperText}>{apiError}</Text>
+                    </View>
+                  )}
+
                   {/* Login Button */}
                   <TouchableOpacity
                     style={[
@@ -219,7 +240,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             </View>
 
             {/* Register Link */}
-            <View style={styles.registerLink}>
+            {/* <View style={styles.registerLink}>
               <Text style={styles.registerText}>New to our platform? </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Register')}
@@ -227,7 +248,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
               >
                 <Text style={styles.registerLinkText}>Create Account →</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
 
             {/* Terms & Privacy */}
             {/* <Text style={styles.termsText}>
@@ -400,6 +421,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primary,
     fontWeight: '600',
+  },
+  errorHelperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.error + '15',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  errorHelperIcon: {
+    fontSize: 14,
+    marginRight: 8,
+  },
+  errorHelperText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.error,
+    fontWeight: '500',
   },
   loginButton: {
     backgroundColor: colors.primary,

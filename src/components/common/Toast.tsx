@@ -41,9 +41,9 @@ const Toast: React.FC<ToastProps> = ({
 
   useEffect(() => {
     // Entrance animation
-    translateY.value = withSpring(0, { damping: 15, stiffness: 400 });
-    opacity.value = withSpring(1, { damping: 15, stiffness: 400 });
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+    translateY.value = withSpring(0, { damping: 30, stiffness: 100 });
+    opacity.value = withSpring(1, { damping: 30, stiffness: 100 });
+    scale.value = withSpring(1, { damping: 30, stiffness: 100 });
 
     // Auto hide after duration
     if (duration > 0) {
@@ -58,14 +58,14 @@ const Toast: React.FC<ToastProps> = ({
   const hideToast = () => {
     translateY.value = withSpring(
       position === 'top' ? -100 : 100,
-      { damping: 15, stiffness: 400 }
+      { damping: 20, stiffness: 100 }
     );
-    opacity.value = withTiming(0, { duration: 200 });
-    scale.value = withSpring(0.8, { damping: 15, stiffness: 400 });
+    opacity.value = withTiming(0, { duration: 400 });
+    scale.value = withSpring(0.8, { damping: 30, stiffness: 100 });
     
     setTimeout(() => {
       onHide?.();
-    }, 200);
+    }, 400);
   };
 
   const handleAction = () => {
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    borderRadius: 12,
+    borderRadius: 50,
    
     zIndex: 1000,
     maxWidth: Dimensions.get('window').width - 32,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
 });
 
 // Toast manager for handling multiple toasts
-interface ToastItem {
+export interface ToastItem {
   id: string;
   type: ToastType;
   message: string;
