@@ -51,7 +51,7 @@ export const authApi = createApi({
     // Logout endpoint (if your backend supports it)
     logout: builder.mutation<void, void>({
       query: () => ({
-        url: '/auth/logout',
+        url: '/api/auth/logout',
         method: 'POST',
       }),
       invalidatesTags: ['Auth'],

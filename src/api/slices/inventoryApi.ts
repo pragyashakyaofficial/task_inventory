@@ -12,9 +12,9 @@ const ENDPOINTS = {
   DASHBOARD_STATS: '/api/dashboard',
   
   // Auth endpoints
-  LOGIN: '/auth/login',
-  REGISTER: '/auth/register',
-  REFRESH_TOKEN: '/auth/refresh',
+  LOGIN: '/api/auth/login',
+  REGISTER: '/api/auth/register',
+  REFRESH_TOKEN: '/api/auth/refresh',
   
   // User endpoints
   PROFILE: '/user/profile',
