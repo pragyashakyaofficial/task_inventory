@@ -5,11 +5,11 @@ import { InventoryItem as FeatureInventoryItem } from '../../features/inventory/
 // API endpoints
 const ENDPOINTS = {
   // Inventory endpoints
-  INVENTORY: '/items',
-  INVENTORY_ITEM: (id: string) => `/items/${id}`,
+  INVENTORY: '/api/inventory',
+  INVENTORY_ITEM: (id: string) => `/api/inventory/${id}`,
 
   // Dashboard endpoints
-  DASHBOARD_STATS: '/api/dashboard',
+  DASHBOARD_STATS: '/api/inventory/stats',
   
   // Auth endpoints
   LOGIN: '/api/auth/login',
@@ -17,10 +17,18 @@ const ENDPOINTS = {
   REFRESH_TOKEN: '/api/auth/refresh',
   
   // User endpoints
-  PROFILE: '/user/profile',
+  PROFILE: '/api/users/profile',
   
   // Reorder Planner endpoints
   REORDER_PLAN: '/api/inventory/reorder-plan',
+  PREDICT_REORDER: (id: string) => `/api/inventory/${id}`,
+
+  // Stock Request endpoints
+  STOCK_REQUESTS: '/api/stock-requests',
+  STOCK_REQUEST: (id: string) => `/api/stock-requests/${id}`,
+  APPROVE_STOCK_REQUEST: (id: string) => `/api/stock-requests/${id}/approve`,
+  REJECT_STOCK_REQUEST: (id: string) => `/api/stock-requests/${id}/reject`,
+  FULFILL_STOCK_REQUEST: (id: string) => `/api/stock-requests/${id}/fulfill`,
 } as const;
 
 // Re-export shared types
@@ -61,18 +69,19 @@ export interface GetItemsResponse {
 }
 
 export interface DashboardStats {
-  totalItems: number;
-  inStockCount: number;
-  lowStockCount: number;
-  outOfStockCount: number;
-  totalQuantity: number;
+  stats: {
+    total: number;
+    inStock: number;
+    lowStock: number;
+    outOfStock: number;
+  };
   criticalStockAlerts: InventoryItem[];
-  recentActivity: {
+  recentActivity?: {
     action: 'created' | 'updated' | 'deleted';
     itemName: string;
     timestamp: string;
   }[];
-  topCategories: {
+  topCategories?: {
     category: string;
     count: number;
     value: number;
@@ -110,6 +119,26 @@ export interface ReorderPlanResponse {
   message?: string;
 }
 
+export interface StockRequest {
+  _id: string;
+  inventoryId: InventoryItem | string;
+  restaurantId: string;
+  requestedQuantity: number;
+  currentStock: number;
+  status: 'pending' | 'approved' | 'rejected' | 'fulfilled';
+  requestedBy: { name: string; email: string };
+  approvedBy?: { name: string; email: string };
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateStockRequestPayload {
+  inventoryId: string;
+  requestedQuantity: number;
+  notes?: string;
+}
+
 // Cache tags
 export const inventoryTags = {
   items: 'ITEMS',
@@ -121,7 +150,7 @@ export const inventoryTags = {
 export const inventoryApi = createApi({
   reducerPath: 'inventoryApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['ITEMS', 'DASHBOARD', 'AI_SUGGESTION'],
+  tagTypes: ['ITEMS', 'DASHBOARD', 'AI_SUGGESTION', 'STOCK_REQUEST'],
   endpoints: (builder) => ({
     // Get all inventory items
     getItems: builder.query<GetItemsResponse, GetItemsParams>({
@@ -129,18 +158,28 @@ export const inventoryApi = createApi({
         url: ENDPOINTS.INVENTORY,
         params,
       }),
-      transformResponse: (response: any[] | GetItemsResponse) => {
+      transformResponse: (response: any) => {
         const mapItem = (item: any): InventoryItem => ({
           ...item,
           id: item._id || item.id,
           status: (item.status || 'in-stock').toLowerCase().replace(' ', '-'),
-          minQuantity: item.minQuantity || item.minimumStock || 0,
-          maxQuantity: item.maxQuantity || 100,
+          quantity: item.currentStock !== undefined ? item.currentStock : item.quantity || 0,
+          minQuantity: item.minThreshold !== undefined ? item.minThreshold : item.minimumStock || 0,
+          maxQuantity: item.maxStock || 100,
           price: item.price || 0,
           cost: item.cost || 0,
           sku: item.sku || '',
-          category: item.category || 'Uncategorized',
+          category: typeof item.categoryId === 'object' ? item.categoryId.name : item.category || 'Uncategorized',
+          suggestedOrder: item.suggestedOrder || 0,
+          unit: item.unit || 'units',
         });
+
+        if (response && response.inventory && Array.isArray(response.inventory)) {
+          return {
+            items: response.inventory.map(mapItem),
+            total: response.count || response.inventory.length,
+          };
+        }
 
         if (Array.isArray(response)) {
           return {
@@ -164,6 +203,23 @@ export const inventoryApi = createApi({
     // Get single item by ID
     getItemById: builder.query<InventoryItem, string>({
       query: (id) => ENDPOINTS.INVENTORY_ITEM(id),
+      transformResponse: (response: any) => {
+        const item = response?.inventory || response;
+        return {
+          ...item,
+          id: item._id || item.id,
+          status: (item.status || 'in-stock').toLowerCase().replace(' ', '-'),
+          quantity: item.currentStock !== undefined ? item.currentStock : item.quantity || 0,
+          minQuantity: item.minThreshold !== undefined ? item.minThreshold : item.minimumStock || 0,
+          maxQuantity: item.maxStock || 100,
+          price: item.price || 0,
+          cost: item.cost || 0,
+          sku: item.sku || '',
+          category: typeof item.categoryId === 'object' ? item.categoryId.name : item.category || 'Uncategorized',
+          suggestedOrder: item.suggestedOrder || 0,
+          unit: item.unit || 'units',
+        };
+      },
       providesTags: (_result, _error, id) => [inventoryTags.item(id)],
     }),
 
@@ -191,6 +247,7 @@ export const inventoryApi = createApi({
           sku: item.sku || '',
           price: item.price || 0,
           cost: 0,
+          unit: 'units',
         };
 
         // Update cache optimistically
@@ -312,10 +369,76 @@ export const inventoryApi = createApi({
       providesTags: [inventoryTags.aiSuggestion],
     }),
 
+    // Predict reorder for a specific item
+    predictReorder: builder.mutation<{ suggestedQuantity: number; when: string; reason: string }, string>({
+      query: (id) => ({
+        url: ENDPOINTS.PREDICT_REORDER(id),
+        method: 'POST', // Using POST to trigger prediction logic
+      }),
+      invalidatesTags: (_result, _error, id) => [inventoryTags.item(id)],
+    }),
+
     // Get dashboard statistics
     getDashboardStats: builder.query<DashboardStats, void>({
       query: () => ENDPOINTS.DASHBOARD_STATS,
+      transformResponse: (response: any) => {
+        return {
+          stats: {
+            total: response.stats?.total || 0,
+            inStock: response.stats?.ok || 0,
+            lowStock: response.stats?.lowStock || 0,
+            outOfStock: response.stats?.outOfStock || 0,
+          },
+          criticalStockAlerts: (response.criticalStockAlerts || []).map((item: any) => ({
+            ...item,
+            id: item._id || item.id,
+            status: item.currentStock === 0 ? 'out-of-stock' : 'low-stock',
+            quantity: item.currentStock,
+            minQuantity: item.minThreshold,
+          })),
+        };
+      },
       providesTags: [inventoryTags.dashboard],
+    }),
+
+    // Stock Requests
+    getStockRequests: builder.query<StockRequest[], void>({
+      query: () => ENDPOINTS.STOCK_REQUESTS,
+      transformResponse: (response: any) => response.stockRequests || [],
+      providesTags: ['STOCK_REQUEST'],
+    }),
+
+    createStockRequest: builder.mutation<StockRequest, CreateStockRequestPayload>({
+      query: (payload) => ({
+        url: ENDPOINTS.STOCK_REQUESTS,
+        method: 'POST',
+        body: payload,
+      }),
+      invalidatesTags: ['STOCK_REQUEST', 'ITEMS', 'DASHBOARD'],
+    }),
+
+    approveStockRequest: builder.mutation<StockRequest, string>({
+      query: (id) => ({
+        url: ENDPOINTS.APPROVE_STOCK_REQUEST(id),
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['STOCK_REQUEST'],
+    }),
+
+    rejectStockRequest: builder.mutation<StockRequest, string>({
+      query: (id) => ({
+        url: ENDPOINTS.REJECT_STOCK_REQUEST(id),
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['STOCK_REQUEST'],
+    }),
+
+    fulfillStockRequest: builder.mutation<StockRequest, string>({
+      query: (id) => ({
+        url: ENDPOINTS.FULFILL_STOCK_REQUEST(id),
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['STOCK_REQUEST', 'ITEMS', 'DASHBOARD'],
     }),
   }),
 });
@@ -330,6 +453,12 @@ export const {
   useGetAISuggestionMutation,
   useGetDashboardStatsQuery,
   useLazyGetReorderPlanQuery,
+  usePredictReorderMutation,
+  useGetStockRequestsQuery,
+  useCreateStockRequestMutation,
+  useApproveStockRequestMutation,
+  useRejectStockRequestMutation,
+  useFulfillStockRequestMutation,
 } = inventoryApi;
 
 // Export selectors for advanced usage

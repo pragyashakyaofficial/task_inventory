@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { colors } from '../../theme/constants';
 
-export type StatusType = 'in-stock' | 'low-stock' | 'out-of-stock' | 'discontinued' | 'pending';
+export type StatusType = 'in-stock' | 'low-stock' | 'out-of-stock' | 'discontinued' | 'pending' | 'ok' | 'low' | 'out' | 'OK' | 'LOW' | 'OUT';
 
 interface StatusBadgeProps {
-  status: StatusType;
+  status: StatusType | string;
   text?: string;
   size?: 'small' | 'medium' | 'large';
   style?: ViewStyle;
@@ -21,14 +21,18 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
 }) => {
   const getStatusConfig = () => {
     switch (status) {
+      case 'ok':
+      case 'OK':
       case 'in-stock':
         return {
           backgroundColor: customColor || colors.success + '20',
           borderColor: customColor || colors.success,
           textColor: customColor ? colors.white : colors.successDark,
           dotColor: customColor || colors.success,
-          defaultText: 'In Stock',
+          defaultText: status === 'in-stock' ? 'In Stock' : 'OK',
         };
+      case 'low':
+      case 'LOW':
       case 'low-stock':
         return {
           backgroundColor: customColor || colors.warning + '20',
@@ -37,13 +41,15 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
           dotColor: customColor || colors.warning,
           defaultText: 'Low Stock',
         };
+      case 'out':
+      case 'OUT':
       case 'out-of-stock':
         return {
           backgroundColor: customColor || colors.error + '20',
           borderColor: customColor || colors.error,
           textColor: customColor ? colors.white : colors.errorDark,
           dotColor: customColor || colors.error,
-          defaultText: 'Out of Stock',
+          defaultText: (status === 'out' || status === 'OUT') ? 'Out' : 'Out of Stock',
         };
       case 'discontinued':
         return {

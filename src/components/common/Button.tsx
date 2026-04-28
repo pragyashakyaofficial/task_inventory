@@ -29,7 +29,7 @@ interface ButtonProps extends Omit<TouchableOpacityProps, 'onPress'> {
   loading?: boolean;
   disabled?: boolean;
   size?: ButtonSize;
-  style?: ViewStyle;
+  style?: ViewStyle | ViewStyle[];
   textStyle?: TextStyle;
   fullWidth?: boolean;
   leftIcon?: React.ReactNode;

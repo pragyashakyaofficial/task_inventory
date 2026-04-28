@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Animated, {
@@ -26,52 +27,100 @@ import Button from '../../../components/common/Button';
 import GlassCard from '../../../components/common/GlassCard';
 import StatusBadge from '../../../components/common/StatusBadge';
 import { InventoryItem } from '../types/inventory.types';
+import { useInventory, useInventoryItem } from '../hooks/useInventory';
+import { usePredictReorderMutation } from '../../../api/slices/inventoryApi';
+import ReorderPredictionModal from '../components/ReorderPredictionModal';
 
 type RootStackParamList = {
-  ItemDetail: { item: InventoryItem };
+  ItemDetail: { item?: InventoryItem; itemId?: string };
   AddEditItem: { item: InventoryItem };
 };
 
 const ItemDetailScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<RootStackParamList, 'ItemDetail'>>();
-  const { item } = route.params;
+  const { item: initialItem, itemId } = route.params || {};
 
-  const [isDeleting, setIsDeleting] = useState(false);
+  const { deleteItem, isDeleteItemLoading } = useInventory();
+  const [predictReorder, { isLoading: isPredicting }] = usePredictReorderMutation();
+  const {
+    item: updatedItem,
+    isLoading: isItemLoading,
+    refreshItem
+  } = useInventoryItem(itemId || initialItem?.id || '');
 
-  const handleDelete = () => {
-    Alert.alert(
-      'Delete Item',
-      'Are you sure you want to delete this item? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            setIsDeleting(true);
-            // Simulate delete
-            setTimeout(() => {
-              Alert.alert('Success', 'Item deleted successfully');
-              navigation.goBack();
-            }, 1000);
-          },
-        },
-      ]
+  const [predictionModalVisible, setPredictionModalVisible] = useState(false);
+  const [predictionResult, setPredictionResult] = useState<{ suggestedQuantity: number; when: string; reason: string } | null>(null);
+
+  const item = updatedItem || initialItem;
+
+  useEffect(() => {
+    if (itemId || initialItem?.id) {
+      refreshItem();
+    }
+  }, [refreshItem, itemId, initialItem?.id]);
+
+  if (isItemLoading && !item) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <RefreshCw size={32} color={colors.primary} />
+        <Text style={{ color: colors.textSecondary, marginTop: 16 }}>Loading item details...</Text>
+      </View>
     );
+  }
+
+  if (!item) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: colors.text }}>Item not found</Text>
+        <Button title="Go Back" onPress={() => navigation.goBack()} style={{ marginTop: 16 }} />
+      </View>
+    );
+  }
+
+  const handleDelete = async () => {
+    if (!item?.id) {
+      Alert.alert('Error', 'Item ID is not available');
+      return;
+    }
+    const success = await deleteItem({ id: item.id });
+    if (success) {
+      navigation.goBack();
+    }
   };
 
-  const handleAIReorder = () => {
-    Alert.alert(
-      'AI Reorder Triggered',
-      'The AI system is calculating the optimal reorder quantity based on current demand patterns and lead times.',
-      [{ text: 'Great!' }]
-    );
+  const handleAIReorder = async () => {
+    if (!item?.id) {
+      Alert.alert('Error', 'Item ID is not available');
+      return;
+    }
+    try {
+      const result = await predictReorder(item.id).unwrap();
+      setPredictionResult(result);
+      setPredictionModalVisible(true);
+    } catch (error: any) {
+      Alert.alert('Prediction Failed', error?.data?.message || 'AI failed to generate a prediction.');
+    }
+  };
+
+  const handleCloseModal = () => {
+    setPredictionModalVisible(false);
+    setPredictionResult(null);
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isItemLoading}
+            onRefresh={refreshItem}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
         <Animated.View entering={FadeInDown.duration(600)} style={styles.header}>
           <View style={styles.titleSection}>
             <Text style={[styles.category, { color: colors.primary }]}>{item.category}</Text>
@@ -97,7 +146,7 @@ const ItemDetailScreen = () => {
               <View style={[styles.iconBox, { backgroundColor: colors.primary + '20' }]}>
                 <DollarSign size={20} color={colors.primary} />
               </View>
-              <Text style={[styles.statValue, { color: colors.text }]}>${item.price.toFixed(2)}</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>${(item.price || 0).toFixed(2)}</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Price</Text>
             </GlassCard>
           </Animated.View>
@@ -121,7 +170,9 @@ const ItemDetailScreen = () => {
               <View style={styles.aiInsightText}>
                 <Text style={[styles.insightTitle, { color: colors.text }]}>Demand Outlook</Text>
                 <Text style={[styles.insightDesc, { color: colors.textSecondary }]}>
-                  Stable demand predicted for the next 14 days. Current stock is optimal.
+                  {item.suggestedOrder && item.suggestedOrder > 0 
+                    ? `AI suggests reordering ${item.suggestedOrder} units based on current stock levels and demand trends.`
+                    : "Stock levels are currently optimal based on historical demand patterns."}
                 </Text>
               </View>
             </View>
@@ -129,6 +180,7 @@ const ItemDetailScreen = () => {
               title="Predict Reorder"
               variant="outline"
               onPress={handleAIReorder}
+              loading={isPredicting}
               style={styles.reorderButton}
             />
           </GlassCard>
@@ -140,13 +192,13 @@ const ItemDetailScreen = () => {
             <View style={styles.activityItem}>
               <History size={16} color={colors.textSecondary} />
               <Text style={[styles.activityText, { color: colors.text }]}>
-                Inventory updated 2 days ago
+                Created: {new Date(item.createdAt).toLocaleDateString()}
               </Text>
             </View>
             <View style={styles.activityItem}>
               <RefreshCw size={16} color={colors.textSecondary} />
               <Text style={[styles.activityText, { color: colors.text }]}>
-                Stock check completed yesterday
+                Last Updated: {new Date(item.updatedAt).toLocaleDateString()}
               </Text>
             </View>
           </View>
@@ -158,7 +210,7 @@ const ItemDetailScreen = () => {
           title="Delete"
           variant="error"
           onPress={handleDelete}
-          loading={isDeleting}
+          loading={isDeleteItemLoading}
           style={styles.actionButton}
         />
         <Button
@@ -167,6 +219,12 @@ const ItemDetailScreen = () => {
           style={StyleSheet.flatten([styles.actionButton, { flex: 2 }])}
         />
       </View>
+
+      <ReorderPredictionModal
+        isVisible={predictionModalVisible}
+        onClose={handleCloseModal}
+        prediction={predictionResult}
+      />
     </View>
   );
 };

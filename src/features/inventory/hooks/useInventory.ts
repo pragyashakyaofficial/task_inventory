@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import {
   useGetItemsQuery,
+  useGetItemByIdQuery,
   useCreateItemMutation,
   useUpdateItemMutation,
   useDeleteItemMutation,
@@ -305,9 +306,14 @@ export const useDashboardStats = () => {
 
 // Hook for single item operations
 export const useInventoryItem = (itemId: string) => {
-  const [item, setItem] = useState<InventoryItem | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: item,
+    error: fetchError,
+    isLoading: isFetchLoading,
+    refetch: refreshItem,
+  } = useGetItemByIdQuery(itemId, {
+    skip: !itemId,
+  });
 
   const {
     updateItem,
@@ -316,27 +322,11 @@ export const useInventoryItem = (itemId: string) => {
     isDeleteItemLoading,
   } = useInventory();
 
-  const refreshItem = useCallback(async () => {
-    if (!itemId) return;
-    
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // This would typically be a specific API call to get one item
-      // For now, we'll use the existing hook and filter
-      const result = await updateItem({ id: itemId }) as unknown as InventoryItem;
-      setItem(result);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch item');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [itemId, updateItem]);
+  const error = fetchError ? 'Failed to fetch item' : null;
 
   return {
-    item,
-    isLoading: isLoading || isUpdateItemLoading || isDeleteItemLoading,
+    item: item || null,
+    isLoading: isFetchLoading || isUpdateItemLoading || isDeleteItemLoading,
     error,
     refreshItem,
     updateItem,

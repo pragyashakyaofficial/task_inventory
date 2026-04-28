@@ -8,7 +8,7 @@ import {
 
 interface GlassCardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: ViewStyle | ViewStyle[];
   reducedTransparencyFallbackColor?: string;
   onPress?: () => void;
 }

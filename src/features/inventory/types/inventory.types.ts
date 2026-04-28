@@ -27,9 +27,11 @@ export interface InventoryItem {
   barcode?: string;
   notes?: string;
   minimumStock?: number;
+  suggestedOrder?: number;
+  unit: string;
 }
 
-export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock' | 'discontinued' | 'pending';
+export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock' | 'discontinued' | 'pending' | 'OK' | 'LOW' | 'OUT';
 
 export interface CreateItemRequest {
   name: string;

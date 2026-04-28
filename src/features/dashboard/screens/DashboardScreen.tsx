@@ -72,10 +72,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   }, [refetchItems, refetchStats]);
 
   const stats = useMemo(() => ({
-    total: dashboardStats?.totalItems ?? items.length,
-    inStock: dashboardStats?.inStockCount ?? items.filter((i: InventoryItem) => i.status === 'in-stock').length,
-    lowStock: dashboardStats?.lowStockCount ?? items.filter((i: InventoryItem) => i.status === 'low-stock').length,
-    outOfStock: dashboardStats?.outOfStockCount ?? items.filter((i: InventoryItem) => i.status === 'out-of-stock').length,
+    total: dashboardStats?.stats?.total ?? items.length,
+    inStock: dashboardStats?.stats?.inStock ?? items.filter((i: InventoryItem) => i.status === 'in-stock').length,
+    lowStock: dashboardStats?.stats?.lowStock ?? items.filter((i: InventoryItem) => i.status === 'low-stock').length,
+    outOfStock: dashboardStats?.stats?.outOfStock ?? items.filter((i: InventoryItem) => i.status === 'out-of-stock').length,
   }), [items, dashboardStats]);
 
   const criticalAlerts = useMemo(() => 
@@ -85,7 +85,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const handleViewAll = useCallback(() => navigation.navigate('InventoryList'), [navigation]);
   const handleProfilePress = useCallback(() => navigation.navigate('Profile'), [navigation]);
   const handleItemPress = useCallback((item: any) => {
-    navigation.navigate('ItemDetail', { itemId: item.id || item._id });
+    navigation.navigate('Inventory', { screen: 'ItemDetail', params: { itemId: item.id || item._id } });
   }, [navigation]);
 
   const contentContainerStyle = useMemo(() => ({ 
@@ -115,7 +115,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     >
       <View style={styles.header}>
         <View>
-          <Text style={[styles.greeting, { color: colors.textSecondary }]}>Hello,</Text>
+          <Text style={[styles.greeting, { color: colors.textSecondary }]}>Hello, User!</Text>
           <Text style={[styles.title, { color: colors.text }]}>Inventory Overview</Text>
         </View>
         <TouchableOpacity 
