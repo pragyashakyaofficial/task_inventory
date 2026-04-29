@@ -94,12 +94,18 @@ export const createInventory = async (req: AuthRequest, res: Response, next: Nex
   try {
     const {
       name,
+      category,
       categoryId,
       restaurantId,
-      unit,
+      unit = 'pcs',
+      sku,
+      price,
+      description,
       currentStock = 0,
       minThreshold = 0,
-      maxStock = 100
+      maxStock = 100,
+      minimumStock,
+      quantity
     } = req.body;
 
     // Determine restaurant
@@ -112,13 +118,35 @@ export const createInventory = async (req: AuthRequest, res: Response, next: Nex
       return res.status(400).json({ message: 'Restaurant ID is required' });
     }
 
+    // Resolve categoryId from category name if not provided
+    let resolvedCategoryId = categoryId;
+    if (!resolvedCategoryId && category) {
+      const Category = require('../models/Category').default;
+      const foundCategory = await Category.findOne({
+        name: category.trim(),
+        restaurantId: targetRestaurantId,
+        isDeleted: false
+      });
+      if (!foundCategory) {
+        return res.status(400).json({ message: `Category "${category}" not found` });
+      }
+      resolvedCategoryId = foundCategory._id;
+    }
+
+    if (!resolvedCategoryId) {
+      return res.status(400).json({ message: 'Category is required' });
+    }
+
     const item = await Inventory.create({
       name: name.trim(),
-      categoryId,
+      categoryId: resolvedCategoryId,
       restaurantId: targetRestaurantId,
       unit,
-      currentStock,
-      minThreshold,
+      sku,
+      price: price || 0,
+      description,
+      currentStock: quantity !== undefined ? quantity : currentStock,
+      minThreshold: minimumStock !== undefined ? minimumStock : minThreshold,
       maxStock,
       lastUpdatedBy: req.user?.id
     });
@@ -161,8 +189,36 @@ export const updateInventory = async (req: AuthRequest, res: Response, next: Nex
       return res.status(403).json({ message: 'Access denied. Not your restaurant.' });
     }
 
-    // Prevent changing restaurant or category directly via this route
+    // Prevent changing restaurant directly via this route
     delete updates.restaurantId;
+
+    // Resolve category name to categoryId if needed
+    if (updates.category && !updates.categoryId) {
+      const Category = require('../models/Category').default;
+      const foundCategory = await Category.findOne({
+        name: updates.category.trim(),
+        restaurantId: item.restaurantId,
+        isDeleted: false
+      });
+      if (foundCategory) {
+        updates.categoryId = foundCategory._id;
+      }
+      delete updates.category;
+    }
+
+    // Map frontend field names to backend field names
+    if (updates.quantity !== undefined) {
+      updates.currentStock = updates.quantity;
+      delete updates.quantity;
+    }
+    if (updates.minimumStock !== undefined) {
+      updates.minThreshold = updates.minimumStock;
+      delete updates.minimumStock;
+    }
+    if (updates.maxQuantity !== undefined) {
+      updates.maxStock = updates.maxQuantity;
+      delete updates.maxQuantity;
+    }
 
     // Track if stock changed for logging
     const stockChanged = updates.currentStock !== undefined &&

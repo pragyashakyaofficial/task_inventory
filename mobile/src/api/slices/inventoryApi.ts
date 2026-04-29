@@ -8,6 +8,9 @@ const ENDPOINTS = {
   INVENTORY: '/api/inventory',
   INVENTORY_ITEM: (id: string) => `/api/inventory/${id}`,
 
+  // Category endpoints
+  CATEGORIES: '/api/categories',
+
   // Dashboard endpoints
   DASHBOARD_STATS: '/api/inventory/stats',
   
@@ -42,11 +45,21 @@ export interface CreateItemRequest {
   quantity: number;
   price: number;
   sku: string;
+  unit: string;
   location?: string;
   supplier?: string;
   minimumStock?: number;
   tags?: string[];
   images?: string[];
+}
+
+export interface Category {
+  _id: string;
+  name: string;
+  restaurantId: string;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UpdateItemRequest extends Partial<CreateItemRequest> {
@@ -204,6 +217,17 @@ export const inventoryApi = createApi({
         return response;
       },
       providesTags: [inventoryTags.items],
+    }),
+
+    // Get categories for user's restaurant
+    getCategories: builder.query<{ count: number; categories: Category[] }, void>({
+      query: () => ENDPOINTS.CATEGORIES,
+      transformResponse: (response: any) => {
+        return {
+          count: response?.count || 0,
+          categories: response?.categories || [],
+        };
+      },
     }),
 
     // Get single item by ID
@@ -465,6 +489,7 @@ export const {
   useApproveStockRequestMutation,
   useRejectStockRequestMutation,
   useFulfillStockRequestMutation,
+  useGetCategoriesQuery,
 } = inventoryApi;
 
 // Export selectors for advanced usage

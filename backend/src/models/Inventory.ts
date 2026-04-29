@@ -5,7 +5,10 @@ export interface IInventory {
   name: string;
   categoryId: mongoose.Types.ObjectId;
   restaurantId: mongoose.Types.ObjectId;
-  unit: 'kg' | 'litre' | 'pcs';
+  unit: string;
+  sku?: string;
+  price?: number;
+  description?: string;
   currentStock: number;
   minThreshold: number;
   maxStock: number;
@@ -51,8 +54,23 @@ const inventorySchema = new mongoose.Schema<IInventory, IInventoryModel, IInvent
   },
   unit: {
     type: String,
-    enum: ['kg', 'litre', 'pcs'],
-    required: [true, 'Please specify a unit']
+    required: [true, 'Please specify a unit'],
+    default: 'pcs'
+  },
+  sku: {
+    type: String,
+    trim: true,
+    sparse: true
+  },
+  price: {
+    type: Number,
+    min: [0, 'Price cannot be negative'],
+    default: 0
+  },
+  description: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'Description cannot exceed 500 characters']
   },
   currentStock: {
     type: Number,

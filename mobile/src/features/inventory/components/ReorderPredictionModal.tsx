@@ -169,7 +169,7 @@ const ReorderPredictionModal: React.FC<ReorderPredictionModalProps> = ({
             </View>
 
             <Button
-              title="Got it"
+              title="Order now"
               onPress={onClose}
               style={styles.gotItButton}
             />
