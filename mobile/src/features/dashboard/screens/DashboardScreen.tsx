@@ -5,7 +5,6 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   XCircle, 
-  TrendingUp,
   ChevronRight
 } from 'lucide-react-native';
 import { colors, spacingSemantic } from '../../../theme/constants';
@@ -15,6 +14,8 @@ import { useInventory, useDashboardStats } from '../../inventory/hooks/useInvent
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainStackParamList } from '../../../navigation/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../store';
 
 interface StatCardProps {
   title: string;
@@ -54,6 +55,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { items, isLoading: isInventoryLoading, refetchItems } = useInventory({});
   const { stats: dashboardStats, isLoading: isStatsLoading, refetchStats } = useDashboardStats();
+  const user = useSelector((state: RootState) => state.auth.user);
 
   // Log API calls and data
   React.useEffect(() => {
@@ -83,7 +85,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   , [items, dashboardStats]);
 
   const handleViewAll = useCallback(() => navigation.navigate('InventoryList'), [navigation]);
-  const handleProfilePress = useCallback(() => navigation.navigate('Profile'), [navigation]);
   const handleItemPress = useCallback((item: any) => {
     navigation.navigate('ItemDetail', { itemId: item.id || item._id });
   }, [navigation]);
@@ -115,15 +116,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     >
       <View style={styles.header}>
         <View>
-          <Text style={[styles.greeting, { color: colors.textSecondary }]}>Hello, User!</Text>
+          <Text style={[styles.greeting, { color: colors.textSecondary }]}>Hello, {user?.name || 'User'}!</Text>
           <Text style={[styles.title, { color: colors.text }]}>Inventory Overview</Text>
         </View>
-        <TouchableOpacity 
-          style={[styles.profileButton, { backgroundColor: colors.backgroundSecondary }]}
-          onPress={handleProfilePress}
-        >
-          <TrendingUp size={20} color={colors.primary} />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.statsGrid}>
@@ -202,8 +197,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
   },
   header: {
+    marginTop: spacingSemantic.lg,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -220,13 +217,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '800',
     letterSpacing: -0.5,
-  },
-  profileButton: {
-    width: 48,
-    height: 48,
-    borderRadius: spacingSemantic.borderRadius.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -319,11 +309,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
   },
   itemStock: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
   },
   emptyAlert: {
