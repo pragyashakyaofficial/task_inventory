@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Home, Package, Plus, Sparkles, User } from 'lucide-react-native';
+import { Home, Package, Plus, ShoppingCart, User } from 'lucide-react-native';
 import { colors } from '../theme/constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
@@ -11,7 +11,7 @@ import DashboardScreen from '../features/dashboard/screens/DashboardScreen';
 import InventoryListScreen from '../features/inventory/screens/InventoryListScreen';
 import ItemDetailScreen from '../features/inventory/screens/ItemDetailScreen';
 import AddEditItemScreen from '../features/inventory/screens/AddEditItemScreen';
-import AISuggestionsScreen from '../features/ai/screens/AISuggestionsScreen';
+import OrdersScreen from '../features/inventory/screens/OrdersScreen';
 import ProfileScreen from '../features/profile/screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -142,17 +142,17 @@ export const MainStack = () => {
         }}
       />
       <Tab.Screen
-        name="AI"
-        component={AISuggestionsScreen}
+        name="Orders"
+        component={OrdersScreen}
         options={{
           tabBarIcon: ({ color, size, focused }) => (
-            <Sparkles 
-              size={size} 
-              color={color} 
-              fill={focused ? color : 'transparent'} 
+            <ShoppingCart
+              size={size}
+              color={color}
+              fill={focused ? color : 'transparent'}
             />
           ),
-          tabBarLabel: 'Suggestions',
+          tabBarLabel: 'Orders',
         }}
       />
       <Tab.Screen

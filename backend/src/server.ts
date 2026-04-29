@@ -18,6 +18,7 @@ import categoryRoutes from "./routes/categoryRoutes";
 import inventoryRoutes from "./routes/inventoryRoutes";
 import inventoryLogRoutes from "./routes/inventoryLogRoutes";
 import stockRequestRoutes from "./routes/stockRequestRoutes";
+import orderRoutes from "./routes/orderRoutes";
 
 import AppError from "./utils/appError";
 import globalErrorHandler from "./middleware/errorMiddleware";
@@ -60,6 +61,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/logs", inventoryLogRoutes);
 app.use("/api/stock-requests", stockRequestRoutes);
+app.use("/api/orders", orderRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

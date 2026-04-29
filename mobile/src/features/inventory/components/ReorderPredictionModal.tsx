@@ -29,6 +29,7 @@ interface ReorderPredictionModalProps {
   isLoading: boolean;
   error: string | null;
   message?: string;
+  onOrderNow?: (suggestion: ReorderSuggestion) => void;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -40,6 +41,7 @@ const ReorderPredictionModal: React.FC<ReorderPredictionModalProps> = ({
   isLoading,
   error,
   message,
+  onOrderNow,
 }) => {
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.9);
@@ -171,7 +173,13 @@ const ReorderPredictionModal: React.FC<ReorderPredictionModalProps> = ({
 
             <Button
               title="Order now"
-              onPress={onClose}
+              onPress={() => {
+                if (onOrderNow && suggestions.length > 0) {
+                  onOrderNow(suggestions[0]);
+                } else {
+                  onClose();
+                }
+              }}
               style={styles.gotItButton}
               disabled={allOk}
             />

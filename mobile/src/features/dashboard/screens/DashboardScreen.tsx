@@ -151,15 +151,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Critical Stock Alerts</Text>
-          <TouchableOpacity 
-            onPress={handleViewAll} 
-            style={styles.viewAllButton}
-          >
-            <Text style={[styles.viewAllText, { color: colors.primary }]}>View All</Text>
-            <ChevronRight size={14} color={colors.primary} />
-          </TouchableOpacity>
         </View>
-
         {criticalAlerts.length > 0 ? (
           criticalAlerts.map((item: any) => (
             <TouchableOpacity 

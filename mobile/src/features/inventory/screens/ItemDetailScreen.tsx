@@ -31,8 +31,9 @@ import Button from '../../../components/common/Button';
 import GlassCard from '../../../components/common/GlassCard';
 import { InventoryItem } from '../types/inventory.types';
 import { useInventory, useInventoryItem } from '../hooks/useInventory';
-import { usePredictReorderMutation } from '../../../api/slices/inventoryApi';
+import { usePredictReorderMutation, useCreateOrderMutation } from '../../../api/slices/inventoryApi';
 import ReorderPredictionModal from '../components/ReorderPredictionModal';
+import OrderModal from '../components/OrderModal';
 import Toast, { ToastManager, ToastItem } from '../../../components/common/Toast';
 
 type ItemDetailParams = { item?: InventoryItem; itemId?: string };
@@ -44,6 +45,7 @@ const ItemDetailScreen = () => {
 
   const { deleteItemDirect, isDeleteItemLoading } = useInventory();
   const [predictReorder, { isLoading: isPredicting }] = usePredictReorderMutation();
+  const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
   const {
     item: updatedItem,
     isLoading: isItemLoading,
@@ -56,6 +58,9 @@ const ItemDetailScreen = () => {
   const [predictionMessage, setPredictionMessage] = useState<string | undefined>();
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [orderModalVisible, setOrderModalVisible] = useState(false);
+  const [orderSuggestedQty, setOrderSuggestedQty] = useState<number | undefined>();
+  const [orderAiReason, setOrderAiReason] = useState<string | undefined>();
 
   useEffect(() => {
     const unsubscribe = ToastManager.getInstance().subscribe(setToasts);
@@ -129,6 +134,23 @@ const ItemDetailScreen = () => {
       setPredictionError(error?.data?.message || 'AI failed to generate a prediction.');
       setPredictionSuggestions([]);
       setPredictionModalVisible(true);
+    }
+  };
+
+  const handlePredictionOrderNow = (suggestion: any) => {
+    setPredictionModalVisible(false);
+    setOrderSuggestedQty(suggestion.suggestedQuantity);
+    setOrderAiReason(suggestion.reason);
+    setOrderModalVisible(true);
+  };
+
+  const handleSubmitOrder = async (itemId: string, quantity: number, unit: string) => {
+    try {
+      await createOrder({ itemId, quantityOrdered: quantity, unit }).unwrap();
+      setOrderModalVisible(false);
+      ToastManager.getInstance().success('Order placed successfully!', { position: 'bottom' });
+    } catch (error: any) {
+      ToastManager.getInstance().error(error?.data?.message || 'Failed to place order.', { position: 'bottom' });
     }
   };
 
@@ -299,6 +321,17 @@ const ItemDetailScreen = () => {
         isLoading={isPredicting}
         error={predictionError}
         message={predictionMessage}
+        onOrderNow={handlePredictionOrderNow}
+      />
+
+      <OrderModal
+        isVisible={orderModalVisible}
+        onClose={() => setOrderModalVisible(false)}
+        item={item}
+        suggestedQuantity={orderSuggestedQty}
+        aiReason={orderAiReason}
+        onSubmit={handleSubmitOrder}
+        isLoading={isCreatingOrder}
       />
 
       {/* Toast notifications */}

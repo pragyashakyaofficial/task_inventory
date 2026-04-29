@@ -28,6 +28,11 @@ const ENDPOINTS = {
 
   // Stock Request endpoints
   STOCK_REQUESTS: '/api/stock-requests',
+
+  // Order endpoints
+  ORDERS: '/api/orders',
+  ORDER: (id: string) => `/api/orders/${id}`,
+  RECEIVE_ORDER: (id: string) => `/api/orders/${id}/receive`,
   STOCK_REQUEST: (id: string) => `/api/stock-requests/${id}`,
   APPROVE_STOCK_REQUEST: (id: string) => `/api/stock-requests/${id}/approve`,
   REJECT_STOCK_REQUEST: (id: string) => `/api/stock-requests/${id}/reject`,
@@ -158,6 +163,38 @@ export interface CreateStockRequestPayload {
   notes?: string;
 }
 
+export interface Order {
+  _id: string;
+  itemId: {
+    _id: string;
+    name: string;
+    category: string;
+    unit: string;
+    price: number;
+    sku: string;
+  } | string;
+  restaurantId: string;
+  quantityOrdered: number;
+  unit: string;
+  isReceived: boolean;
+  orderedBy: { _id: string; name: string; email: string } | string;
+  receivedBy?: { _id: string; name: string; email: string } | string;
+  remarks?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateOrderPayload {
+  itemId: string;
+  quantityOrdered: number;
+  unit?: string;
+  remarks?: string;
+}
+
+export interface ReceiveOrderPayload {
+  remarks?: string;
+}
+
 // Cache tags
 export const inventoryTags = {
   items: 'ITEMS',
@@ -169,7 +206,7 @@ export const inventoryTags = {
 export const inventoryApi = createApi({
   reducerPath: 'inventoryApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['ITEMS', 'DASHBOARD', 'AI_SUGGESTION', 'STOCK_REQUEST'],
+  tagTypes: ['ITEMS', 'DASHBOARD', 'AI_SUGGESTION', 'STOCK_REQUEST', 'ORDERS'],
   endpoints: (builder) => ({
     // Get all inventory items
     getItems: builder.query<GetItemsResponse, GetItemsParams>({
@@ -470,6 +507,44 @@ export const inventoryApi = createApi({
       }),
       invalidatesTags: ['STOCK_REQUEST', 'ITEMS', 'DASHBOARD'],
     }),
+
+    // Get orders
+    getOrders: builder.query<{ count: number; orders: Order[] }, { isReceived?: boolean }>({
+      query: (params) => ({
+        url: ENDPOINTS.ORDERS,
+        params,
+      }),
+      providesTags: ['ORDERS'],
+    }),
+
+    // Create order
+    createOrder: builder.mutation<{ message: string; order: Order }, CreateOrderPayload>({
+      query: (payload) => ({
+        url: ENDPOINTS.ORDERS,
+        method: 'POST',
+        body: payload,
+      }),
+      invalidatesTags: ['ORDERS', 'ITEMS', 'DASHBOARD'],
+    }),
+
+    // Receive order
+    receiveOrder: builder.mutation<{ message: string; order: Order }, { id: string; remarks?: string }>({
+      query: ({ id, remarks }) => ({
+        url: ENDPOINTS.RECEIVE_ORDER(id),
+        method: 'PATCH',
+        body: { remarks },
+      }),
+      invalidatesTags: ['ORDERS', 'ITEMS', 'DASHBOARD'],
+    }),
+
+    // Delete order
+    deleteOrder: builder.mutation<{ message: string }, string>({
+      query: (id) => ({
+        url: ENDPOINTS.ORDER(id),
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ORDERS'],
+    }),
   }),
 });
 
@@ -490,6 +565,10 @@ export const {
   useRejectStockRequestMutation,
   useFulfillStockRequestMutation,
   useGetCategoriesQuery,
+  useGetOrdersQuery,
+  useCreateOrderMutation,
+  useReceiveOrderMutation,
+  useDeleteOrderMutation,
 } = inventoryApi;
 
 // Export selectors for advanced usage
