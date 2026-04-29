@@ -1,7 +1,7 @@
-const express = require('express');
-const { query } = require('express-validator');
-const inventoryLogController = require('../controllers/inventoryLogController');
-const authMiddleware = require('../middleware/authMiddleware');
+import * as express from 'express';
+import { query  } from 'express-validator';
+import * as inventoryLogController from '../controllers/inventoryLogController';
+import * as authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -24,4 +24,4 @@ router.get('/summary', inventoryLogController.getActivitySummary);
 // Get logs for specific inventory item
 router.get('/item/:inventoryId', inventoryLogController.getItemLogs);
 
-module.exports = router;
+export default router;

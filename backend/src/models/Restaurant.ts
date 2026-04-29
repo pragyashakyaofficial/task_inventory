@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const restaurantSchema = new mongoose.Schema({
   name: {
@@ -46,4 +46,4 @@ restaurantSchema.methods.softDelete = async function() {
 
 const Restaurant = mongoose.model('Restaurant', restaurantSchema);
 
-module.exports = Restaurant;
+export default Restaurant;

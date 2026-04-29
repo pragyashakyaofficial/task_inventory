@@ -1,14 +1,14 @@
-const dotenv = require("dotenv");
+import dotenv from "dotenv";
 dotenv.config();
 
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const cookieParser = require("cookie-parser");
-const hpp = require("hpp");
-const rateLimit = require("express-rate-limit");
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import hpp from "hpp";
+import rateLimit from "express-rate-limit";
 
-const connectDB = require("./config/database");
+import connectDB from "./config/database";
 
 const app = express();
 
@@ -41,16 +41,16 @@ app.use(hpp());
 app.use(express.static('public'));
 
 // API Routes
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const restaurantRoutes = require("./routes/restaurantRoutes");
-const categoryRoutes = require("./routes/categoryRoutes");
-const inventoryRoutes = require("./routes/inventoryRoutes");
-const inventoryLogRoutes = require("./routes/inventoryLogRoutes");
-const stockRequestRoutes = require("./routes/stockRequestRoutes");
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+import restaurantRoutes from "./routes/restaurantRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
+import inventoryRoutes from "./routes/inventoryRoutes";
+import inventoryLogRoutes from "./routes/inventoryLogRoutes";
+import stockRequestRoutes from "./routes/stockRequestRoutes";
 
-const AppError = require("./utils/appError");
-const globalErrorHandler = require("./middleware/errorMiddleware");
+import AppError from "./utils/appError";
+import globalErrorHandler from "./middleware/errorMiddleware";
 
 // Mount routes
 app.use("/api/auth", authRoutes);
@@ -76,7 +76,7 @@ connectDB();
 const PORT = Number(process.env.PORT) || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {
-  const { networkInterfaces } = require('os');
+  const { networkInterfaces } = require('os') as any;
   const nets = networkInterfaces();
   let localIp = 'localhost';
   for (const name of Object.keys(nets)) {

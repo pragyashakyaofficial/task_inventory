@@ -1,7 +1,8 @@
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const { validationResult } = require('express-validator');
+// @ts-nocheck
+import User from '../models/User';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { validationResult  } from 'express-validator';
 
 // Helper to sign tokens
 const signToken = (id, secret, expires) => {
@@ -33,7 +34,7 @@ const createSendToken = async (user, statusCode, res) => {
   });
 };
 
-exports.register = async (req, res, next) => {
+export const register = async (req: any, res: any, next: any) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -119,7 +120,7 @@ exports.register = async (req, res, next) => {
   }
 };
 
-exports.login = async (req, res, next) => {
+export const login = async (req: any, res: any, next: any) => {
   try {
     const { email, password } = req.body;
 
@@ -169,7 +170,7 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.logout = async (req, res, next) => {
+export const logout = async (req: any, res: any, next: any) => {
   try {
     const user = await User.findById(req.user.id);
     user.refreshToken = undefined;
@@ -186,7 +187,7 @@ exports.logout = async (req, res, next) => {
   }
 };
 
-exports.refreshToken = async (req, res, next) => {
+export const refreshToken = async (req: any, res: any, next: any) => {
   try {
     const { refreshToken } = req.body;
 
@@ -221,7 +222,7 @@ exports.refreshToken = async (req, res, next) => {
   }
 };
 
-exports.getProfile = async (req, res, next) => {
+export const getProfile = async (req: any, res: any, next: any) => {
   try {
     const user = await User.findById(req.user.id).populate('restaurantId', 'name location status');
 
@@ -239,7 +240,7 @@ exports.getProfile = async (req, res, next) => {
   }
 };
 
-exports.updatePassword = async (req, res, next) => {
+export const updatePassword = async (req: any, res: any, next: any) => {
   try {
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) {
@@ -260,7 +261,7 @@ exports.updatePassword = async (req, res, next) => {
   }
 };
 
-exports.forgotPassword = async (req, res, next) => {
+export const forgotPassword = async (req: any, res: any, next: any) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
@@ -285,7 +286,7 @@ exports.forgotPassword = async (req, res, next) => {
   }
 };
 
-exports.resetPassword = async (req, res, next) => {
+export const resetPassword = async (req: any, res: any, next: any) => {
   try {
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
     const user = await User.findOne({

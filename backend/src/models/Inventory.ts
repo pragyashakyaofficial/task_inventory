@@ -155,4 +155,4 @@ inventorySchema.set('toObject', { virtuals: true });
 
 const Inventory = mongoose.model('Inventory', inventorySchema);
 
-module.exports = Inventory;
+export default Inventory;

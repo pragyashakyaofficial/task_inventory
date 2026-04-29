@@ -1,8 +1,9 @@
-const Restaurant = require('../models/Restaurant');
-const User = require('../models/User');
+// @ts-nocheck
+import Restaurant from '../models/Restaurant';
+import User from '../models/User';
 
 // Get all restaurants (superadmin sees all, manager sees only theirs)
-exports.getAllRestaurants = async (req, res, next) => {
+export const getAllRestaurants = async (req: any, res: any, next: any) => {
   try {
     let filter = { isDeleted: false };
 
@@ -23,7 +24,7 @@ exports.getAllRestaurants = async (req, res, next) => {
 };
 
 // Get single restaurant
-exports.getRestaurant = async (req, res, next) => {
+export const getRestaurant = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
@@ -45,7 +46,7 @@ exports.getRestaurant = async (req, res, next) => {
 };
 
 // Create restaurant (superadmin only)
-exports.createRestaurant = async (req, res, next) => {
+export const createRestaurant = async (req: any, res: any, next: any) => {
   try {
     const { name, location, logo, establishedYear, status } = req.body;
 
@@ -67,7 +68,7 @@ exports.createRestaurant = async (req, res, next) => {
 };
 
 // Update restaurant
-exports.updateRestaurant = async (req, res, next) => {
+export const updateRestaurant = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -97,7 +98,7 @@ exports.updateRestaurant = async (req, res, next) => {
 };
 
 // Update restaurant status
-exports.updateStatus = async (req, res, next) => {
+export const updateStatus = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -126,7 +127,7 @@ exports.updateStatus = async (req, res, next) => {
 };
 
 // Delete restaurant (soft delete - superadmin only)
-exports.deleteRestaurant = async (req, res, next) => {
+export const deleteRestaurant = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
@@ -154,7 +155,7 @@ exports.deleteRestaurant = async (req, res, next) => {
 };
 
 // Get restaurant with users
-exports.getRestaurantWithUsers = async (req, res, next) => {
+export const getRestaurantWithUsers = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 

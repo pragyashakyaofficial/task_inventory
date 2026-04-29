@@ -1,7 +1,8 @@
-const Category = require('../models/Category');
+// @ts-nocheck
+import Category from '../models/Category';
 
 // Get all categories for a restaurant
-exports.getAllCategories = async (req, res, next) => {
+export const getAllCategories = async (req: any, res: any, next: any) => {
   try {
     const { restaurantId } = req.query;
 
@@ -30,7 +31,7 @@ exports.getAllCategories = async (req, res, next) => {
 };
 
 // Get single category
-exports.getCategory = async (req, res, next) => {
+export const getCategory = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
@@ -53,7 +54,7 @@ exports.getCategory = async (req, res, next) => {
 };
 
 // Create category
-exports.createCategory = async (req, res, next) => {
+export const createCategory = async (req: any, res: any, next: any) => {
   try {
     const { name, restaurantId } = req.body;
 
@@ -93,7 +94,7 @@ exports.createCategory = async (req, res, next) => {
 };
 
 // Update category
-exports.updateCategory = async (req, res, next) => {
+export const updateCategory = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const { name } = req.body;
@@ -135,7 +136,7 @@ exports.updateCategory = async (req, res, next) => {
 };
 
 // Delete category (soft delete)
-exports.deleteCategory = async (req, res, next) => {
+export const deleteCategory = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 

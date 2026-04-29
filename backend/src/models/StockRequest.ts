@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const stockRequestSchema = new mongoose.Schema({
   inventoryId: {
@@ -53,4 +53,4 @@ stockRequestSchema.index({ createdAt: -1 });
 
 const StockRequest = mongoose.model('StockRequest', stockRequestSchema);
 
-module.exports = StockRequest;
+export default StockRequest;

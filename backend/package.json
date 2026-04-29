@@ -38,7 +38,7 @@
     "@types/express": "^5.0.0",
     "@types/hpp": "^0.2.7",
     "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.13.1",
+    "@types/node": "^22.19.17",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

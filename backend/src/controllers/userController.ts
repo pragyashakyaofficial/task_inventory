@@ -1,8 +1,10 @@
-const User = require('../models/User');
-const Restaurant = require('../models/Restaurant');
+// @ts-nocheck
+import User from '../models/User';
+import Restaurant from '../models/Restaurant';
+import mongoose from 'mongoose';
 
 // Get all users (superadmin only)
-exports.getAllUsers = async (req, res, next) => {
+export const getAllUsers = async (req: any, res: any, next: any) => {
   try {
     const { role, status, restaurantId } = req.query;
     const filter = {};
@@ -26,7 +28,7 @@ exports.getAllUsers = async (req, res, next) => {
 };
 
 // Get users by restaurant (for superadmin managing a restaurant)
-exports.getUsersByRestaurant = async (req, res, next) => {
+export const getUsersByRestaurant = async (req: any, res: any, next: any) => {
   try {
     const { restaurantId } = req.params;
 
@@ -48,7 +50,7 @@ exports.getUsersByRestaurant = async (req, res, next) => {
 };
 
 // Get single user
-exports.getUser = async (req, res, next) => {
+export const getUser = async (req: any, res: any, next: any) => {
   try {
     const user = await User.findById(req.params.id)
       .populate('restaurantId', 'name location status')
@@ -65,7 +67,7 @@ exports.getUser = async (req, res, next) => {
 };
 
 // Create manager (superadmin only)
-exports.createManager = async (req, res, next) => {
+export const createManager = async (req: any, res: any, next: any) => {
   try {
     const { name, email, password, restaurantId } = req.body;
 
@@ -85,7 +87,6 @@ exports.createManager = async (req, res, next) => {
     }
 
     // Validate ObjectId format
-    const mongoose = require('mongoose');
     if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
       return res.status(400).json({ message: 'Invalid restaurant ID format' });
     }
@@ -147,7 +148,7 @@ exports.createManager = async (req, res, next) => {
 };
 
 // Update user (superadmin can update anyone, manager can only update self)
-exports.updateUser = async (req, res, next) => {
+export const updateUser = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -192,7 +193,7 @@ exports.updateUser = async (req, res, next) => {
 };
 
 // Update user status (activate/deactivate)
-exports.updateStatus = async (req, res, next) => {
+export const updateStatus = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -223,7 +224,7 @@ exports.updateStatus = async (req, res, next) => {
 };
 
 // Delete user (superadmin only) - soft delete via status
-exports.deleteUser = async (req, res, next) => {
+export const deleteUser = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
@@ -251,7 +252,7 @@ exports.deleteUser = async (req, res, next) => {
 };
 
 // Get current user profile with full details
-exports.getMe = async (req, res, next) => {
+export const getMe = async (req: any, res: any, next: any) => {
   try {
     const user = await User.findById(req.user.id)
       .populate('restaurantId', 'name location status')

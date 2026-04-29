@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const inventoryLogSchema = new mongoose.Schema({
   inventoryId: {
@@ -93,4 +93,4 @@ inventoryLogSchema.statics.getActivitySummary = async function(restaurantId, day
 
 const InventoryLog = mongoose.model('InventoryLog', inventoryLogSchema);
 
-module.exports = InventoryLog;
+export default InventoryLog;

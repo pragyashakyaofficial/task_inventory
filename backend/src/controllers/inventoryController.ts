@@ -1,9 +1,11 @@
-const Inventory = require('../models/Inventory');
-const InventoryLog = require('../models/InventoryLog');
-const { getReorderSuggestion } = require('../services/aiService');
+// @ts-nocheck
+import Inventory from '../models/Inventory';
+import InventoryLog from '../models/InventoryLog';
+import Restaurant from '../models/Restaurant';
+import { getReorderSuggestion  } from '../services/aiService';
 
 // Get all inventory items for a restaurant
-exports.getAllInventory = async (req, res, next) => {
+export const getAllInventory = async (req: any, res: any, next: any) => {
   try {
     const { restaurantId, categoryId, status } = req.query;
 
@@ -52,7 +54,7 @@ exports.getAllInventory = async (req, res, next) => {
 };
 
 // Get single inventory item
-exports.getInventoryItem = async (req, res, next) => {
+export const getInventoryItem = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
@@ -84,7 +86,7 @@ exports.getInventoryItem = async (req, res, next) => {
 };
 
 // Create inventory item
-exports.createInventory = async (req, res, next) => {
+export const createInventory = async (req: any, res: any, next: any) => {
   try {
     const {
       name,
@@ -134,7 +136,7 @@ exports.createInventory = async (req, res, next) => {
 };
 
 // Update inventory item
-exports.updateInventory = async (req, res, next) => {
+export const updateInventory = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -202,7 +204,7 @@ exports.updateInventory = async (req, res, next) => {
 };
 
 // Update stock (dedicated endpoint for stock changes)
-exports.updateStock = async (req, res, next) => {
+export const updateStock = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
     const { newStock, note } = req.body;
@@ -243,7 +245,7 @@ exports.updateStock = async (req, res, next) => {
 };
 
 // Delete inventory item (soft delete)
-exports.deleteInventory = async (req, res, next) => {
+export const deleteInventory = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
@@ -270,7 +272,7 @@ exports.deleteInventory = async (req, res, next) => {
 };
 
 // Get reorder plan (items with LOW or OUT status) - PUBLIC ENDPOINT
-exports.getReorderPlan = async (req, res, next) => {
+export const getReorderPlan = async (req: any, res: any, next: any) => {
   try {
     const { restaurantId } = req.query;
 
@@ -284,7 +286,6 @@ exports.getReorderPlan = async (req, res, next) => {
       targetRestaurantId = restaurantId;
     } else {
       // For demo purposes, return first restaurant's data if no ID provided
-      const Restaurant = require('../models/Restaurant');
       const firstRestaurant = await Restaurant.findOne();
       if (firstRestaurant) {
         targetRestaurantId = firstRestaurant._id;
@@ -305,7 +306,7 @@ exports.getReorderPlan = async (req, res, next) => {
 };
 
 // Get inventory summary/stats
-exports.getInventoryStats = async (req, res, next) => {
+export const getInventoryStats = async (req: any, res: any, next: any) => {
   try {
     const { restaurantId } = req.query;
 
@@ -349,7 +350,7 @@ exports.getInventoryStats = async (req, res, next) => {
 };
 
 // AI-powered reorder prediction for a specific item
-exports.predictReorder = async (req, res, next) => {
+export const predictReorder = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 

@@ -1,7 +1,7 @@
-const express = require('express');
-const { body } = require('express-validator');
-const stockRequestController = require('../controllers/stockRequestController');
-const authMiddleware = require('../middleware/authMiddleware');
+import * as express from 'express';
+import { body  } from 'express-validator';
+import * as stockRequestController from '../controllers/stockRequestController';
+import * as authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -25,4 +25,4 @@ router.patch('/:id/approve', stockRequestController.approveStockRequest);
 router.patch('/:id/reject', stockRequestController.rejectStockRequest);
 router.patch('/:id/fulfill', stockRequestController.fulfillStockRequest);
 
-module.exports = router;
+export default router;

@@ -1,19 +1,19 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
 // Import all models
-const Restaurant = require('./src/models/Restaurant');
-const User = require('./src/models/User');
-const Category = require('./src/models/Category');
-const Inventory = require('./src/models/Inventory');
-const InventoryLog = require('./src/models/InventoryLog');
+import Restaurant from './src/models/Restaurant';
+import User from './src/models/User';
+import Category from './src/models/Category';
+import Inventory from './src/models/Inventory';
+import InventoryLog from './src/models/InventoryLog';
 
 dotenv.config();
 
 const seedDB = async () => {
   try {
     // Connect to database
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI!);
     console.log('Connected to MongoDB for seeding...');
 
     // Clear existing data

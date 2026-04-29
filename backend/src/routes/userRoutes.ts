@@ -1,11 +1,12 @@
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const userController = require('../controllers/userController');
-const authMiddleware = require('../middleware/authMiddleware');
+// @ts-nocheck
+import * as express from 'express';
+import { body, validationResult  } from 'express-validator';
+import * as userController from '../controllers/userController';
+import * as authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-const handleValidationErrors = (req, res, next) => {
+const handleValidationErrors = (req: any, res: any, next: any) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log('Validation errors:', JSON.stringify(errors.array(), null, 2));
@@ -60,4 +61,4 @@ router.patch('/:id/status', [
 // Deactivate user
 router.delete('/:id', userController.deleteUser);
 
-module.exports = router;
+export default router;

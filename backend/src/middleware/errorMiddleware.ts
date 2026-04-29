@@ -1,6 +1,7 @@
-const AppError = require('../utils/appError');
+// @ts-nocheck
+import AppError from '../utils/appError';
 
-module.exports = (err, req, res, next) => {
+const errorMiddleware = (err: any, req: any, res: any, next: any) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
@@ -29,3 +30,5 @@ module.exports = (err, req, res, next) => {
     }
   }
 };
+
+export default errorMiddleware;

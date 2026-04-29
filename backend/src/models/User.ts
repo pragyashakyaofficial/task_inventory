@@ -1,5 +1,6 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+// @ts-nocheck
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -130,4 +131,4 @@ userSchema.statics.findSuperAdmins = function() {
 
 const User = mongoose.model('User', userSchema);
 
-module.exports = User;
+export default User;

@@ -1,7 +1,7 @@
-const express = require('express');
-const { body } = require('express-validator');
-const inventoryController = require('../controllers/inventoryController');
-const authMiddleware = require('../middleware/authMiddleware');
+import * as express from 'express';
+import { body  } from 'express-validator';
+import * as inventoryController from '../controllers/inventoryController';
+import * as authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -38,4 +38,4 @@ router.patch('/:id/stock', [
 
 router.delete('/:id', inventoryController.deleteInventory);
 
-module.exports = router;
+export default router;

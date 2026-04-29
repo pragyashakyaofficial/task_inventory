@@ -1,9 +1,10 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const rateLimit = require('express-rate-limit');
+// @ts-nocheck
+import jwt from 'jsonwebtoken';
+import User from '../models/User';
+import rateLimit from 'express-rate-limit';
 
 // Rate limiting for auth routes
-exports.authLimiter = rateLimit({
+export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 10 requests per window
   message: 'Too many login attempts, please try again after 15 minutes',
@@ -12,7 +13,7 @@ exports.authLimiter = rateLimit({
 });
 
 // Protect routes - check if user is logged in
-exports.protect = async (req, res, next) => {
+export const protect = async (req: any, res: any, next: any) => {
   try {
     let token;
     
@@ -50,8 +51,8 @@ exports.protect = async (req, res, next) => {
 };
 
 // Restrict to specific roles
-exports.restrictTo = (...roles) => {
-  return (req, res, next) => {
+export const restrictTo = (...roles) => {
+  return (req: any, res: any, next: any) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ message: 'You do not have permission to perform this action' });
     }

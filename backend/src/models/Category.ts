@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const categorySchema = new mongoose.Schema({
   name: {
@@ -36,4 +36,4 @@ categorySchema.methods.softDelete = async function() {
 
 const Category = mongoose.model('Category', categorySchema);
 
-module.exports = Category;
+export default Category;

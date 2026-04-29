@@ -1,7 +1,7 @@
-const express = require('express');
-const { body } = require('express-validator');
-const categoryController = require('../controllers/categoryController');
-const authMiddleware = require('../middleware/authMiddleware');
+import * as express from 'express';
+import { body  } from 'express-validator';
+import * as categoryController from '../controllers/categoryController';
+import * as authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -25,4 +25,4 @@ router.patch('/:id', [
 
 router.delete('/:id', categoryController.deleteCategory);
 
-module.exports = router;
+export default router;

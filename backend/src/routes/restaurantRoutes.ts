@@ -1,7 +1,7 @@
-const express = require('express');
-const { body } = require('express-validator');
-const restaurantController = require('../controllers/restaurantController');
-const authMiddleware = require('../middleware/authMiddleware');
+import * as express from 'express';
+import { body  } from 'express-validator';
+import * as restaurantController from '../controllers/restaurantController';
+import * as authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -33,4 +33,4 @@ router.patch('/:id/status', [
 
 router.delete('/:id', restaurantController.deleteRestaurant);
 
-module.exports = router;
+export default router;

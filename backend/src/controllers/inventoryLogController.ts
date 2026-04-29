@@ -1,7 +1,9 @@
-const InventoryLog = require('../models/InventoryLog');
+// @ts-nocheck
+import InventoryLog from '../models/InventoryLog';
+import Inventory from '../models/Inventory';
 
 // Get all logs for a restaurant
-exports.getAllLogs = async (req, res, next) => {
+export const getAllLogs = async (req: any, res: any, next: any) => {
   try {
     const { restaurantId, inventoryId, action, limit = 50, page = 1 } = req.query;
 
@@ -44,13 +46,12 @@ exports.getAllLogs = async (req, res, next) => {
 };
 
 // Get logs for a specific inventory item
-exports.getItemLogs = async (req, res, next) => {
+export const getItemLogs = async (req: any, res: any, next: any) => {
   try {
     const { inventoryId } = req.params;
     const { limit = 100 } = req.query;
 
     // First, check if user has access to this inventory item
-    const Inventory = require('../models/Inventory');
     const item = await Inventory.findById(inventoryId);
 
     if (!item || item.isDeleted) {
@@ -78,7 +79,7 @@ exports.getItemLogs = async (req, res, next) => {
 };
 
 // Get activity summary
-exports.getActivitySummary = async (req, res, next) => {
+export const getActivitySummary = async (req: any, res: any, next: any) => {
   try {
     const { restaurantId, days = 7 } = req.query;
 
@@ -117,7 +118,7 @@ exports.getActivitySummary = async (req, res, next) => {
 };
 
 // Get recent activity
-exports.getRecentActivity = async (req, res, next) => {
+export const getRecentActivity = async (req: any, res: any, next: any) => {
   try {
     const { restaurantId, limit = 50 } = req.query;
 

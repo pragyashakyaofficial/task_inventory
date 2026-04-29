@@ -1,8 +1,9 @@
-const User = require('../models/User');
-const Restaurant = require('../models/Restaurant');
-const Inventory = require('../models/Inventory');
+// @ts-nocheck
+import User from '../models/User';
+import Restaurant from '../models/Restaurant';
+import Inventory from '../models/Inventory';
 
-exports.getGlobalStats = async (req, res, next) => {
+export const getGlobalStats = async (req: any, res: any, next: any) => {
   try {
     const [restaurantCount, userCount, inventoryCount] = await Promise.all([
       Restaurant.countDocuments({ isDeleted: false }),

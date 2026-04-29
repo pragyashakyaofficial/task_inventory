@@ -1,8 +1,9 @@
-const StockRequest = require('../models/StockRequest');
-const Inventory = require('../models/Inventory');
+// @ts-nocheck
+import StockRequest from '../models/StockRequest';
+import Inventory from '../models/Inventory';
 
 // Create a new stock request
-exports.createStockRequest = async (req, res, next) => {
+export const createStockRequest = async (req: any, res: any, next: any) => {
   try {
     const { inventoryId, requestedQuantity, notes } = req.body;
 
@@ -47,7 +48,7 @@ exports.createStockRequest = async (req, res, next) => {
 };
 
 // Get all stock requests for a restaurant
-exports.getStockRequests = async (req, res, next) => {
+export const getStockRequests = async (req: any, res: any, next: any) => {
   try {
     const { restaurantId, status } = req.query;
 
@@ -85,7 +86,7 @@ exports.getStockRequests = async (req, res, next) => {
 };
 
 // Get single stock request
-exports.getStockRequest = async (req, res, next) => {
+export const getStockRequest = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
@@ -114,7 +115,7 @@ exports.getStockRequest = async (req, res, next) => {
 };
 
 // Approve a stock request
-exports.approveStockRequest = async (req, res, next) => {
+export const approveStockRequest = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
@@ -153,7 +154,7 @@ exports.approveStockRequest = async (req, res, next) => {
 };
 
 // Reject a stock request
-exports.rejectStockRequest = async (req, res, next) => {
+export const rejectStockRequest = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
@@ -192,7 +193,7 @@ exports.rejectStockRequest = async (req, res, next) => {
 };
 
 // Fulfill a stock request (update inventory stock)
-exports.fulfillStockRequest = async (req, res, next) => {
+export const fulfillStockRequest = async (req: any, res: any, next: any) => {
   try {
     const { id } = req.params;
 
