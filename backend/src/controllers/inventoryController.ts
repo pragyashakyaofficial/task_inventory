@@ -352,6 +352,7 @@ export const getReorderPlan = async (req: AuthRequest, res: Response, next: Next
           shouldReorder,
           suggestedQuantity,
           reason,
+          price: (item as any).price || 0,
         };
       })
     );

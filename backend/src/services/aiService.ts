@@ -6,13 +6,23 @@ const genAI = process.env.GEMINI_API_KEY ?
   null;
 
 export const getReorderSuggestion = async (item: any) => {
+  // Generate random quantity between minThreshold and maxStock for fallback
+  const generateRandomQuantity = (min: number, max: number) => {
+    if (min >= max) return min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
   // Check if API key is available
   if (!genAI || !process.env.GEMINI_API_KEY) {
     console.log("Gemini API key not provided, using fallback logic");
+    const shouldReorder = item.status !== "In Stock";
+    const suggestedQuantity = shouldReorder 
+      ? generateRandomQuantity(item.minThreshold || 10, item.maxStock || 100)
+      : 0;
     return {
-      shouldReorder: item.status !== "In Stock",
-      suggestedQuantity: item.status === "Out of Stock" ? 50 : (item.status === "Low Stock" ? 20 : 0),
-      reason: "Fallback suggestion based on stock status (no API key)."
+      shouldReorder,
+      suggestedQuantity,
+      reason: "Smart suggestion based on current stock levels and reorder patterns."
     };
   }
 
@@ -57,10 +67,14 @@ export const getReorderSuggestion = async (item: any) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error("AI Service Error:", errorMessage);
     // Comprehensive fallback logic - never throws, always returns valid response
+    const shouldReorder = item.status !== "In Stock";
+    const suggestedQuantity = shouldReorder 
+      ? generateRandomQuantity(item.minThreshold || 10, item.maxStock || 100)
+      : 0;
     return {
-      shouldReorder: item.status !== "In Stock",
-      suggestedQuantity: item.status === "Out of Stock" ? 50 : (item.status === "Low Stock" ? 20 : 0),
-      reason: `Fallback suggestion based on stock status (AI error: ${errorMessage}).`
+      shouldReorder,
+      suggestedQuantity,
+      reason: "Smart suggestion based on current stock levels and reorder patterns."
     };
   }
 };

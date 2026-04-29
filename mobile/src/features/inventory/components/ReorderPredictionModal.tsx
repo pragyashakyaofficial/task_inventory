@@ -100,6 +100,12 @@ const ReorderPredictionModal: React.FC<ReorderPredictionModalProps> = ({
             <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Suggest:</Text>
             <Text style={[styles.detailValue, { color: colors.primary }]}>{item.suggestedQuantity} {item.unit}</Text>
           </View>
+          {item.price !== undefined && item.price > 0 && (
+            <View style={styles.detailRow}>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Price:</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>${item.price.toFixed(2)}/{item.unit}</Text>
+            </View>
+          )}
         </View>
 
         <Text style={[styles.suggestionReason, { color: colors.textSecondary }]}>
@@ -182,7 +188,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
   },
   flex1: {
     flex: 1,

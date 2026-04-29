@@ -116,6 +116,7 @@ export interface ReorderSuggestion {
   shouldReorder: boolean;
   suggestedQuantity: number;
   reason: string;
+  price?: number;
 }
 
 export interface ReorderPlanResponse {

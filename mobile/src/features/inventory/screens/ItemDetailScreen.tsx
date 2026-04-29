@@ -143,41 +143,47 @@ const ItemDetailScreen = () => {
             <ChevronLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={styles.titleSection}>
-            <Text style={[styles.category, { color: colors.primary }]}>{item.category}</Text>
+            <Text style={[styles.category, { color: colors.primary }]}> SKU: {item.sku} {item.category}</Text>
             <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
-            <Text style={[styles.sku, { color: colors.textSecondary }]}>SKU: {item.sku}</Text>
+            {/* <Text style={[styles.sku, { color: colors.textSecondary }]}>SKU: {item.sku}</Text> */}
           </View>
           <StatusBadge status={item.status} />
         </Animated.View>
 
         <View style={styles.statsRow}>
-          <Animated.View entering={FadeInRight.delay(100)} layout={Layout.springify()}>
+          <Animated.View entering={FadeInRight.delay(100)} layout={Layout.springify()} style={{ width: '45%', margin: '2%' }}>
             <GlassCard style={styles.statCard}>
-              <View style={[styles.iconBox, { backgroundColor: colors.primary + '20' }]}>
-                <Package size={20} color={colors.primary} />
+              <View style={styles.statHeader}>
+                <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                  <Package size={16} color={colors.primary} />
+                </View>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]} numberOfLines={1}>
+                  In Stock
+                </Text>
               </View>
-              <Text style={[styles.statValue, { color: colors.text }]}>{item.quantity}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>In Stock</Text>
+              <View style={styles.statValueContainer}>
+                <Text style={[styles.statValue, { color: colors.text }]}>
+                  {item.quantity}
+                </Text>
+              </View>
             </GlassCard>
           </Animated.View>
 
-          <Animated.View entering={FadeInRight.delay(200)} layout={Layout.springify()}>
+          <Animated.View entering={FadeInRight.delay(300)} layout={Layout.springify()} style={{ width: '45%', margin: '2%' }}>
             <GlassCard style={styles.statCard}>
-              <View style={[styles.iconBox, { backgroundColor: colors.primary + '20' }]}>
-                <DollarSign size={20} color={colors.primary} />
+              <View style={styles.statHeader}>
+                <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                  <Layers size={16} color={colors.primary} />
+                </View>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]} numberOfLines={1}>
+                  Min Alert
+                </Text>
               </View>
-              <Text style={[styles.statValue, { color: colors.text }]}>${(item.price || 0).toFixed(2)}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Price</Text>
-            </GlassCard>
-          </Animated.View>
-
-          <Animated.View entering={FadeInRight.delay(300)} layout={Layout.springify()}>
-            <GlassCard style={styles.statCard}>
-              <View style={[styles.iconBox, { backgroundColor: colors.primary + '20' }]}>
-                <Layers size={20} color={colors.primary} />
+              <View style={styles.statValueContainer}>
+                <Text style={[styles.statValue, { color: colors.text }]}>
+                  {item.minQuantity}
+                </Text>
               </View>
-              <Text style={[styles.statValue, { color: colors.text }]}>{item.minQuantity}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Min Alert</Text>
             </GlassCard>
           </Animated.View>
         </View>
@@ -262,6 +268,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    marginTop:spacingSemantic.xl,
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: spacingSemantic.xl,
@@ -296,22 +303,36 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    // paddingHorizontal: spacingSemantic.sm,
     justifyContent: 'space-between',
     marginBottom: spacingSemantic.xl,
   },
   statCard: {
-    width: 105,
+    width: '100%',
     padding: spacingSemantic.md,
-    alignItems: 'center',
     borderRadius: spacingSemantic.borderRadius.xl,
+    flexDirection: 'column',
+    minHeight: 120,
   },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: spacingSemantic.borderRadius.md,
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: spacingSemantic.sm,
+    width: '100%',
+  },
+  iconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: spacingSemantic.borderRadius.sm * 1.5,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacingSemantic.md,
+  },
+  statValueContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statValue: {
     fontSize: 18,
