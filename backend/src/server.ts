@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const hpp = require("hpp");
 const rateLimit = require("express-rate-limit");
 
-const connectDB = require("./src/config/database");
+const connectDB = require("./config/database");
 
 const app = express();
 
@@ -46,16 +46,16 @@ app.use(hpp());
 app.use(express.static('public'));
 
 // API Routes
-const authRoutes = require("./src/routes/authRoutes");
-const userRoutes = require("./src/routes/userRoutes");
-const restaurantRoutes = require("./src/routes/restaurantRoutes");
-const categoryRoutes = require("./src/routes/categoryRoutes");
-const inventoryRoutes = require("./src/routes/inventoryRoutes");
-const inventoryLogRoutes = require("./src/routes/inventoryLogRoutes");
-const stockRequestRoutes = require("./src/routes/stockRequestRoutes");
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
+const restaurantRoutes = require("./routes/restaurantRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const inventoryRoutes = require("./routes/inventoryRoutes");
+const inventoryLogRoutes = require("./routes/inventoryLogRoutes");
+const stockRequestRoutes = require("./routes/stockRequestRoutes");
 
-const AppError = require("./src/utils/appError");
-const globalErrorHandler = require("./src/middleware/errorMiddleware");
+const AppError = require("./utils/appError");
+const globalErrorHandler = require("./middleware/errorMiddleware");
 
 // Mount routes
 app.use("/api/auth", authRoutes);
@@ -78,7 +78,7 @@ app.use(globalErrorHandler);
 connectDB();
 
 // Server start
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {
   const { networkInterfaces } = require('os');

@@ -5,12 +5,13 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// All routes require authentication
+// Public routes (no auth required)
+router.get('/reorder-plan', inventoryController.getReorderPlan);
+
+// Protected routes (require authentication)
 router.use(authMiddleware.protect);
 
-// Routes
 router.get('/', inventoryController.getAllInventory);
-router.get('/reorder-plan', inventoryController.getReorderPlan);
 router.get('/stats', inventoryController.getInventoryStats);
 router.get('/:id', inventoryController.getInventoryItem);
 router.post('/:id', inventoryController.predictReorder);

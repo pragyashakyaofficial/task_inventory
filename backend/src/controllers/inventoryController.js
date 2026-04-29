@@ -269,19 +269,28 @@ exports.deleteInventory = async (req, res, next) => {
   }
 };
 
-// Get reorder plan (items with LOW or OUT status)
+// Get reorder plan (items with LOW or OUT status) - PUBLIC ENDPOINT
 exports.getReorderPlan = async (req, res, next) => {
   try {
     const { restaurantId } = req.query;
 
-    // Determine restaurant
+    // Determine restaurant - support both authenticated and public access
     let targetRestaurantId;
-    if (req.user.role === 'manager') {
+    if (req.user && req.user.role === 'manager') {
+      // Authenticated manager - use their restaurant
       targetRestaurantId = req.user.restaurantId;
     } else if (restaurantId) {
+      // Public access or admin - use provided restaurant ID
       targetRestaurantId = restaurantId;
     } else {
-      return res.status(400).json({ message: 'Restaurant ID is required' });
+      // For demo purposes, return first restaurant's data if no ID provided
+      const Restaurant = require('../models/Restaurant');
+      const firstRestaurant = await Restaurant.findOne();
+      if (firstRestaurant) {
+        targetRestaurantId = firstRestaurant._id;
+      } else {
+        return res.status(404).json({ message: 'No restaurants found. Please seed the database first.' });
+      }
     }
 
     const reorderItems = await Inventory.getReorderPlan(targetRestaurantId);

@@ -14,11 +14,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Plus, PackageX } from 'lucide-react-native';
 import { useInventory } from '../hooks/useInventory';
+import { useLazyGetReorderPlanQuery } from '../../../api/slices/inventoryApi';
 import { InventoryItem } from '../../../api/slices/inventoryApi';
 import { colors, spacingSemantic } from '../../../theme/constants';
 import StatusBadge from '../../../components/common/StatusBadge';
 import GlassCard from '../../../components/common/GlassCard';
 import LoadingSkeleton from '../../../components/common/LoadingSkeleton';
+import { ClipboardList } from 'lucide-react-native';
+import ReorderPredictionModal from '../components/ReorderPredictionModal';
 
 const FILTER_OPTIONS: { label: string; value: string }[] = [
   { label: 'All', value: 'all' },
@@ -32,6 +35,14 @@ const InventoryListScreen = () => {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [reorderModalVisible, setReorderModalVisible] = useState(false);
+
+  // Lazy query for reorder plan - only fetches when button is tapped
+  const [getReorderPlan, { 
+    data: reorderData, 
+    isLoading: isReordering, 
+    error: reorderError 
+  }] = useLazyGetReorderPlanQuery();
 
   const {
     items,
@@ -59,6 +70,20 @@ const InventoryListScreen = () => {
       return itemStatus === selectedStatus;
     });
   }, [items, selectedStatus]);
+
+  // Handle reorder plan button tap - triggers lazy loading
+  const handleGetReorderPlan = useCallback(async () => {
+    try {
+      await getReorderPlan();
+      setReorderModalVisible(true);
+    } catch (error) {
+      console.error('Failed to get reorder plan:', error);
+    }
+  }, [getReorderPlan]);
+
+  const handleCloseReorderModal = useCallback(() => {
+    setReorderModalVisible(false);
+  }, []);
 
   const onRefresh = React.useCallback(() => {
     refetchItems();
@@ -140,16 +165,16 @@ const InventoryListScreen = () => {
     <View style={styles.header}>
       <View style={styles.titleContainer}>
         <Text style={[styles.title, { color: colors.text }]}>Inventory</Text>
-        {/* <TouchableOpacity
+        <TouchableOpacity
           style={[styles.reorderButton, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}
           onPress={handleGetReorderPlan}
           disabled={isReordering}
         >
           <ClipboardList size={20} color={colors.primary} />
           <Text style={[styles.reorderButtonText, { color: colors.primary }]}>
-            Plan Reorder
+            {isReordering ? 'Analyzing...' : 'Plan Reorder'}
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
       </View>
       
       <View style={[styles.searchContainer, { backgroundColor: colors.backgroundSecondary }]}>
@@ -277,6 +302,19 @@ const InventoryListScreen = () => {
       >
         <Plus size={28} {...({ color: 'white' } as any)} />
       </TouchableOpacity>
+
+      {/* Reorder Plan Modal - Lazy loaded results */}
+      <ReorderPredictionModal
+        isVisible={reorderModalVisible}
+        onClose={handleCloseReorderModal}
+        prediction={{
+          suggestedQuantity: reorderData?.suggestions?.length || 0,
+          when: reorderError ? 'Error occurred' : 'Immediate action recommended',
+          reason: reorderError 
+            ? 'Failed to analyze inventory. Please try again.' 
+            : `Found ${reorderData?.suggestions?.length || 0} items that need reordering`
+        }}
+      />
     </View>
   );
 };

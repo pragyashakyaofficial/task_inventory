@@ -1,8 +1,21 @@
-const { GoogleGenAI } = require("@google/genai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+// Initialize Gemini API
+const genAI = process.env.GEMINI_API_KEY ? 
+  new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : 
+  null;
 
 const getReorderSuggestion = async (item) => {
+  // Check if API key is available
+  if (!genAI || !process.env.GEMINI_API_KEY) {
+    console.log("Gemini API key not provided, using fallback logic");
+    return {
+      shouldReorder: item.status !== "In Stock",
+      suggestedQuantity: item.status === "Out of Stock" ? 50 : (item.status === "Low Stock" ? 20 : 0),
+      reason: "Fallback suggestion based on stock status (no API key)."
+    };
+  }
+
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -29,17 +42,24 @@ const getReorderSuggestion = async (item) => {
     // Attempt to parse JSON from the response
     const jsonMatch = text.match(/\{.*\}/s);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      const aiResponse = JSON.parse(jsonMatch[0]);
+      
+      // Validate AI response structure
+      if (typeof aiResponse.shouldReorder === 'boolean' && 
+          typeof aiResponse.suggestedQuantity === 'number' && 
+          typeof aiResponse.reason === 'string') {
+        return aiResponse;
+      }
     }
     
-    throw new Error("Could not parse AI response");
+    throw new Error("Invalid AI response structure");
   } catch (error) {
-    console.error("AI Service Error:", error);
-    // Fallback logic
+    console.error("AI Service Error:", error.message);
+    // Comprehensive fallback logic - never throws, always returns valid response
     return {
       shouldReorder: item.status !== "In Stock",
       suggestedQuantity: item.status === "Out of Stock" ? 50 : (item.status === "Low Stock" ? 20 : 0),
-      reason: "Fallback suggestion based on stock status."
+      reason: `Fallback suggestion based on stock status (AI error: ${error.message}).`
     };
   }
 };
