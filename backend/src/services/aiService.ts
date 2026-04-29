@@ -7,11 +7,11 @@ const genAI = process.env.GEMINI_API_KEY ?
 
 export const getReorderSuggestion = async (item: any) => {
   // Calculate suggested quantity based on stock status
-  const calculateSuggestedQuantity = (status: string, currentQty: number, maxStock: number) => {
+  const calculateSuggestedQuantity = (status: string, currentQty: number, minThreshold: number) => {
     if (status === 'OUT' || status === 'out-of-stock') {
-      return maxStock; // Order full capacity when out of stock
+      return minThreshold; // Order up to minimum threshold when out of stock
     }
-    return Math.max(0, maxStock - currentQty); // Fill up to max capacity for low stock
+    return Math.max(0, minThreshold - currentQty); // Order enough to reach minimum threshold for low stock
   };
 
   // Check if API key is available
@@ -19,13 +19,13 @@ export const getReorderSuggestion = async (item: any) => {
     console.log("Gemini API key not provided, using fallback logic");
     const shouldReorder = item.status !== "In Stock" && item.status !== "OK";
     const suggestedQuantity = shouldReorder
-      ? calculateSuggestedQuantity(item.status, item.quantity || 0, item.maxStock || 100)
+      ? calculateSuggestedQuantity(item.status, item.quantity || 0, item.minThreshold || 10)
       : 0;
     return {
       shouldReorder,
       suggestedQuantity,
       reason: shouldReorder
-        ? `${item.name} is ${item.status === 'OUT' || item.status === 'out-of-stock' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${suggestedQuantity} ${item.unit || 'units'} to reach max capacity.`
+        ? `${item.name} is ${item.status === 'OUT' || item.status === 'out-of-stock' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${suggestedQuantity} ${item.unit || 'units'} to reach minimum threshold.`
         : "Item is sufficiently stocked."
     };
   }
@@ -73,13 +73,13 @@ export const getReorderSuggestion = async (item: any) => {
     // Comprehensive fallback logic - never throws, always returns valid response
     const shouldReorder = item.status !== "In Stock" && item.status !== "OK";
     const suggestedQuantity = shouldReorder
-      ? calculateSuggestedQuantity(item.status, item.quantity || 0, item.maxStock || 100)
+      ? calculateSuggestedQuantity(item.status, item.quantity || 0, item.minThreshold || 10)
       : 0;
     return {
       shouldReorder,
       suggestedQuantity,
       reason: shouldReorder
-        ? `${item.name} is ${item.status === 'OUT' || item.status === 'out-of-stock' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${suggestedQuantity} ${item.unit || 'units'} to reach max capacity.`
+        ? `${item.name} is ${item.status === 'OUT' || item.status === 'out-of-stock' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${suggestedQuantity} ${item.unit || 'units'} to reach minimum threshold.`
         : "Item is sufficiently stocked."
     };
   }

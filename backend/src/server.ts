@@ -64,13 +64,11 @@ app.get("/api/health", (req, res) => {
 // Global error handler
 app.use(globalErrorHandler);
 
-// Connect to database
-connectDB();
-
-// Server start
+// Server start - connect to DB first, then listen
 const PORT = Number(process.env.PORT) || 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
+connectDB().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
   const { networkInterfaces } = require('os') as any;
   const nets = networkInterfaces();
   let localIp = 'localhost';
@@ -84,6 +82,7 @@ app.listen(PORT, '0.0.0.0', () => {
   }
   console.log(`Server running on http://${localIp}:${PORT}`);
   console.log('Development mode enabled');
+  });
 });
 
 export default app;

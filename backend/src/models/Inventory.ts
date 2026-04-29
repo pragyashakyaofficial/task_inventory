@@ -117,8 +117,8 @@ inventorySchema.virtual('status').get(function() {
 
 // Virtual field for suggested reorder quantity
 inventorySchema.virtual('suggestedOrder').get(function() {
-  if (this.currentStock >= this.maxStock) return 0;
-  return this.maxStock - this.currentStock;
+  if (this.currentStock >= this.minThreshold) return 0;
+  return this.minThreshold - this.currentStock;
 });
 
 // Method to compute status (for use in queries)
@@ -143,30 +143,12 @@ inventorySchema.methods.needsReorder = function() {
   return this.currentStock <= this.minThreshold;
 };
 
-// Method to update stock with logging
+// Method to update stock
 inventorySchema.methods.updateStock = async function(newStock: number, userId: mongoose.Types.ObjectId, note: string = '') {
-  const previousStock = this.currentStock;
   this.currentStock = newStock;
   this.lastUpdatedBy = userId;
-  
-  const saved = await this.save();
-  
-  // Create inventory log entry
-  const InventoryLog = mongoose.model('InventoryLog');
-  const action = newStock > previousStock ? 'ADD' : newStock < previousStock ? 'REMOVE' : 'ADJUST';
-  
-  await InventoryLog.create({
-    inventoryId: this._id,
-    restaurantId: this.restaurantId,
-    action,
-    quantity: newStock - previousStock,
-    previousStock,
-    newStock,
-    note,
-    createdBy: userId
-  });
-  
-  return saved;
+
+  return await this.save();
 };
 
 // Soft delete method
@@ -193,7 +175,7 @@ inventorySchema.statics.getReorderPlan = async function(restaurantId) {
     maxStock: item.maxStock,
     unit: item.unit,
     status: item.getStatus(),
-    suggestedOrder: item.maxStock - item.currentStock
+    suggestedOrder: item.minThreshold - item.currentStock
   }));
 };
 

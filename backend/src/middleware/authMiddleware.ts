@@ -1,20 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
-import rateLimit from 'express-rate-limit';
 
 interface AuthRequest extends Request {
   user?: any;
 }
-
-// Rate limiting for auth routes
-export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per window
-  message: 'Too many login attempts, please try again after 15 minutes',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // Protect routes - check if user is logged in
 export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
