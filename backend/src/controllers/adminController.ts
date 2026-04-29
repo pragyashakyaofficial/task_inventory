@@ -1,9 +1,10 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
+interface AuthRequest extends Request { user?: any; }
 import User from '../models/User';
 import Restaurant from '../models/Restaurant';
 import Inventory from '../models/Inventory';
 
-export const getGlobalStats = async (req: any, res: any, next: any) => {
+export const getGlobalStats = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const [restaurantCount, userCount, inventoryCount] = await Promise.all([
       Restaurant.countDocuments({ isDeleted: false }),

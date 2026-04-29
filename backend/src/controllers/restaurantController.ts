@@ -1,14 +1,15 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
+interface AuthRequest extends Request { user?: any; }
 import Restaurant from '../models/Restaurant';
 import User from '../models/User';
 
 // Get all restaurants (superadmin sees all, manager sees only theirs)
-export const getAllRestaurants = async (req: any, res: any, next: any) => {
+export const getAllRestaurants = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    let filter = { isDeleted: false };
+    const filter: any = { isDeleted: false };
 
     // Managers can only see their assigned restaurant
-    if (req.user.role === 'manager') {
+    if (req.user?.role === 'manager') {
       filter._id = req.user.restaurantId;
     }
 
@@ -24,7 +25,7 @@ export const getAllRestaurants = async (req: any, res: any, next: any) => {
 };
 
 // Get single restaurant
-export const getRestaurant = async (req: any, res: any, next: any) => {
+export const getRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -46,7 +47,7 @@ export const getRestaurant = async (req: any, res: any, next: any) => {
 };
 
 // Create restaurant (superadmin only)
-export const createRestaurant = async (req: any, res: any, next: any) => {
+export const createRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { name, location, logo, establishedYear, status } = req.body;
 
@@ -68,7 +69,7 @@ export const createRestaurant = async (req: any, res: any, next: any) => {
 };
 
 // Update restaurant
-export const updateRestaurant = async (req: any, res: any, next: any) => {
+export const updateRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -98,7 +99,7 @@ export const updateRestaurant = async (req: any, res: any, next: any) => {
 };
 
 // Update restaurant status
-export const updateStatus = async (req: any, res: any, next: any) => {
+export const updateStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -127,7 +128,7 @@ export const updateStatus = async (req: any, res: any, next: any) => {
 };
 
 // Delete restaurant (soft delete - superadmin only)
-export const deleteRestaurant = async (req: any, res: any, next: any) => {
+export const deleteRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -138,7 +139,7 @@ export const deleteRestaurant = async (req: any, res: any, next: any) => {
     }
 
     // Soft delete
-    await restaurant.softDelete();
+    await (restaurant as any).softDelete();
 
     // Deactivate all managers of this restaurant
     await User.updateMany(
@@ -155,7 +156,7 @@ export const deleteRestaurant = async (req: any, res: any, next: any) => {
 };
 
 // Get restaurant with users
-export const getRestaurantWithUsers = async (req: any, res: any, next: any) => {
+export const getRestaurantWithUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 

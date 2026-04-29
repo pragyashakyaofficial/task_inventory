@@ -1,15 +1,19 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
 import InventoryLog from '../models/InventoryLog';
 import Inventory from '../models/Inventory';
 
+interface AuthRequest extends Request {
+  user?: any;
+}
+
 // Get all logs for a restaurant
-export const getAllLogs = async (req: any, res: any, next: any) => {
+export const getAllLogs = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { restaurantId, inventoryId, action, limit = 50, page = 1 } = req.query;
+    const { restaurantId, inventoryId, action, limit = '50', page = '1' } = req.query as any;
 
     // Determine restaurant filter
-    let targetRestaurantId;
-    if (req.user.role === 'manager') {
+    let targetRestaurantId: any;
+    if (req.user?.role === 'manager') {
       targetRestaurantId = req.user.restaurantId;
     } else if (restaurantId) {
       targetRestaurantId = restaurantId;
@@ -18,7 +22,7 @@ export const getAllLogs = async (req: any, res: any, next: any) => {
     }
 
     // Build filter
-    let filter = { restaurantId: targetRestaurantId };
+    const filter: any = { restaurantId: targetRestaurantId };
     if (inventoryId) filter.inventoryId = inventoryId;
     if (action) filter.action = action;
 
@@ -46,10 +50,10 @@ export const getAllLogs = async (req: any, res: any, next: any) => {
 };
 
 // Get logs for a specific inventory item
-export const getItemLogs = async (req: any, res: any, next: any) => {
+export const getItemLogs = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { inventoryId } = req.params;
-    const { limit = 100 } = req.query;
+    const { limit = '100' } = req.query as any;
 
     // First, check if user has access to this inventory item
     const item = await Inventory.findById(inventoryId);
@@ -59,7 +63,7 @@ export const getItemLogs = async (req: any, res: any, next: any) => {
     }
 
     // Check access
-    if (req.user.role === 'manager' &&
+    if (req.user?.role === 'manager' &&
         req.user.restaurantId?.toString() !== item.restaurantId.toString()) {
       return res.status(403).json({ message: 'Access denied. Not your restaurant.' });
     }
@@ -79,13 +83,13 @@ export const getItemLogs = async (req: any, res: any, next: any) => {
 };
 
 // Get activity summary
-export const getActivitySummary = async (req: any, res: any, next: any) => {
+export const getActivitySummary = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { restaurantId, days = 7 } = req.query;
+    const { restaurantId, days = '7' } = req.query as any;
 
     // Determine restaurant
-    let targetRestaurantId;
-    if (req.user.role === 'manager') {
+    let targetRestaurantId: any;
+    if (req.user?.role === 'manager') {
       targetRestaurantId = req.user.restaurantId;
     } else if (restaurantId) {
       targetRestaurantId = restaurantId;
@@ -93,15 +97,15 @@ export const getActivitySummary = async (req: any, res: any, next: any) => {
       return res.status(400).json({ message: 'Restaurant ID is required' });
     }
 
-    const summary = await InventoryLog.getActivitySummary(targetRestaurantId, parseInt(days));
+    const summary: any[] = await (InventoryLog as any).getActivitySummary(targetRestaurantId, parseInt(days));
 
     // Format summary
-    const formatted = {
-      total: summary.reduce((acc, item) => acc + item.count, 0),
+    const formatted: any = {
+      total: summary.reduce((acc: number, item: any) => acc + item.count, 0),
       byAction: {}
     };
 
-    summary.forEach(item => {
+    summary.forEach((item: any) => {
       formatted.byAction[item._id] = {
         count: item.count,
         totalQuantity: item.totalQuantity
@@ -118,13 +122,13 @@ export const getActivitySummary = async (req: any, res: any, next: any) => {
 };
 
 // Get recent activity
-export const getRecentActivity = async (req: any, res: any, next: any) => {
+export const getRecentActivity = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { restaurantId, limit = 50 } = req.query;
+    const { restaurantId, limit = '50' } = req.query as any;
 
     // Determine restaurant
-    let targetRestaurantId;
-    if (req.user.role === 'manager') {
+    let targetRestaurantId: any;
+    if (req.user?.role === 'manager') {
       targetRestaurantId = req.user.restaurantId;
     } else if (restaurantId) {
       targetRestaurantId = restaurantId;
@@ -132,7 +136,7 @@ export const getRecentActivity = async (req: any, res: any, next: any) => {
       return res.status(400).json({ message: 'Restaurant ID is required' });
     }
 
-    const activity = await InventoryLog.getRecentActivity(targetRestaurantId, parseInt(limit));
+    const activity: any[] = await (InventoryLog as any).getRecentActivity(targetRestaurantId, parseInt(limit));
 
     res.status(200).json({
       count: activity.length,

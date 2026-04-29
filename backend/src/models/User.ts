@@ -1,8 +1,35 @@
-// @ts-nocheck
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-const userSchema = new mongoose.Schema({
+export interface IUser {
+  name: string;
+  email: string;
+  password: string;
+  role: 'superadmin' | 'manager';
+  restaurantId?: mongoose.Types.ObjectId | null;
+  status: 'ACTIVE' | 'INACTIVE';
+  lastLogin?: Date;
+  loginAttempts: number;
+  lockUntil?: Date;
+}
+
+export interface IUserMethods {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+  isLocked(): boolean;
+  incLoginAttempts(): Promise<any>;
+  resetLoginAttempts(): any;
+  isSuperAdmin(): boolean;
+  isManager(): boolean;
+  canCreateRestaurant(): boolean;
+  canAccessRestaurant(restaurantId: mongoose.Types.ObjectId): boolean;
+}
+
+export interface IUserModel extends mongoose.Model<IUser, {}, IUserMethods> {
+  findByRestaurant(restaurantId: mongoose.Types.ObjectId): any;
+  findSuperAdmins(): any;
+}
+
+const userSchema = new mongoose.Schema<IUser, IUserModel, IUserMethods>({
   name: {
     type: String,
     required: [true, 'Please provide a name'],
@@ -67,27 +94,27 @@ userSchema.pre('save', async function() {
 });
 
 // Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function(candidatePassword: string) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Check for account lockout
 userSchema.methods.isLocked = function() {
-  return !!(this.lockUntil && this.lockUntil > Date.now());
+  return !!(this.lockUntil && this.lockUntil.getTime() > Date.now());
 };
 
 // Increment login attempts
 userSchema.methods.incLoginAttempts = async function() {
-  if (this.lockUntil && this.lockUntil < Date.now()) {
+  if (this.lockUntil && this.lockUntil.getTime() < Date.now()) {
     return this.updateOne({
       $set: { loginAttempts: 1 },
       $unset: { lockUntil: 1 }
     });
   }
   
-  const updates = { $inc: { loginAttempts: 1 } };
+  const updates: any = { $inc: { loginAttempts: 1 } };
   if (this.loginAttempts + 1 >= 5) {
-    updates.$set = { lockUntil: Date.now() + 2 * 60 * 60 * 1000 }; // Lock for 2 hours
+    updates.$set = { lockUntil: new Date(Date.now() + 2 * 60 * 60 * 1000) }; // Lock for 2 hours
   }
   
   return this.updateOne(updates);
@@ -114,13 +141,13 @@ userSchema.methods.canCreateRestaurant = function() {
   return this.role === 'superadmin';
 };
 
-userSchema.methods.canAccessRestaurant = function(restaurantId) {
+userSchema.methods.canAccessRestaurant = function(restaurantId: mongoose.Types.ObjectId) {
   if (this.role === 'superadmin') return true;
-  return this.restaurantId && this.restaurantId.toString() === restaurantId.toString();
+  return !!(this.restaurantId && this.restaurantId.toString() === restaurantId.toString());
 };
 
 // Static method to find users by restaurant
-userSchema.statics.findByRestaurant = function(restaurantId) {
+userSchema.statics.findByRestaurant = function(restaurantId: mongoose.Types.ObjectId) {
   return this.find({ restaurantId, status: 'ACTIVE' });
 };
 
@@ -129,6 +156,6 @@ userSchema.statics.findSuperAdmins = function() {
   return this.find({ role: 'superadmin', status: 'ACTIVE' });
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model<IUser, IUserModel>('User', userSchema);
 
 export default User;

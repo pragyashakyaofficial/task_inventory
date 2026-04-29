@@ -4,7 +4,7 @@ import Category from './Category';
 import Inventory from './Inventory';
 import InventoryLog from './InventoryLog';
 
-module.exports = {
+export {
   Restaurant,
   User,
   Category,

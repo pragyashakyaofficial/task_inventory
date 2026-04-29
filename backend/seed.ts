@@ -100,11 +100,11 @@ const seedDB = async () => {
       { name: 'Beverages', restaurantId: restaurantB._id }
     ]);
 
-    const catA_Veg = categoriesA.find(c => c.name === 'Vegetables');
-    const catA_Dairy = categoriesA.find(c => c.name === 'Dairy');
-    const catA_Meat = categoriesA.find(c => c.name === 'Meat');
-    const catA_Bakery = categoriesA.find(c => c.name === 'Bakery');
-    const catA_Condiments = categoriesA.find(c => c.name === 'Condiments');
+    const catA_Veg = categoriesA.find(c => c.name === 'Vegetables')!;
+    const catA_Dairy = categoriesA.find(c => c.name === 'Dairy')!;
+    const catA_Meat = categoriesA.find(c => c.name === 'Meat')!;
+    const catA_Bakery = categoriesA.find(c => c.name === 'Bakery')!;
+    const catA_Condiments = categoriesA.find(c => c.name === 'Condiments')!;
 
     console.log(`Created ${categoriesA.length} categories for Restaurant A`);
     console.log(`Created ${categoriesB.length} categories for Restaurant B`);
@@ -232,8 +232,8 @@ const seedDB = async () => {
     ]);
 
     // Restaurant B Inventory (partial)
-    const catB_Veg = categoriesB.find(c => c.name === 'Vegetables');
-    const catB_Meat = categoriesB.find(c => c.name === 'Meat');
+    const catB_Veg = categoriesB.find(c => c.name === 'Vegetables')!;
+    const catB_Meat = categoriesB.find(c => c.name === 'Meat')!;
 
     const inventoryB = await Inventory.insertMany([
       {
@@ -272,7 +272,7 @@ const seedDB = async () => {
     const logs = [];
     
     // Log for the out-of-stock potatoes
-    const potatoes = inventoryA.find(i => i.name === 'Potatoes');
+    const potatoes = inventoryA.find(i => i.name === 'Potatoes')!;
     logs.push({
       inventoryId: potatoes._id,
       restaurantId: restaurantA._id,
@@ -286,7 +286,7 @@ const seedDB = async () => {
     });
 
     // Log for low stock tomatoes
-    const tomatoes = inventoryA.find(i => i.name === 'Tomatoes');
+    const tomatoes = inventoryA.find(i => i.name === 'Tomatoes')!;
     logs.push({
       inventoryId: tomatoes._id,
       restaurantId: restaurantA._id,
@@ -300,7 +300,7 @@ const seedDB = async () => {
     });
 
     // Log for adding beef patties
-    const patties = inventoryA.find(i => i.name === 'Beef Patties');
+    const patties = inventoryA.find(i => i.name === 'Beef Patties')!;
     logs.push({
       inventoryId: patties._id,
       restaurantId: restaurantA._id,
@@ -314,7 +314,7 @@ const seedDB = async () => {
     });
 
     // Log for adjusting milk stock
-    const milk = inventoryA.find(i => i.name === 'Milk');
+    const milk = inventoryA.find(i => i.name === 'Milk')!;
     logs.push({
       inventoryId: milk._id,
       restaurantId: restaurantA._id,

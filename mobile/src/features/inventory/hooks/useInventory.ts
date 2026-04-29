@@ -9,12 +9,10 @@ import {
   useGetDashboardStatsQuery,
 } from '../../../api/slices/inventoryApi';
 import {
-  InventoryItem,
   CreateItemRequest,
   UpdateItemRequest,
   DeleteItemRequest,
   GetItemsParams,
-  AISuggestion,
 } from '../types/inventory.types';
 
 export const useInventory = (initialParams?: GetItemsParams) => {
@@ -198,93 +196,6 @@ export const useInventory = (initialParams?: GetItemsParams) => {
     updateItemData,
     deleteItemData,
   ]);
-};
-
-// Hook for AI suggestions
-export const useAISuggestion = () => {
-  const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const generateSuggestions = useCallback(async (items: InventoryItem[]) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Simulate AI API call
-      await new Promise<void>(resolve => setTimeout(resolve, 1500));
-
-      const newSuggestions: AISuggestion[] = [];
-
-      // Low stock suggestions
-      const lowStockItems = items.filter(item => item.status === 'low-stock');
-      if (lowStockItems.length > 0) {
-        newSuggestions.push({
-          id: 'low-stock-alert',
-          type: 'restock',
-          title: 'Low Stock Alert',
-          description: `${lowStockItems.length} items need restocking soon`,
-          impact: 'high',
-          confidence: 0.9,
-          data: { items: lowStockItems.map(item => ({ id: item.id, name: item.name, quantity: item.quantity })) },
-          createdAt: new Date().toISOString(),
-        });
-      }
-
-      // Pricing optimization
-      const highCostItems = items.filter(item => item.cost > item.price * 0.8);
-      if (highCostItems.length > 0) {
-        newSuggestions.push({
-          id: 'pricing-optimization',
-          type: 'pricing',
-          title: 'Pricing Optimization',
-          description: `Consider adjusting prices for ${highCostItems.length} items with high cost ratio`,
-          impact: 'medium',
-          confidence: 0.75,
-          data: { items: highCostItems.map(item => ({ id: item.id, name: item.name, cost: item.cost, price: item.price })) },
-          createdAt: new Date().toISOString(),
-        });
-      }
-
-      // Category optimization
-      const categories = [...new Set(items.map(item => item.category))];
-      const categoriesWithFewItems = categories.filter(category => 
-        items.filter(item => item.category === category).length < 3
-      );
-      
-      if (categoriesWithFewItems.length > 0) {
-        newSuggestions.push({
-          id: 'category-optimization',
-          type: 'category',
-          title: 'Category Optimization',
-          description: `Some categories have few items, consider consolidation or expansion`,
-          impact: 'low',
-          confidence: 0.6,
-          data: { categories: categoriesWithFewItems },
-          createdAt: new Date().toISOString(),
-        });
-      }
-
-      setSuggestions(newSuggestions);
-    } catch (err) {
-      setError('Failed to generate AI suggestions');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const clearSuggestions = useCallback(() => {
-    setSuggestions([]);
-    setError(null);
-  }, []);
-
-  return {
-    suggestions,
-    isLoading,
-    error,
-    generateSuggestions,
-    clearSuggestions,
-  };
 };
 
 // Hook for dashboard statistics

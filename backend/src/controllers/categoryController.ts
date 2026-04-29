@@ -1,19 +1,19 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
 import Category from '../models/Category';
 
+interface AuthRequest extends Request { user?: any; }
+
 // Get all categories for a restaurant
-export const getAllCategories = async (req: any, res: any, next: any) => {
+export const getAllCategories = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { restaurantId } = req.query;
+    const { restaurantId } = req.query as any;
 
     // Determine restaurant filter
-    let filter = { isDeleted: false };
+    const filter: any = { isDeleted: false };
 
-    if (req.user.role === 'manager') {
-      // Manager can only see their restaurant's categories
+    if (req.user?.role === 'manager') {
       filter.restaurantId = req.user.restaurantId;
     } else if (restaurantId) {
-      // Superadmin can filter by any restaurant
       filter.restaurantId = restaurantId;
     } else {
       return res.status(400).json({ message: 'Restaurant ID is required' });
@@ -31,7 +31,7 @@ export const getAllCategories = async (req: any, res: any, next: any) => {
 };
 
 // Get single category
-export const getCategory = async (req: any, res: any, next: any) => {
+export const getCategory = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -54,7 +54,7 @@ export const getCategory = async (req: any, res: any, next: any) => {
 };
 
 // Create category
-export const createCategory = async (req: any, res: any, next: any) => {
+export const createCategory = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { name, restaurantId } = req.body;
 
@@ -94,7 +94,7 @@ export const createCategory = async (req: any, res: any, next: any) => {
 };
 
 // Update category
-export const updateCategory = async (req: any, res: any, next: any) => {
+export const updateCategory = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { name } = req.body;
@@ -136,7 +136,7 @@ export const updateCategory = async (req: any, res: any, next: any) => {
 };
 
 // Delete category (soft delete)
-export const deleteCategory = async (req: any, res: any, next: any) => {
+export const deleteCategory = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -152,7 +152,7 @@ export const deleteCategory = async (req: any, res: any, next: any) => {
       return res.status(403).json({ message: 'Access denied. Not your restaurant.' });
     }
 
-    await category.softDelete();
+    await (category as any).softDelete();
 
     res.status(200).json({
       message: 'Category deleted successfully'

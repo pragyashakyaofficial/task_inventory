@@ -1,6 +1,36 @@
 import mongoose from 'mongoose';
 
-const inventorySchema = new mongoose.Schema({
+// Document interface
+export interface IInventory {
+  name: string;
+  categoryId: mongoose.Types.ObjectId;
+  restaurantId: mongoose.Types.ObjectId;
+  unit: 'kg' | 'litre' | 'pcs';
+  currentStock: number;
+  minThreshold: number;
+  maxStock: number;
+  lastUpdatedBy?: mongoose.Types.ObjectId;
+  isDeleted: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Instance methods interface
+export interface IInventoryMethods {
+  getStatus(): 'OUT' | 'LOW' | 'OK';
+  isLowStock(): boolean;
+  isOutOfStock(): boolean;
+  needsReorder(): boolean;
+  updateStock(newStock: number, userId: mongoose.Types.ObjectId, note?: string): Promise<any>;
+  softDelete(userId: mongoose.Types.ObjectId): Promise<any>;
+}
+
+// Static methods interface
+export interface IInventoryModel extends mongoose.Model<IInventory, {}, IInventoryMethods> {
+  getReorderPlan(restaurantId: mongoose.Types.ObjectId): Promise<any[]>;
+}
+
+const inventorySchema = new mongoose.Schema<IInventory, IInventoryModel, IInventoryMethods>({
   name: {
     type: String,
     required: [true, 'Please provide an item name'],
@@ -96,7 +126,7 @@ inventorySchema.methods.needsReorder = function() {
 };
 
 // Method to update stock with logging
-inventorySchema.methods.updateStock = async function(newStock, userId, note = '') {
+inventorySchema.methods.updateStock = async function(newStock: number, userId: mongoose.Types.ObjectId, note: string = '') {
   const previousStock = this.currentStock;
   this.currentStock = newStock;
   this.lastUpdatedBy = userId;
@@ -122,7 +152,7 @@ inventorySchema.methods.updateStock = async function(newStock, userId, note = ''
 };
 
 // Soft delete method
-inventorySchema.methods.softDelete = async function(userId) {
+inventorySchema.methods.softDelete = async function(userId: mongoose.Types.ObjectId) {
   this.isDeleted = true;
   this.lastUpdatedBy = userId;
   return await this.save();
@@ -136,7 +166,7 @@ inventorySchema.statics.getReorderPlan = async function(restaurantId) {
     $expr: { $lte: ['$currentStock', '$minThreshold'] }
   }).populate('categoryId', 'name');
   
-  return items.map(item => ({
+  return items.map((item: any) => ({
     _id: item._id,
     name: item.name,
     category: item.categoryId?.name || 'Unknown',
@@ -153,6 +183,6 @@ inventorySchema.statics.getReorderPlan = async function(restaurantId) {
 inventorySchema.set('toJSON', { virtuals: true });
 inventorySchema.set('toObject', { virtuals: true });
 
-const Inventory = mongoose.model('Inventory', inventorySchema);
+const Inventory = mongoose.model<IInventory, IInventoryModel>('Inventory', inventorySchema);
 
 export default Inventory;

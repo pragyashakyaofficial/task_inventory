@@ -107,7 +107,12 @@ export interface AISuggestionResponse {
 export interface ReorderSuggestion {
   itemId: string;
   name: string;
+  category: string;
   currentQuantity: number;
+  minThreshold: number;
+  maxStock: number;
+  unit: string;
+  status: string;
   shouldReorder: boolean;
   suggestedQuantity: number;
   reason: string;

@@ -6,7 +6,7 @@
     "start": "ts-node src/server.ts",
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
-    "seed": "ts-node seed.js",
+    "seed": "ts-node seed.ts",
     "type-check": "tsc --noEmit"
   },
   "keywords": [],
@@ -39,6 +39,7 @@
     "@types/hpp": "^0.2.7",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.19.17",
+    "@types/nodemailer": "^8.0.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

@@ -1,7 +1,11 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import rateLimit from 'express-rate-limit';
+
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 // Rate limiting for auth routes
 export const authLimiter = rateLimit({
@@ -13,9 +17,9 @@ export const authLimiter = rateLimit({
 });
 
 // Protect routes - check if user is logged in
-export const protect = async (req: any, res: any, next: any) => {
+export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    let token;
+    let token: string | undefined;
     
     // 1) Get token from headers or cookies
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -29,7 +33,7 @@ export const protect = async (req: any, res: any, next: any) => {
     }
 
     // 2) Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
 
     // 3) Check if user still exists
     const currentUser = await User.findById(decoded.id);
@@ -51,9 +55,9 @@ export const protect = async (req: any, res: any, next: any) => {
 };
 
 // Restrict to specific roles
-export const restrictTo = (...roles) => {
-  return (req: any, res: any, next: any) => {
-    if (!roles.includes(req.user.role)) {
+export const restrictTo = (...roles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!roles.includes(req.user?.role)) {
       return res.status(403).json({ message: 'You do not have permission to perform this action' });
     }
     next();

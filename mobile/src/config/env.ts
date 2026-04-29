@@ -12,7 +12,7 @@ interface EnvConfig {
 // Environment configuration with validation/defaults
 export const ENV: EnvConfig = {
   APP_NAME: Config.APP_NAME ?? 'InventoryApp',
-  API_BASE_URL: Config.API_BASE_URL ?? 'http://localhost:3000/v1',
+  API_BASE_URL: Config.API_BASE_URL ?? 'http://localhost:5000/api',
   ENVIRONMENT: (Config.ENVIRONMENT as EnvConfig['ENVIRONMENT']) ?? 'development',
   DEBUG_MODE: Config.DEBUG_MODE === 'true',
   LOG_LEVEL: (Config.LOG_LEVEL as EnvConfig['LOG_LEVEL']) ?? 'debug',

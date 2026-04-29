@@ -10,6 +10,18 @@ import rateLimit from "express-rate-limit";
 
 import connectDB from "./config/database";
 
+// API Routes
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+import restaurantRoutes from "./routes/restaurantRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
+import inventoryRoutes from "./routes/inventoryRoutes";
+import inventoryLogRoutes from "./routes/inventoryLogRoutes";
+import stockRequestRoutes from "./routes/stockRequestRoutes";
+
+import AppError from "./utils/appError";
+import globalErrorHandler from "./middleware/errorMiddleware";
+
 const app = express();
 
 // 1) GLOBAL MIDDLEWARES
@@ -39,18 +51,6 @@ app.use(hpp());
 
 // Serve static files
 app.use(express.static('public'));
-
-// API Routes
-import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
-import restaurantRoutes from "./routes/restaurantRoutes";
-import categoryRoutes from "./routes/categoryRoutes";
-import inventoryRoutes from "./routes/inventoryRoutes";
-import inventoryLogRoutes from "./routes/inventoryLogRoutes";
-import stockRequestRoutes from "./routes/stockRequestRoutes";
-
-import AppError from "./utils/appError";
-import globalErrorHandler from "./middleware/errorMiddleware";
 
 // Mount routes
 app.use("/api/auth", authRoutes);

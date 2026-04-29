@@ -5,7 +5,7 @@ const genAI = process.env.GEMINI_API_KEY ?
   new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : 
   null;
 
-const getReorderSuggestion = async (item) => {
+export const getReorderSuggestion = async (item: any) => {
   // Check if API key is available
   if (!genAI || !process.env.GEMINI_API_KEY) {
     console.log("Gemini API key not provided, using fallback logic");
@@ -53,15 +53,14 @@ const getReorderSuggestion = async (item) => {
     }
     
     throw new Error("Invalid AI response structure");
-  } catch (error) {
-    console.error("AI Service Error:", error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error("AI Service Error:", errorMessage);
     // Comprehensive fallback logic - never throws, always returns valid response
     return {
       shouldReorder: item.status !== "In Stock",
       suggestedQuantity: item.status === "Out of Stock" ? 50 : (item.status === "Low Stock" ? 20 : 0),
-      reason: `Fallback suggestion based on stock status (AI error: ${error.message}).`
+      reason: `Fallback suggestion based on stock status (AI error: ${errorMessage}).`
     };
   }
 };
-
-module.exports = { getReorderSuggestion };

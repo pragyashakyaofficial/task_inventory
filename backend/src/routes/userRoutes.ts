@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as express from 'express';
 import { body, validationResult  } from 'express-validator';
 import * as userController from '../controllers/userController';
@@ -10,8 +9,8 @@ const handleValidationErrors = (req: any, res: any, next: any) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log('Validation errors:', JSON.stringify(errors.array(), null, 2));
-    const formattedErrors = {};
-    errors.array().forEach(err => {
+    const formattedErrors: Record<string, string[]> = {};
+    errors.array().forEach((err: any) => {
       if (!formattedErrors[err.path]) formattedErrors[err.path] = [];
       formattedErrors[err.path].push(err.msg);
     });

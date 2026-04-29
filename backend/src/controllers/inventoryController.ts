@@ -1,17 +1,21 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
 import Inventory from '../models/Inventory';
 import InventoryLog from '../models/InventoryLog';
 import Restaurant from '../models/Restaurant';
 import { getReorderSuggestion  } from '../services/aiService';
 
+interface AuthRequest extends Request {
+  user?: any;
+}
+
 // Get all inventory items for a restaurant
-export const getAllInventory = async (req: any, res: any, next: any) => {
+export const getAllInventory = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { restaurantId, categoryId, status } = req.query;
+    const { restaurantId, categoryId, status } = req.query as any;
 
     // Determine restaurant filter
-    let targetRestaurantId;
-    if (req.user.role === 'manager') {
+    let targetRestaurantId: any;
+    if (req.user?.role === 'manager') {
       targetRestaurantId = req.user.restaurantId;
     } else if (restaurantId) {
       targetRestaurantId = restaurantId;
@@ -20,33 +24,33 @@ export const getAllInventory = async (req: any, res: any, next: any) => {
     }
 
     // Build filter
-    let filter = {
+    const filter: any = {
       restaurantId: targetRestaurantId,
       isDeleted: false
     };
 
     if (categoryId) filter.categoryId = categoryId;
 
-    let items = await Inventory.find(filter)
+    const items = await Inventory.find(filter)
       .populate('categoryId', 'name')
       .populate('lastUpdatedBy', 'name')
       .sort({ name: 1 });
 
     // Add computed fields to response
-    items = items.map(item => ({
+    const mappedItems = items.map(item => ({
       ...item.toObject(),
       status: item.getStatus(),
       suggestedOrder: item.maxStock - item.currentStock
     }));
 
     // Filter by status if requested
-    if (status) {
-      items = items.filter(item => item.status === status);
-    }
+    const result = status
+      ? mappedItems.filter(item => item.status === status)
+      : mappedItems;
 
     res.status(200).json({
-      count: items.length,
-      inventory: items
+      count: result.length,
+      inventory: result
     });
   } catch (error) {
     next(error);
@@ -54,7 +58,7 @@ export const getAllInventory = async (req: any, res: any, next: any) => {
 };
 
 // Get single inventory item
-export const getInventoryItem = async (req: any, res: any, next: any) => {
+export const getInventoryItem = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -86,7 +90,7 @@ export const getInventoryItem = async (req: any, res: any, next: any) => {
 };
 
 // Create inventory item
-export const createInventory = async (req: any, res: any, next: any) => {
+export const createInventory = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const {
       name,
@@ -100,7 +104,7 @@ export const createInventory = async (req: any, res: any, next: any) => {
 
     // Determine restaurant
     let targetRestaurantId = restaurantId;
-    if (req.user.role === 'manager') {
+    if (req.user?.role === 'manager') {
       targetRestaurantId = req.user.restaurantId;
     }
 
@@ -116,11 +120,15 @@ export const createInventory = async (req: any, res: any, next: any) => {
       currentStock,
       minThreshold,
       maxStock,
-      lastUpdatedBy: req.user.id
+      lastUpdatedBy: req.user?.id
     });
 
     const populatedItem = await Inventory.findById(item._id)
       .populate('categoryId', 'name');
+
+    if (!populatedItem) {
+      return res.status(500).json({ message: 'Failed to retrieve created item' });
+    }
 
     res.status(201).json({
       message: 'Inventory item created successfully',
@@ -136,10 +144,10 @@ export const createInventory = async (req: any, res: any, next: any) => {
 };
 
 // Update inventory item
-export const updateInventory = async (req: any, res: any, next: any) => {
+export const updateInventory = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const updates = req.body as Record<string, any>;
 
     const item = await Inventory.findById(id);
 
@@ -148,7 +156,7 @@ export const updateInventory = async (req: any, res: any, next: any) => {
     }
 
     // Check access
-    if (req.user.role === 'manager' &&
+    if (req.user?.role === 'manager' &&
         req.user.restaurantId?.toString() !== item.restaurantId.toString()) {
       return res.status(403).json({ message: 'Access denied. Not your restaurant.' });
     }
@@ -162,13 +170,13 @@ export const updateInventory = async (req: any, res: any, next: any) => {
     const previousStock = item.currentStock;
 
     // Apply updates
-    Object.keys(updates).forEach(key => {
+    (Object.keys(updates) as Array<keyof typeof updates>).forEach(key => {
       if (updates[key] !== undefined) {
-        item[key] = updates[key];
+        (item as any)[key] = updates[key];
       }
     });
 
-    item.lastUpdatedBy = req.user.id;
+    item.lastUpdatedBy = req.user?.id;
     await item.save();
 
     // Create log if stock changed
@@ -182,13 +190,17 @@ export const updateInventory = async (req: any, res: any, next: any) => {
         previousStock,
         newStock: updates.currentStock,
         note: req.body.note || 'Stock updated',
-        createdBy: req.user.id
+        createdBy: req.user?.id
       });
     }
 
     const populatedItem = await Inventory.findById(item._id)
       .populate('categoryId', 'name')
       .populate('lastUpdatedBy', 'name');
+
+    if (!populatedItem) {
+      return res.status(500).json({ message: 'Failed to retrieve updated item' });
+    }
 
     res.status(200).json({
       message: 'Inventory item updated successfully',
@@ -204,10 +216,10 @@ export const updateInventory = async (req: any, res: any, next: any) => {
 };
 
 // Update stock (dedicated endpoint for stock changes)
-export const updateStock = async (req: any, res: any, next: any) => {
+export const updateStock = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { newStock, note } = req.body;
+    const { newStock, note } = req.body as any;
 
     if (newStock === undefined || newStock < 0) {
       return res.status(400).json({ message: 'Valid new stock value is required' });
@@ -220,16 +232,20 @@ export const updateStock = async (req: any, res: any, next: any) => {
     }
 
     // Check access
-    if (req.user.role === 'manager' &&
+    if (req.user?.role === 'manager' &&
         req.user.restaurantId?.toString() !== item.restaurantId.toString()) {
       return res.status(403).json({ message: 'Access denied. Not your restaurant.' });
     }
 
-    await item.updateStock(newStock, req.user.id, note || 'Stock adjustment');
+    await item.updateStock(newStock, req.user?.id, note || 'Stock adjustment');
 
     const populatedItem = await Inventory.findById(item._id)
       .populate('categoryId', 'name')
       .populate('lastUpdatedBy', 'name');
+
+    if (!populatedItem) {
+      return res.status(500).json({ message: 'Failed to retrieve updated item' });
+    }
 
     res.status(200).json({
       message: 'Stock updated successfully',
@@ -245,7 +261,7 @@ export const updateStock = async (req: any, res: any, next: any) => {
 };
 
 // Delete inventory item (soft delete)
-export const deleteInventory = async (req: any, res: any, next: any) => {
+export const deleteInventory = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -256,12 +272,12 @@ export const deleteInventory = async (req: any, res: any, next: any) => {
     }
 
     // Check access
-    if (req.user.role === 'manager' &&
+    if (req.user?.role === 'manager' &&
         req.user.restaurantId?.toString() !== item.restaurantId.toString()) {
       return res.status(403).json({ message: 'Access denied. Not your restaurant.' });
     }
 
-    await item.softDelete(req.user.id);
+    await item.softDelete(req.user?.id);
 
     res.status(200).json({
       message: 'Inventory item deleted successfully'
@@ -272,12 +288,12 @@ export const deleteInventory = async (req: any, res: any, next: any) => {
 };
 
 // Get reorder plan (items with LOW or OUT status) - PUBLIC ENDPOINT
-export const getReorderPlan = async (req: any, res: any, next: any) => {
+export const getReorderPlan = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { restaurantId } = req.query;
+    const { restaurantId } = req.query as any;
 
     // Determine restaurant - support both authenticated and public access
-    let targetRestaurantId;
+    let targetRestaurantId: any;
     if (req.user && req.user.role === 'manager') {
       // Authenticated manager - use their restaurant
       targetRestaurantId = req.user.restaurantId;
@@ -290,15 +306,62 @@ export const getReorderPlan = async (req: any, res: any, next: any) => {
       if (firstRestaurant) {
         targetRestaurantId = firstRestaurant._id;
       } else {
-        return res.status(404).json({ message: 'No restaurants found. Please seed the database first.' });
+        return res.status(404).json({
+          success: false,
+          suggestions: [],
+          message: 'No restaurants found. Please seed the database first.'
+        });
       }
     }
 
     const reorderItems = await Inventory.getReorderPlan(targetRestaurantId);
 
+    // Build suggestions with AI-powered reasoning (fallback if AI unavailable)
+    const suggestions = await Promise.all(
+      reorderItems.map(async (item: any) => {
+        let aiResult;
+        try {
+          aiResult = await getReorderSuggestion({
+            name: item.name,
+            quantity: item.currentStock,
+            status: item.status,
+            minThreshold: item.minThreshold,
+            maxStock: item.maxStock,
+          });
+        } catch {
+          aiResult = null;
+        }
+
+        const shouldReorder = aiResult ? aiResult.shouldReorder : item.status !== 'OK';
+        const suggestedQuantity = aiResult
+          ? aiResult.suggestedQuantity
+          : item.suggestedOrder;
+        const reason = aiResult
+          ? aiResult.reason
+          : `${item.name} is ${item.status === 'OUT' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${item.suggestedOrder} ${item.unit}.`;
+
+        return {
+          itemId: item._id,
+          name: item.name,
+          category: item.category,
+          currentQuantity: item.currentStock,
+          minThreshold: item.minThreshold,
+          maxStock: item.maxStock,
+          unit: item.unit,
+          status: item.status,
+          shouldReorder,
+          suggestedQuantity,
+          reason,
+        };
+      })
+    );
+
     res.status(200).json({
-      count: reorderItems.length,
-      reorderPlan: reorderItems
+      success: true,
+      suggestions,
+      message: suggestions.length === 0
+        ? 'All items are sufficiently stocked.'
+        : `Found ${suggestions.length} items that need reordering.`,
     });
   } catch (error) {
     next(error);
@@ -306,13 +369,13 @@ export const getReorderPlan = async (req: any, res: any, next: any) => {
 };
 
 // Get inventory summary/stats
-export const getInventoryStats = async (req: any, res: any, next: any) => {
+export const getInventoryStats = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { restaurantId } = req.query;
+    const { restaurantId } = req.query as any;
 
     // Determine restaurant
-    let targetRestaurantId;
-    if (req.user.role === 'manager') {
+    let targetRestaurantId: any;
+    if (req.user?.role === 'manager') {
       targetRestaurantId = req.user.restaurantId;
     } else if (restaurantId) {
       targetRestaurantId = restaurantId;
@@ -350,7 +413,7 @@ export const getInventoryStats = async (req: any, res: any, next: any) => {
 };
 
 // AI-powered reorder prediction for a specific item
-export const predictReorder = async (req: any, res: any, next: any) => {
+export const predictReorder = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -363,8 +426,8 @@ export const predictReorder = async (req: any, res: any, next: any) => {
     }
 
     // Check access
-    if (req.user.role === 'manager' &&
-        req.user.restaurantId?.toString() !== item.restaurantId._id.toString()) {
+    if (req.user?.role === 'manager' &&
+        req.user.restaurantId?.toString() !== (item.restaurantId as any)._id.toString()) {
       return res.status(403).json({ message: 'Access denied. Not your restaurant.' });
     }
 

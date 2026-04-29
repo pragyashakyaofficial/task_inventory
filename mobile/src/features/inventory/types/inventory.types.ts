@@ -31,7 +31,18 @@ export interface InventoryItem {
   unit: string;
 }
 
-export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock' | 'discontinued' | 'pending' | 'OK' | 'LOW' | 'OUT';
+// Backend sends: OK, LOW, OUT — mapped to these frontend values at the API boundary
+export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock';
+
+// Mapping utility for backend → frontend status
+export const mapBackendStatus = (status: string): StockStatus => {
+  switch (status) {
+    case 'OUT': return 'out-of-stock';
+    case 'LOW': return 'low-stock';
+    case 'OK': return 'in-stock';
+    default: return 'in-stock';
+  }
+};
 
 export interface CreateItemRequest {
   name: string;

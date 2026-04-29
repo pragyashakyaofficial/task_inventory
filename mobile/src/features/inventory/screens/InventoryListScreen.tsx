@@ -307,13 +307,10 @@ const InventoryListScreen = () => {
       <ReorderPredictionModal
         isVisible={reorderModalVisible}
         onClose={handleCloseReorderModal}
-        prediction={{
-          suggestedQuantity: reorderData?.suggestions?.length || 0,
-          when: reorderError ? 'Error occurred' : 'Immediate action recommended',
-          reason: reorderError 
-            ? 'Failed to analyze inventory. Please try again.' 
-            : `Found ${reorderData?.suggestions?.length || 0} items that need reordering`
-        }}
+        suggestions={reorderData?.suggestions ?? []}
+        isLoading={isReordering}
+        error={reorderError ? 'Failed to analyze inventory. Please try again.' : null}
+        message={reorderData?.message}
       />
     </View>
   );

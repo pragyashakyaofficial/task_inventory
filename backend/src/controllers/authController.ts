@@ -1,24 +1,29 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { validationResult  } from 'express-validator';
 
+interface AuthRequest extends Request {
+  user?: any;
+}
+
 // Helper to sign tokens
-const signToken = (id, secret, expires) => {
-  return jwt.sign({ id }, secret, { expiresIn: expires });
+const signToken = (id: any, secret: string, expires: string | number) => {
+  return jwt.sign({ id }, secret, { expiresIn: expires as any });
 };
 
 // Create and send tokens in response
-const createSendToken = async (user, statusCode, res) => {
-  const token = signToken(user._id, process.env.JWT_SECRET, process.env.JWT_EXPIRES_IN || '7d');
-  const refreshToken = signToken(user._id, process.env.JWT_REFRESH_SECRET, process.env.JWT_REFRESH_EXPIRES_IN || '30d');
+const createSendToken = async (user: any, statusCode: number, res: Response) => {
+  const token = signToken(user._id, process.env.JWT_SECRET!, process.env.JWT_EXPIRES_IN || '7d');
+  const refreshToken = signToken(user._id, process.env.JWT_REFRESH_SECRET!, process.env.JWT_REFRESH_EXPIRES_IN || '30d');
 
   // Save refresh token to DB
   await User.findByIdAndUpdate(user._id, { refreshToken }, { validateBeforeSave: false });
 
   // Populate restaurant if exists
   const populatedUser = await User.findById(user._id).populate('restaurantId', 'name location status');
+  if (!populatedUser) throw new Error('User not found after update');
 
   res.status(statusCode).json({
     token,
@@ -34,12 +39,12 @@ const createSendToken = async (user, statusCode, res) => {
   });
 };
 
-export const register = async (req: any, res: any, next: any) => {
+export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const formattedErrors = {};
-      errors.array().forEach(err => {
+      const formattedErrors: Record<string, string[]> = {};
+      errors.array().forEach((err: any) => {
         if (!formattedErrors[err.path]) formattedErrors[err.path] = [];
         formattedErrors[err.path].push(err.msg);
       });
@@ -69,7 +74,7 @@ export const register = async (req: any, res: any, next: any) => {
       }
 
       const token = authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
       const requester = await User.findById(decoded.id);
 
       if (!requester || requester.role !== 'superadmin') {
@@ -120,7 +125,7 @@ export const register = async (req: any, res: any, next: any) => {
   }
 };
 
-export const login = async (req: any, res: any, next: any) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
 
@@ -161,7 +166,7 @@ export const login = async (req: any, res: any, next: any) => {
 
     // Reset attempts on successful login
     await user.resetLoginAttempts();
-    user.lastLogin = Date.now();
+    user.lastLogin = new Date(Date.now());
     await user.save({ validateBeforeSave: false });
 
     await createSendToken(user, 200, res);
@@ -170,10 +175,11 @@ export const login = async (req: any, res: any, next: any) => {
   }
 };
 
-export const logout = async (req: any, res: any, next: any) => {
+export const logout = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const user = await User.findById(req.user.id);
-    user.refreshToken = undefined;
+    const user = await User.findById(req.user?.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    (user as any).refreshToken = undefined;
     await user.save({ validateBeforeSave: false });
 
     res.cookie('jwt', 'loggedout', {
@@ -187,7 +193,7 @@ export const logout = async (req: any, res: any, next: any) => {
   }
 };
 
-export const refreshToken = async (req: any, res: any, next: any) => {
+export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;
 
@@ -198,10 +204,10 @@ export const refreshToken = async (req: any, res: any, next: any) => {
       });
     }
 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as any;
     const user = await User.findById(decoded.id);
 
-    if (!user || user.refreshToken !== refreshToken) {
+    if (!user || (user as any).refreshToken !== refreshToken) {
       return res.status(401).json({
         status: 'error',
         message: 'Invalid refresh token'
@@ -209,7 +215,7 @@ export const refreshToken = async (req: any, res: any, next: any) => {
     }
 
     // Generate new access token
-    const token = signToken(user._id, process.env.JWT_SECRET, process.env.JWT_EXPIRES_IN);
+    const token = signToken(user._id, process.env.JWT_SECRET!, process.env.JWT_EXPIRES_IN || '7d');
     
     res.status(200).json({
       token
@@ -222,9 +228,10 @@ export const refreshToken = async (req: any, res: any, next: any) => {
   }
 };
 
-export const getProfile = async (req: any, res: any, next: any) => {
+export const getProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const user = await User.findById(req.user.id).populate('restaurantId', 'name location status');
+    const user = await User.findById(req.user?.id).populate('restaurantId', 'name location status');
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.status(200).json({
       id: user._id,
@@ -240,14 +247,15 @@ export const getProfile = async (req: any, res: any, next: any) => {
   }
 };
 
-export const updatePassword = async (req: any, res: any, next: any) => {
+export const updatePassword = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) {
       return res.status(400).json({ message: 'Please provide old and new password' });
     }
 
-    const user = await User.findById(req.user.id).select('+password');
+    const user = await User.findById(req.user?.id).select('+password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
     if (!(await user.comparePassword(oldPassword))) {
       return res.status(401).json({ message: 'Invalid old password' });
     }
@@ -261,17 +269,17 @@ export const updatePassword = async (req: any, res: any, next: any) => {
   }
 };
 
-export const forgotPassword = async (req: any, res: any, next: any) => {
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email } = req.body;
+    const { email } = req.body as any;
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'No user found with that email address' });
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+    (user as any).resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    (user as any).resetPasswordExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     await user.save({ validateBeforeSave: false });
 
@@ -286,21 +294,21 @@ export const forgotPassword = async (req: any, res: any, next: any) => {
   }
 };
 
-export const resetPassword = async (req: any, res: any, next: any) => {
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const hashedToken = crypto.createHash('sha256').update(String(req.params.token)).digest('hex');
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
       resetPasswordExpiry: { $gt: Date.now() }
-    });
+    } as any);
 
     if (!user) {
       return res.status(400).json({ message: 'Token is invalid or has expired' });
     }
 
-    user.password = req.body.password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpiry = undefined;
+    user.password = (req.body as any).password;
+    (user as any).resetPasswordToken = undefined;
+    (user as any).resetPasswordExpiry = undefined;
     await user.save();
 
     await createSendToken(user, 200, res);

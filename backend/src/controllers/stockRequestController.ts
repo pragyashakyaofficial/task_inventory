@@ -1,9 +1,10 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
+interface AuthRequest extends Request { user?: any; }
 import StockRequest from '../models/StockRequest';
 import Inventory from '../models/Inventory';
 
 // Create a new stock request
-export const createStockRequest = async (req: any, res: any, next: any) => {
+export const createStockRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { inventoryId, requestedQuantity, notes } = req.body;
 
@@ -48,7 +49,7 @@ export const createStockRequest = async (req: any, res: any, next: any) => {
 };
 
 // Get all stock requests for a restaurant
-export const getStockRequests = async (req: any, res: any, next: any) => {
+export const getStockRequests = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId, status } = req.query;
 
@@ -61,7 +62,7 @@ export const getStockRequests = async (req: any, res: any, next: any) => {
       return res.status(400).json({ message: 'Restaurant ID is required' });
     }
 
-    const filter = {
+    const filter: any = {
       restaurantId: targetRestaurantId
     };
 
@@ -86,7 +87,7 @@ export const getStockRequests = async (req: any, res: any, next: any) => {
 };
 
 // Get single stock request
-export const getStockRequest = async (req: any, res: any, next: any) => {
+export const getStockRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -115,7 +116,7 @@ export const getStockRequest = async (req: any, res: any, next: any) => {
 };
 
 // Approve a stock request
-export const approveStockRequest = async (req: any, res: any, next: any) => {
+export const approveStockRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -154,7 +155,7 @@ export const approveStockRequest = async (req: any, res: any, next: any) => {
 };
 
 // Reject a stock request
-export const rejectStockRequest = async (req: any, res: any, next: any) => {
+export const rejectStockRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -193,7 +194,7 @@ export const rejectStockRequest = async (req: any, res: any, next: any) => {
 };
 
 // Fulfill a stock request (update inventory stock)
-export const fulfillStockRequest = async (req: any, res: any, next: any) => {
+export const fulfillStockRequest = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 

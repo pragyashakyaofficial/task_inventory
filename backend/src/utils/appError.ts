@@ -1,6 +1,9 @@
-// @ts-nocheck
 class AppError extends Error {
-  constructor(message, statusCode) {
+  public statusCode: number;
+  public status: string;
+  public isOperational: boolean;
+
+  constructor(message: string, statusCode: number) {
     super(message);
 
     this.statusCode = statusCode;

@@ -8,9 +8,23 @@ A complete full-stack React Native + Node.js application for restaurant inventor
 - **Node.js** >= 18.0.0
 - **MongoDB** running locally or MongoDB Atlas URI
 - **React Native CLI** environment setup (Xcode for iOS, Android Studio for Android)
+- **pnpm** (recommended) or npm for package management
 
 ### 1. Install Dependencies
 
+**Using pnpm (Recommended):**
+```bash
+# From project root, install backend dependencies
+cd backend && pnpm install
+
+# From project root, install mobile dependencies  
+cd mobile && pnpm install
+
+# Return to project root
+cd ..
+```
+
+**Using npm (Alternative):**
 ```bash
 # From project root, install backend dependencies
 cd backend && npm install
@@ -28,17 +42,28 @@ cd ..
 # Create backend .env file from example
 cp backend/.env.example backend/.env
 
+# Create mobile .env.dev file from example (if not exists)
+cp mobile/.env.example mobile/.env.dev
+
 # Edit backend/.env with your values:
 # MONGO_URI=mongodb://localhost:27017/inventory_management
 # GEMINI_API_KEY=your_gemini_api_key_here (optional)
 # PORT=5000
 # JWT_SECRET=your_jwt_secret_here
 # JWT_EXPIRE=30d
+# CLIENT_URL=http://localhost:3000
+
+# Edit mobile/.env.dev with your backend URL:
+# API_BASE_URL=http://localhost:5000
 ```
 
 ### 3. Seed the Database
 
 ```bash
+# Using pnpm:
+cd backend && pnpm seed
+
+# Using npm:
 cd backend && npm run seed
 ```
 
@@ -47,7 +72,11 @@ Expected output: Database populated with test restaurants, users, and inventory 
 ### 4. Start Backend Server
 
 ```bash
-cd backend && npm run seed
+# Using pnpm:
+cd backend && pnpm start
+
+# Using npm:
+cd backend && npm start
 ```
 
 Server will start on `http://localhost:5000` (or your configured PORT)
@@ -58,23 +87,27 @@ curl http://localhost:5000/api/health
 ```
 Should return: `{"status":"ok","timestamp":"..."}`
 
-### 5. TypeScript Compilation Check (Optional but recommended)
+### 5. TypeScript Compilation Check (Required for Submission)
 
 ```bash
 # Backend TypeScript check
-cd backend && npm run type-check
+cd backend && pnpm type-check  # or npm run type-check
 
 # Mobile TypeScript check  
 cd mobile && npx tsc --noEmit
 ```
 
-Both should pass with no errors.
+Both should pass with no errors. This is required for the hiring task.
 
 ### 6. Start Metro Bundler (Mobile)
 
 Open a **new terminal** and run:
 
 ```bash
+# Using pnpm:
+cd mobile && pnpm start
+
+# Using npm:
 cd mobile && npm start
 ```
 
@@ -82,11 +115,19 @@ cd mobile && npm start
 
 **iOS:**
 ```bash
+# Using pnpm:
+cd mobile && pnpm ios
+
+# Using npm:
 cd mobile && npm run ios
 ```
 
 **Android:**
 ```bash
+# Using pnpm:
+cd mobile && pnpm android
+
+# Using npm:
 cd mobile && npm run android
 ```
 
@@ -118,22 +159,24 @@ cd mobile && npm run android
 | **Backend** | Node.js, Express, TypeScript, MongoDB, Mongoose |
 | **AI** | Google Gemini (optional) |
 | **Database** | MongoDB with Mongoose ODM |
+| **Package Manager** | pnpm (recommended) or npm |
 
-## 📋 Acceptance Criteria
+## 📋 Hiring Task Acceptance Criteria
 
-✅ **Database Seeding** - `npm run seed` populates DB with various stock states  
+✅ **Database Seeding** - `pnpm seed` or `npm run seed` populates DB with various stock states  
 ✅ **Reorder API** - `GET /api/inventory/reorder-plan` returns low/out-of-stock suggestions  
 ✅ **AI Fallback** - Gemini errors gracefully fallback without 500s  
 ✅ **Status Badges** - Inventory list shows correct status colors  
 ✅ **Lazy Loading** - Reorder plan fetched only on button tap  
 ✅ **Error States** - Loading, error, and empty states handled in UI  
 ✅ **TypeScript** - `tsc --noEmit` passes on both backend and mobile  
+✅ **Public Endpoint** - Reorder plan API is public (no auth required) for demo purposes  
 
 ## 🔧 API Endpoints
 
 ### Inventory
 - `GET /api/inventory` - List all inventory items
-- `GET /api/inventory/reorder-plan` - Get reorder suggestions
+- `GET /api/inventory/reorder-plan` - **Public endpoint** - Get reorder suggestions (no auth required)
 - `GET /api/inventory/stats` - Inventory statistics
 - `POST /api/inventory` - Create new item
 - `PATCH /api/inventory/:id` - Update item
@@ -147,9 +190,10 @@ cd mobile && npm run android
 
 The core feature demonstrates:
 1. **Backend Intelligence** - Analyzes stock levels against thresholds
-2. **AI Integration** - Gemini provides smart reorder suggestions
+2. **AI Integration** - Gemini provides smart reorder suggestions with fallback
 3. **Mobile UX** - Lazy loading with proper loading/error states
 4. **Type Safety** - Full TypeScript implementation
+5. **Public Access** - Reorder plan API is public for easy testing
 
 ## 📱 Test Accounts
 
@@ -166,43 +210,49 @@ After seeding, use these accounts:
 git clone <your-repo-url>
 cd inventory_mgt
 
-# 2. Install all dependencies
+# 2. Install all dependencies (using pnpm recommended)
+(cd backend && pnpm install) && (cd mobile && pnpm install)
+# OR using npm:
 (cd backend && npm install) && (cd mobile && npm install)
 
 # 3. Setup environment
 cp backend/.env.example backend/.env
+cp mobile/.env.example mobile/.env.dev
 # Edit backend/.env with your MongoDB URI and optional Gemini API key
+# Edit mobile/.env.dev with your backend URL
 
 # 4. Seed database
-cd backend && npm run seed
+cd backend && pnpm seed  # or npm run seed
 
 # 5. Start backend (Terminal 1)
-cd backend && npm start
+cd backend && pnpm start  # or npm start
 
 # 6. Start Metro (Terminal 2)
-cd mobile && npm start
+cd mobile && pnpm start  # or npm start
 
 # 7. Run mobile app (Terminal 3)
-cd mobile && npm run ios    # or npm run android
+cd mobile && pnpm ios    # or npm run ios
+# OR
+cd mobile && pnpm android # or npm run android
 ```
 
 ### Development Mode (After Setup)
 
 **Terminal 1 - Backend:**
 ```bash
-cd backend && npm start
+cd backend && pnpm start  # or npm start
 ```
 
 **Terminal 2 - Metro:**
 ```bash
-cd mobile && npm start
+cd mobile && pnpm start  # or npm start
 ```
 
 **Terminal 3 - Mobile App:**
 ```bash
-cd mobile && npm run ios     # iOS
+cd mobile && pnpm ios     # iOS
 # OR
-cd mobile && npm run android # Android
+cd mobile && pnpm android # Android
 ```
 
 ### Build Commands
@@ -210,30 +260,36 @@ cd mobile && npm run android # Android
 **Backend:**
 ```bash
 cd backend
-npm run type-check    # TypeScript validation
-npm run seed          # Reset database with test data
-npm start             # Start server
+pnpm type-check    # TypeScript validation (or npm run type-check)
+pnpm seed          # Reset database with test data (or npm run seed)
+pnpm start         # Start server (or npm start)
 ```
 
 **Mobile:**
 ```bash
 cd mobile
 npx tsc --noEmit      # TypeScript validation
-npm start             # Start Metro bundler
-npm run ios           # Run iOS app
-npm run android       # Run Android app
+pnpm start         # Start Metro bundler (or npm start)
+pnpm ios           # Run iOS app (or npm run ios)
+pnpm android       # Run Android app (or npm run android)
 ```
 
 ### Environment Variables
 
-Create `backend/.env`:
+**Create `backend/.env`:**
 ```
 MONGO_URI=mongodb://localhost:27017/inventory_management
 GEMINI_API_KEY=your_gemini_api_key_here (optional)
 PORT=5000
 JWT_SECRET=your_jwt_secret_here
 JWT_EXPIRE=30d
+CLIENT_URL=http://localhost:3000
 NODE_ENV=development
+```
+
+**Create `mobile/.env.dev`:**
+```
+API_BASE_URL=http://localhost:5000
 ```
 
 ### Troubleshooting
@@ -242,18 +298,20 @@ NODE_ENV=development
 - Check MongoDB is running: `mongod --version`
 - Verify `.env` file exists: `ls backend/.env`
 - Check port availability: `lsof -i :5000`
+- Verify seed script works: `cd backend && pnpm seed` (or `npm run seed`)
 
 **Mobile won't build:**
 - iOS: Run `cd mobile/ios && pod install`
 - Android: Check Android Studio SDK is installed
-- Clear cache: `cd mobile && npm start -- --reset-cache`
+- Clear cache: `cd mobile && pnpm start -- --reset-cache` (or `npm start -- --reset-cache`)
+- Verify mobile .env.dev exists: `ls mobile/.env.dev`
 
 **Android specific errors (path issues):**
 ```bash
 cd mobile
 rm -rf android/build android/app/build android/.gradle
 rm -rf node_modules
-npm install
+pnpm install  # or npm install
 npx react-native doctor  # Check environment
 cd android && ./gradlew clean
 ```
@@ -265,20 +323,22 @@ cd mobile/android
 ./gradlew clean
 rm -rf ~/.gradle/caches
 find . -name "local.properties" -delete
-cd .. && rm -rf node_modules && npm install
+cd .. && rm -rf node_modules && pnpm install  # or npm install
 ```
 
 **TypeScript errors:**
-- Backend: `cd backend && npm run type-check`
+- Backend: `cd backend && pnpm type-check` (or `npm run type-check`)
 - Mobile: `cd mobile && npx tsc --noEmit`
+- Both must pass for hiring task submission
 
-### Verification Steps
+### Verification Steps (Required for Hiring Task)
 
 1. **Backend running:** `curl http://localhost:5000/api/health`
 2. **Database seeded:** Check low stock items exist
 3. **Reorder API working:** `curl http://localhost:5000/api/inventory/reorder-plan`
-4. **TypeScript compiles:** Both projects pass `tsc --noEmit`
+4. **TypeScript compiles:** Both projects pass `tsc --noEmit` ✅
 5. **Mobile app loads:** App opens without red screen errors
+6. **Reorder feature works:** Tap "Plan Reorder" button in mobile app
 
 ## 📄 Project Structure
 
@@ -289,23 +349,40 @@ inventory-mgt/
 │   │   ├── controllers/     # API controllers
 │   │   ├── models/         # Mongoose models
 │   │   ├── routes/         # API routes
-│   │   └── services/       # Business logic + AI
-│   ├── seed.js             # Database seeding
-│   └── tsconfig.json       # TypeScript config
+│   │   ├── services/       # Business logic + AI
+│   │   ├── middleware/     # Express middleware
+│   │   ├── utils/          # Utility functions
+│   │   └── config/         # Configuration files
+│   ├── seed.ts             # Database seeding (TypeScript)
+│   ├── tsconfig.json       # TypeScript config
+│   └── package.json        # Dependencies and scripts
 └── mobile/                 # React Native CLI + TypeScript
     ├── src/
     │   ├── api/           # RTK Query API slices
     │   ├── components/    # Reusable UI components
     │   ├── features/      # Feature-based modules
     │   └── navigation/    # React Navigation setup
-    └── App.tsx           # Main app component
+    ├── .env.dev           # Mobile environment variables
+    └── package.json       # Dependencies and scripts
 ```
 
-## 🎥 Demo Walkthrough
+## 🎥 Demo Walkthrough (For Loom Recording)
 
 The reorder planner feature showcases:
 1. **Dashboard** - Shows critical stock alerts
-2. **Inventory List** - Color-coded status badges
-3. **Reorder Button** - Triggers lazy AI analysis
-4. **Results Modal** - Displays smart reorder suggestions
+2. **Inventory List** - Color-coded status badges (In Stock/Low Stock/Out of Stock)
+3. **Reorder Button** - Triggers lazy AI analysis (only on button tap)
+4. **Results Modal** - Displays smart reorder suggestions with AI fallback
+
+## 🎯 Hiring Task Submission Checklist
+
+- [ ] Backend TypeScript: `cd backend && npx tsc --noEmit` passes
+- [ ] Mobile TypeScript: `cd mobile && npx tsc --noEmit` passes
+- [ ] Database seeded: `pnpm seed` or `npm run seed` works
+- [ ] Reorder API: `GET /api/inventory/reorder-plan` returns suggestions
+- [ ] AI fallback: Works without Gemini API key
+- [ ] Status badges: Correct colors in mobile UI
+- [ ] Lazy loading: Reorder plan only on button tap
+- [ ] Error states: Loading/error/empty states handled
+- [ ] README: Copy-paste commands work on fresh machine
 

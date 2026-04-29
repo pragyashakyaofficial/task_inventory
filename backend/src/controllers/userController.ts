@@ -1,13 +1,14 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
+interface AuthRequest extends Request { user?: any; }
 import User from '../models/User';
 import Restaurant from '../models/Restaurant';
 import mongoose from 'mongoose';
 
 // Get all users (superadmin only)
-export const getAllUsers = async (req: any, res: any, next: any) => {
+export const getAllUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { role, status, restaurantId } = req.query;
-    const filter = {};
+    const filter: any = {};
 
     if (role) filter.role = role;
     if (status) filter.status = status;
@@ -28,7 +29,7 @@ export const getAllUsers = async (req: any, res: any, next: any) => {
 };
 
 // Get users by restaurant (for superadmin managing a restaurant)
-export const getUsersByRestaurant = async (req: any, res: any, next: any) => {
+export const getUsersByRestaurant = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { restaurantId } = req.params;
 
@@ -50,7 +51,7 @@ export const getUsersByRestaurant = async (req: any, res: any, next: any) => {
 };
 
 // Get single user
-export const getUser = async (req: any, res: any, next: any) => {
+export const getUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const user = await User.findById(req.params.id)
       .populate('restaurantId', 'name location status')
@@ -67,7 +68,7 @@ export const getUser = async (req: any, res: any, next: any) => {
 };
 
 // Create manager (superadmin only)
-export const createManager = async (req: any, res: any, next: any) => {
+export const createManager = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { name, email, password, restaurantId } = req.body;
 
@@ -121,12 +122,12 @@ export const createManager = async (req: any, res: any, next: any) => {
       message: 'Manager created successfully',
       user: manager
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating manager:', error);
     
     // Handle validation errors specifically
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map(err => err.message);
+    if (error instanceof Error && (error as any).name === 'ValidationError') {
+      const errors = Object.values((error as any).errors).map((err: any) => err.message);
       return res.status(400).json({ 
         message: 'Validation failed',
         errors 
@@ -134,7 +135,7 @@ export const createManager = async (req: any, res: any, next: any) => {
     }
     
     // Handle duplicate key errors
-    if (error.code === 11000) {
+    if (error instanceof Error && (error as any).code === 11000) {
       return res.status(422).json({ 
         message: 'User already exists with this email' 
       });
@@ -142,13 +143,13 @@ export const createManager = async (req: any, res: any, next: any) => {
     
     res.status(500).json({ 
       message: 'Internal server error',
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
 
 // Update user (superadmin can update anyone, manager can only update self)
-export const updateUser = async (req: any, res: any, next: any) => {
+export const updateUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -193,7 +194,7 @@ export const updateUser = async (req: any, res: any, next: any) => {
 };
 
 // Update user status (activate/deactivate)
-export const updateStatus = async (req: any, res: any, next: any) => {
+export const updateStatus = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -224,7 +225,7 @@ export const updateStatus = async (req: any, res: any, next: any) => {
 };
 
 // Delete user (superadmin only) - soft delete via status
-export const deleteUser = async (req: any, res: any, next: any) => {
+export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -252,7 +253,7 @@ export const deleteUser = async (req: any, res: any, next: any) => {
 };
 
 // Get current user profile with full details
-export const getMe = async (req: any, res: any, next: any) => {
+export const getMe = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const user = await User.findById(req.user.id)
       .populate('restaurantId', 'name location status')

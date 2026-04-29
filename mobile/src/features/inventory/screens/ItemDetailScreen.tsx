@@ -50,7 +50,9 @@ const ItemDetailScreen = () => {
   } = useInventoryItem(itemId || initialItem?.id || '');
 
   const [predictionModalVisible, setPredictionModalVisible] = useState(false);
-  const [predictionResult, setPredictionResult] = useState<{ suggestedQuantity: number; when: string; reason: string } | null>(null);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
+  const [predictionSuggestions, setPredictionSuggestions] = useState<any[]>([]);
+  const [predictionMessage, setPredictionMessage] = useState<string | undefined>();
 
   const item = updatedItem || initialItem;
 
@@ -96,16 +98,32 @@ const ItemDetailScreen = () => {
     }
     try {
       const result = await predictReorder(item.id).unwrap();
-      setPredictionResult(result);
+      // Wrap single prediction result into suggestions array for the modal
+      setPredictionSuggestions([{
+        itemId: item.id,
+        name: item.name,
+        status: item.status,
+        currentQuantity: item.quantity,
+        suggestedQuantity: result.suggestedQuantity,
+        unit: item.unit,
+        reason: result.reason,
+        category: item.category,
+      }]);
+      setPredictionMessage(undefined);
+      setPredictionError(null);
       setPredictionModalVisible(true);
     } catch (error: any) {
-      Alert.alert('Prediction Failed', error?.data?.message || 'AI failed to generate a prediction.');
+      setPredictionError(error?.data?.message || 'AI failed to generate a prediction.');
+      setPredictionSuggestions([]);
+      setPredictionModalVisible(true);
     }
   };
 
   const handleCloseModal = () => {
     setPredictionModalVisible(false);
-    setPredictionResult(null);
+    setPredictionSuggestions([]);
+    setPredictionError(null);
+    setPredictionMessage(undefined);
   };
 
   return (
@@ -223,7 +241,10 @@ const ItemDetailScreen = () => {
       <ReorderPredictionModal
         isVisible={predictionModalVisible}
         onClose={handleCloseModal}
-        prediction={predictionResult}
+        suggestions={predictionSuggestions}
+        isLoading={isPredicting}
+        error={predictionError}
+        message={predictionMessage}
       />
     </View>
   );

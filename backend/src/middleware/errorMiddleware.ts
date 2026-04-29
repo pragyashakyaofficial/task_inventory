@@ -1,7 +1,7 @@
-// @ts-nocheck
+import { Request, Response, NextFunction } from 'express';
 import AppError from '../utils/appError';
 
-const errorMiddleware = (err: any, req: any, res: any, next: any) => {
+const errorMiddleware = (err: any, req: Request, res: Response, _next: NextFunction) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 

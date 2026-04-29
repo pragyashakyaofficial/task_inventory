@@ -15,7 +15,7 @@ export const getStockStatus = (
   }
   
   if (quantity > maxQuantity) {
-    return 'pending'; // Overstock, pending review
+    return 'in-stock'; // Overstock — still in-stock, not a separate status
   }
   
   return 'in-stock';
@@ -29,10 +29,6 @@ export const getStockColor = (status: StockStatus): string => {
       return colors.warning;
     case 'out-of-stock':
       return colors.error;
-    case 'discontinued':
-      return colors.textTertiary;
-    case 'pending':
-      return colors.info;
     default:
       return colors.textTertiary;
   }
@@ -46,10 +42,6 @@ export const getStockBackgroundColor = (status: StockStatus): string => {
       return colors.warning + '20';
     case 'out-of-stock':
       return colors.error + '20';
-    case 'discontinued':
-      return colors.backgroundSecondary;
-    case 'pending':
-      return colors.primary + '20';
     default:
       return colors.backgroundSecondary;
   }
