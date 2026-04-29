@@ -5,6 +5,7 @@ import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Home, Package, Plus, Sparkles, User } from 'lucide-react-native';
 import { colors } from '../theme/constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
 
 import DashboardScreen from '../features/dashboard/screens/DashboardScreen';
 import InventoryListScreen from '../features/inventory/screens/InventoryListScreen';
@@ -104,6 +105,21 @@ export const MainStack = () => {
       <Tab.Screen
         name="Inventory"
         component={InventoryStack}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            // Prevent default behavior
+            e.preventDefault();
+            // Reset the Inventory stack to show InventoryList
+            navigation.dispatch(
+              CommonActions.navigate({
+                name: 'Inventory',
+                params: {
+                  screen: 'InventoryList',
+                },
+              })
+            );
+          },
+        })}
         options={{
           tabBarIcon: ({ color, size, focused }) => (
             <Package 

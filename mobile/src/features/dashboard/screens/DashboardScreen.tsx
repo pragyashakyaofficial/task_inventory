@@ -84,9 +84,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     dashboardStats?.criticalStockAlerts ?? items.filter((i: InventoryItem) => i.status !== 'in-stock').slice(0, 5)
   , [items, dashboardStats]);
 
-  const handleViewAll = useCallback(() => navigation.navigate('InventoryList'), [navigation]);
+  const handleViewAll = useCallback(() => navigation.navigate('Inventory', { screen: 'InventoryList' }), [navigation]);
   const handleItemPress = useCallback((item: any) => {
-    navigation.navigate('ItemDetail', { itemId: item.id || item._id });
+    navigation.navigate('Inventory', { screen: 'ItemDetail', params: { itemId: item.id || item._id } });
   }, [navigation]);
 
   const contentContainerStyle = useMemo(() => ({ 
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
 
   },
   header: {
-    marginTop: spacingSemantic.lg,
+    marginTop: spacingSemantic.sm,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

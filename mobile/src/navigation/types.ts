@@ -6,12 +6,25 @@ export type AuthStackParamList = {
   Register: undefined;
 };
 
-// Main Stack Params
-export type MainStackParamList = {
-  Dashboard: undefined;
+// Inventory Stack Params
+export type InventoryStackParamList = {
   InventoryList: undefined;
   ItemDetail: { itemId: string };
   AddEditItem: { itemId?: string };
+};
+
+// Main Stack Params
+export type MainStackParamList = {
+  Dashboard: undefined;
+  Inventory: {
+    screen: keyof InventoryStackParamList;
+    params?: InventoryStackParamList[keyof InventoryStackParamList];
+  } | undefined;
+  InventoryList: undefined;
+  ItemDetail: { itemId: string };
+  AddEditItem: { itemId?: string };
+  Add: undefined;
+  AI: undefined;
   Profile: undefined;
 };
 

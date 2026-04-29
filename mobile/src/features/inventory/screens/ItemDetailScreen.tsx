@@ -7,6 +7,7 @@ import {
   Alert,
   Platform,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Animated, {
@@ -21,6 +22,7 @@ import {
   BarChart2,
   History,
   RefreshCw,
+  ChevronLeft,
 } from 'lucide-react-native';
 import { colors, spacingSemantic } from '../../../theme/constants';
 import Button from '../../../components/common/Button';
@@ -31,14 +33,11 @@ import { useInventory, useInventoryItem } from '../hooks/useInventory';
 import { usePredictReorderMutation } from '../../../api/slices/inventoryApi';
 import ReorderPredictionModal from '../components/ReorderPredictionModal';
 
-type RootStackParamList = {
-  ItemDetail: { item?: InventoryItem; itemId?: string };
-  AddEditItem: { item: InventoryItem };
-};
+type ItemDetailParams = { item?: InventoryItem; itemId?: string };
 
 const ItemDetailScreen = () => {
   const navigation = useNavigation<any>();
-  const route = useRoute<RouteProp<RootStackParamList, 'ItemDetail'>>();
+  const route = useRoute<RouteProp<{ ItemDetail: ItemDetailParams }, 'ItemDetail'>>();
   const { item: initialItem, itemId } = route.params || {};
 
   const { deleteItem, isDeleteItemLoading } = useInventory();
@@ -140,6 +139,9 @@ const ItemDetailScreen = () => {
         }
       >
         <Animated.View entering={FadeInDown.duration(600)} style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <ChevronLeft size={24} color={colors.text} />
+          </TouchableOpacity>
           <View style={styles.titleSection}>
             <Text style={[styles.category, { color: colors.primary }]}>{item.category}</Text>
             <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
@@ -233,7 +235,7 @@ const ItemDetailScreen = () => {
         />
         <Button
           title="Edit Item"
-          onPress={() => navigation.navigate('AddEditItem', { item })}
+          onPress={() => navigation.navigate('AddEditItem', { itemId: item.id })}
           style={StyleSheet.flatten([styles.actionButton, { flex: 2 }])}
         />
       </View>
@@ -263,6 +265,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: spacingSemantic.xl,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginRight: spacingSemantic.sm,
+    marginTop: 2,
   },
   titleSection: {
     flex: 1,

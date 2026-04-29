@@ -8,19 +8,23 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Modal,
+  Alert,
+  Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Plus, PackageX } from 'lucide-react-native';
+// import { ClipboardList } from 'lucide-react-native'; // Used by commented-out Plan Reorder button
 import { useInventory } from '../hooks/useInventory';
-import { useLazyGetReorderPlanQuery } from '../../../api/slices/inventoryApi';
+import { /* useLazyGetReorderPlanQuery, */ useCreateStockRequestMutation } from '../../../api/slices/inventoryApi';
 import { InventoryItem } from '../../../api/slices/inventoryApi';
 import { colors, spacingSemantic } from '../../../theme/constants';
 import StatusBadge from '../../../components/common/StatusBadge';
 import GlassCard from '../../../components/common/GlassCard';
 import LoadingSkeleton from '../../../components/common/LoadingSkeleton';
-import { ClipboardList } from 'lucide-react-native';
 import ReorderPredictionModal from '../components/ReorderPredictionModal';
 
 const FILTER_OPTIONS: { label: string; value: string }[] = [
@@ -36,13 +40,21 @@ const InventoryListScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [reorderModalVisible, setReorderModalVisible] = useState(false);
+  const [orderedItemIds, setOrderedItemIds] = useState<Set<string>>(new Set());
+  const [orderModalVisible, setOrderModalVisible] = useState(false);
+  const [selectedOrderItem, setSelectedOrderItem] = useState<InventoryItem | null>(null);
+  const [createStockRequest, { isLoading: isCreatingStockRequest }] = useCreateStockRequestMutation();
 
   // Lazy query for reorder plan - only fetches when button is tapped
-  const [getReorderPlan, { 
-    data: reorderData, 
-    isLoading: isReordering, 
-    error: reorderError 
-  }] = useLazyGetReorderPlanQuery();
+  // Commented out along with Plan Reorder button
+  // const [getReorderPlan, {
+  //   data: reorderData,
+  //   isLoading: isReordering,
+  //   error: reorderError
+  // }] = useLazyGetReorderPlanQuery();
+  const reorderData = undefined as any;
+  const isReordering = false;
+  const reorderError = undefined as any;
 
   const {
     items,
@@ -72,18 +84,41 @@ const InventoryListScreen = () => {
   }, [items, selectedStatus]);
 
   // Handle reorder plan button tap - triggers lazy loading
-  const handleGetReorderPlan = useCallback(async () => {
-    try {
-      await getReorderPlan();
-      setReorderModalVisible(true);
-    } catch (error) {
-      console.error('Failed to get reorder plan:', error);
-    }
-  }, [getReorderPlan]);
+  // Commented out along with Plan Reorder button
+  // const handleGetReorderPlan = useCallback(async () => {
+  //   try {
+  //     await getReorderPlan();
+  //     setReorderModalVisible(true);
+  //   } catch (error) {
+  //     console.error('Failed to get reorder plan:', error);
+  //   }
+  // }, [getReorderPlan]);
 
   const handleCloseReorderModal = useCallback(() => {
     setReorderModalVisible(false);
   }, []);
+
+  const handleSuggestedOrderPress = useCallback((item: InventoryItem) => {
+    setSelectedOrderItem(item);
+    setOrderModalVisible(true);
+  }, []);
+
+  const handleConfirmOrder = useCallback(async () => {
+    if (!selectedOrderItem) return;
+    try {
+      await createStockRequest({
+        inventoryId: selectedOrderItem.id,
+        requestedQuantity: selectedOrderItem.suggestedOrder || 0,
+        notes: `Auto-suggested reorder for ${selectedOrderItem.name}`,
+      }).unwrap();
+      setOrderedItemIds(prev => new Set(prev).add(selectedOrderItem.id));
+      setOrderModalVisible(false);
+      setSelectedOrderItem(null);
+      Alert.alert('Order Placed', `Successfully placed order for ${selectedOrderItem.name}`);
+    } catch (error: any) {
+      Alert.alert('Order Failed', error.data?.message || 'Failed to place order. Please try again.');
+    }
+  }, [selectedOrderItem, createStockRequest]);
 
   const onRefresh = React.useCallback(() => {
     refetchItems();
@@ -105,9 +140,13 @@ const InventoryListScreen = () => {
     setSelectedStatus(status);
   };
 
-  const renderItem = useCallback(({ item }: { item: InventoryItem }) => (
+  const renderItem = useCallback(({ item }: { item: InventoryItem }) => {
+    const isLowOrOut = item.status === 'low-stock' || item.status === 'out-of-stock';
+    const isOrdered = orderedItemIds.has(item.id);
+
+    return (
     <TouchableOpacity
-      onPress={() => navigation.navigate('ItemDetail', { item: item })}
+      onPress={() => navigation.navigate('ItemDetail', { itemId: item.id })}
       activeOpacity={0.7}
       style={styles.itemWrapper}
     >
@@ -138,16 +177,21 @@ const InventoryListScreen = () => {
           </View>
         </View>
 
-        {item.suggestedOrder !== undefined && item.suggestedOrder > 0 && (
-          <View style={[styles.suggestedOrderBadge, { backgroundColor: colors.primary + '10' }]}>
-            <Text style={[styles.suggestedOrderText, { color: colors.primary }]}>
-              Suggested Order: {item.suggestedOrder} {item.unit}
+        {isLowOrOut && item.suggestedOrder !== undefined && item.suggestedOrder > 0 && (
+          <TouchableOpacity
+            style={[styles.suggestedOrderBadge, { backgroundColor: isOrdered ? colors.success + '10' : colors.primary + '10' }]}
+            onPress={() => !isOrdered && handleSuggestedOrderPress(item)}
+            disabled={isOrdered}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.suggestedOrderText, { color: isOrdered ? colors.success : colors.primary }]}>
+              {isOrdered ? 'Ordered' : `Suggested Order: ${item.suggestedOrder} ${item.unit}`}
             </Text>
-          </View>
+          </TouchableOpacity>
         )}
       </GlassCard>
     </TouchableOpacity>
-  ), [navigation]);
+  )}, [navigation, orderedItemIds, handleSuggestedOrderPress]);
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -165,6 +209,7 @@ const InventoryListScreen = () => {
     <View style={styles.header}>
       <View style={styles.titleContainer}>
         <Text style={[styles.title, { color: colors.text }]}>Inventory</Text>
+        {/* Plan Reorder button - commented out as per requirement
         <TouchableOpacity
           style={[styles.reorderButton, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}
           onPress={handleGetReorderPlan}
@@ -175,6 +220,7 @@ const InventoryListScreen = () => {
             {isReordering ? 'Analyzing...' : 'Plan Reorder'}
           </Text>
         </TouchableOpacity>
+        */}
       </View>
       
       <View style={[styles.searchContainer, { backgroundColor: colors.backgroundSecondary }]}>
@@ -290,7 +336,7 @@ const InventoryListScreen = () => {
         />
       </View>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={[
           styles.fab,
           {
@@ -301,7 +347,7 @@ const InventoryListScreen = () => {
         onPress={() => navigation.navigate('AddEditItem')}
       >
         <Plus size={28} {...({ color: 'white' } as any)} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Reorder Plan Modal - Lazy loaded results */}
       <ReorderPredictionModal
@@ -312,6 +358,49 @@ const InventoryListScreen = () => {
         error={reorderError ? 'Failed to analyze inventory. Please try again.' : null}
         message={reorderData?.message}
       />
+
+      {/* Order Confirmation Modal */}
+      <Modal
+        transparent
+        visible={orderModalVisible}
+        animationType="fade"
+        onRequestClose={() => setOrderModalVisible(false)}
+      >
+        <View style={styles.orderModalOverlay}>
+          <Pressable style={styles.orderModalFlex} onPress={() => setOrderModalVisible(false)} />
+          <View style={[styles.orderModalContent, { backgroundColor: colors.backgroundSecondary }]}>
+            <Text style={[styles.orderModalTitle, { color: colors.text }]}>Confirm Order</Text>
+            <Text style={[styles.orderModalItemName, { color: colors.text }]}>
+              {selectedOrderItem?.name}
+            </Text>
+            <Text style={[styles.orderModalQuantity, { color: colors.textSecondary }]}>
+              Order Quantity: {selectedOrderItem?.suggestedOrder} {selectedOrderItem?.unit}
+            </Text>
+            <Text style={[styles.orderModalCurrentStock, { color: colors.textTertiary }]}>
+              Current Stock: {selectedOrderItem?.quantity} {selectedOrderItem?.unit}
+            </Text>
+            <View style={styles.orderModalButtons}>
+              <TouchableOpacity
+                style={[styles.orderModalCancelBtn, { backgroundColor: colors.backgroundTertiary }]}
+                onPress={() => setOrderModalVisible(false)}
+              >
+                <Text style={[styles.orderModalCancelText, { color: colors.textSecondary }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.orderModalConfirmBtn, { backgroundColor: colors.primary }]}
+                onPress={handleConfirmOrder}
+                disabled={isCreatingStockRequest}
+              >
+                {isCreatingStockRequest ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.orderModalConfirmText}>Confirm Order</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -324,8 +413,10 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
+    paddingBottom: 100,
   },
   header: {
+    marginTop: spacingSemantic.sm,
     paddingHorizontal: spacingSemantic.screen,
     paddingTop: spacingSemantic.md,
     paddingBottom: spacingSemantic.sm,
@@ -493,6 +584,73 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  orderModalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  orderModalFlex: {
+    ...StyleSheet.absoluteFill,
+  },
+  orderModalContent: {
+    width: '85%',
+    maxWidth: 380,
+    borderRadius: 20,
+    padding: 24,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  orderModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  orderModalItemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  orderModalQuantity: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  orderModalCurrentStock: {
+    fontSize: 13,
+    fontWeight: '400',
+    marginBottom: 20,
+  },
+  orderModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  orderModalCancelBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  orderModalCancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  orderModalConfirmBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    minWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  orderModalConfirmText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: 'white',
   },
 });
 
