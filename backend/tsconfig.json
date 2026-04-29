@@ -7,7 +7,7 @@
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "resolveJsonModule": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
@@ -15,14 +15,15 @@
     "noImplicitAny": false,
     "strictNullChecks": false,
     "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "isolatedModules": false,
+    "noEmitOnError": false
   },
   "include": [
-    "src/server.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "src/**/*.js"
+    "dist"
   ]
 }

@@ -7,7 +7,7 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
     "seed": "ts-node seed.js",
-    "type-check": "tsc --noEmit src/server.ts"
+    "type-check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",

@@ -22,13 +22,18 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour!'
-});
-app.use('/api', limiter);
+// Development logging
+if (process.env.NODE_ENV === 'development') {
+  console.log("Development mode enabled");
+}
+
+// Rate limiting - temporarily disabled for development
+// const limiter = rateLimit({
+//   max: 100,
+//   windowMs: 60 * 60 * 1000,
+//   message: 'Too many requests from this IP, please try again in an hour!'
+// });
+// app.use('/api', limiter);
 
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
@@ -88,7 +93,4 @@ app.listen(PORT, '0.0.0.0', () => {
     }
   }
   console.log(`Server running on http://${localIp}:${PORT}`);
-  console.log('Development mode enabled');
 });
-
-export default app;
