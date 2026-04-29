@@ -165,6 +165,7 @@ export const useInventory = (initialParams?: GetItemsParams) => {
     createItem: handleCreateItem,
     updateItem: handleUpdateItem,
     deleteItem: handleDeleteItem,
+    deleteItemDirect: deleteItem,
     updateQuantity,
     refetchItems,
     updateParams,

@@ -64,6 +64,7 @@ const ReorderPredictionModal: React.FC<ReorderPredictionModalProps> = ({
   }));
 
   const hasUrgent = suggestions.some(s => s.status === 'OUT' || mapBackendStatus(s.status) === 'out-of-stock');
+  const allOk = suggestions.length > 0 && suggestions.every(s => mapBackendStatus(s.status) === 'in-stock');
 
   const renderSuggestionItem = (item: ReorderSuggestion) => {
     const mappedStatus = mapBackendStatus(item.status);
@@ -148,12 +149,12 @@ const ReorderPredictionModal: React.FC<ReorderPredictionModalProps> = ({
                   <AlertTriangle size={20} color="#EF4444" />
                   <Text style={[styles.errorText, { color: '#EF4444' }]}>{error}</Text>
                 </View>
-              ) : suggestions.length === 0 ? (
+              ) : allOk ? (
                 <View style={styles.emptyBox}>
                   <CheckCircle2 size={32} color="#10B981" />
-                  <Text style={[styles.emptyTitle, { color: colors.text }]}>All Stocked Up!</Text>
+                  <Text style={[styles.emptyTitle, { color: colors.text }]}>No Reorder Needed</Text>
                   <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-                    No items need reordering right now.
+                    This item's stock is at optimal levels. No need to reorder at this time.
                   </Text>
                 </View>
               ) : (
@@ -172,6 +173,7 @@ const ReorderPredictionModal: React.FC<ReorderPredictionModalProps> = ({
               title="Order now"
               onPress={onClose}
               style={styles.gotItButton}
+              disabled={allOk}
             />
           </GlassCard>
         </Animated.View>

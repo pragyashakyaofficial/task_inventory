@@ -116,8 +116,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     >
       <View style={styles.header}>
         <View>
-          <Text style={[styles.greeting, { color: colors.textSecondary }]}>Hello, {user?.name || 'User'}!</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Inventory Overview</Text>
+          <Text style={[styles.greeting, { color: colors.textSecondary }]}>Hello, </Text>
+          <Text style={[styles.title, { color: colors.text }]}>{user?.name || 'User'}</Text>
         </View>
       </View>
 

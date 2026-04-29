@@ -7,6 +7,7 @@ export interface InventoryItem {
   maxQuantity: number;
   category: string;
   sku: string;
+  unit: string;
   price: number;
   cost: number;
   location?: string;
@@ -28,7 +29,6 @@ export interface InventoryItem {
   notes?: string;
   minimumStock?: number;
   suggestedOrder?: number;
-  unit: string;
 }
 
 // Backend sends: OK, LOW, OUT — mapped to these frontend values at the API boundary
@@ -52,6 +52,7 @@ export interface CreateItemRequest {
   maxQuantity: number;
   category: string;
   sku: string;
+  unit: string;
   price: number;
   cost: number;
   location?: string;

@@ -4,10 +4,11 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Alert,
-  Platform,
   RefreshControl,
   TouchableOpacity,
+  Modal,
+  Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Animated, {
@@ -18,20 +19,21 @@ import Animated, {
 import {
   Package,
   Layers,
-  DollarSign,
   BarChart2,
   History,
   RefreshCw,
   ChevronLeft,
+  Pencil,
+  Trash2,
 } from 'lucide-react-native';
 import { colors, spacingSemantic } from '../../../theme/constants';
 import Button from '../../../components/common/Button';
 import GlassCard from '../../../components/common/GlassCard';
-import StatusBadge from '../../../components/common/StatusBadge';
 import { InventoryItem } from '../types/inventory.types';
 import { useInventory, useInventoryItem } from '../hooks/useInventory';
 import { usePredictReorderMutation } from '../../../api/slices/inventoryApi';
 import ReorderPredictionModal from '../components/ReorderPredictionModal';
+import Toast, { ToastManager, ToastItem } from '../../../components/common/Toast';
 
 type ItemDetailParams = { item?: InventoryItem; itemId?: string };
 
@@ -40,7 +42,7 @@ const ItemDetailScreen = () => {
   const route = useRoute<RouteProp<{ ItemDetail: ItemDetailParams }, 'ItemDetail'>>();
   const { item: initialItem, itemId } = route.params || {};
 
-  const { deleteItem, isDeleteItemLoading } = useInventory();
+  const { deleteItemDirect, isDeleteItemLoading } = useInventory();
   const [predictReorder, { isLoading: isPredicting }] = usePredictReorderMutation();
   const {
     item: updatedItem,
@@ -52,6 +54,13 @@ const ItemDetailScreen = () => {
   const [predictionError, setPredictionError] = useState<string | null>(null);
   const [predictionSuggestions, setPredictionSuggestions] = useState<any[]>([]);
   const [predictionMessage, setPredictionMessage] = useState<string | undefined>();
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = ToastManager.getInstance().subscribe(setToasts);
+    return () => unsubscribe();
+  }, []);
 
   const item = updatedItem || initialItem;
 
@@ -80,21 +89,26 @@ const ItemDetailScreen = () => {
   }
 
   const handleDelete = async () => {
-    if (!item?.id) {
-      Alert.alert('Error', 'Item ID is not available');
-      return;
-    }
-    const success = await deleteItem({ id: item.id });
-    if (success) {
+    if (!item?.id) return;
+    try {
+      await deleteItemDirect(item.id).unwrap();
+      setDeleteModalVisible(false);
+      ToastManager.getInstance().success(
+        `${item.name} has been deleted successfully.`,
+        { position: 'bottom' }
+      );
       navigation.goBack();
+    } catch {
+      setDeleteModalVisible(false);
+      ToastManager.getInstance().error(
+        'Failed to delete item. Please try again.',
+        { position: 'bottom' }
+      );
     }
   };
 
   const handleAIReorder = async () => {
-    if (!item?.id) {
-      Alert.alert('Error', 'Item ID is not available');
-      return;
-    }
+    if (!item?.id) return;
     try {
       const result = await predictReorder(item.id).unwrap();
       // Wrap single prediction result into suggestions array for the modal
@@ -139,15 +153,21 @@ const ItemDetailScreen = () => {
         }
       >
         <Animated.View entering={FadeInDown.duration(600)} style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
             <ChevronLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={styles.titleSection}>
             <Text style={[styles.category, { color: colors.primary }]}> SKU: {item.sku} {item.category}</Text>
             <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
-            {/* <Text style={[styles.sku, { color: colors.textSecondary }]}>SKU: {item.sku}</Text> */}
           </View>
-          <StatusBadge status={item.status} />
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={() => navigation.navigate('AddEditItem', { item })} style={styles.headerIcon}>
+              <Pencil size={20} color={colors.text} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setDeleteModalVisible(true)} style={styles.headerIcon}>
+              <Trash2 size={20} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         <View style={styles.statsRow}>
@@ -231,20 +251,46 @@ const ItemDetailScreen = () => {
         </Animated.View>
       </ScrollView>
 
-      <View style={[styles.bottomActions, { borderTopColor: colors.borderLight }]}>
-        <Button
-          title="Delete"
-          variant="error"
-          onPress={handleDelete}
-          loading={isDeleteItemLoading}
-          style={styles.actionButton}
-        />
-        <Button
-          title="Edit Item"
-          onPress={() => navigation.navigate('AddEditItem', { itemId: item.id })}
-          style={StyleSheet.flatten([styles.actionButton, { flex: 2 }])}
-        />
-      </View>
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <Pressable style={styles.deleteOverlay} onPress={() => setDeleteModalVisible(false)}>
+          <Pressable style={[styles.deleteModal, { backgroundColor: colors.backgroundSecondary }]} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.deleteModalIconContainer}>
+              <Trash2 size={32} color="#EF4444" />
+            </View>
+            <Text style={[styles.deleteModalTitle, { color: colors.text }]}>Delete Item?</Text>
+            <Text style={[styles.deleteModalMessage, { color: colors.textSecondary }]}>
+              Are you sure you want to delete "{item?.name}"? This action cannot be undone.
+            </Text>
+            <View style={styles.deleteModalActions}>
+              <TouchableOpacity
+                style={[styles.deleteModalButton, styles.cancelButton, { borderColor: colors.borderLight }]}
+                onPress={() => setDeleteModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.deleteModalButtonText, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.deleteModalButton, styles.confirmDeleteButton]}
+                onPress={handleDelete}
+                activeOpacity={0.7}
+                disabled={isDeleteItemLoading}
+              >
+                {isDeleteItemLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.confirmDeleteButtonText}>Delete</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <ReorderPredictionModal
         isVisible={predictionModalVisible}
@@ -254,6 +300,20 @@ const ItemDetailScreen = () => {
         error={predictionError}
         message={predictionMessage}
       />
+
+      {/* Toast notifications */}
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          type={toast.type}
+          message={toast.message}
+          duration={toast.duration}
+          onHide={() => ToastManager.getInstance().removeToast(toast.id)}
+          actionLabel={toast.actionLabel}
+          onAction={toast.onAction}
+          position={toast.position}
+        />
+      ))}
     </View>
   );
 };
@@ -385,20 +445,77 @@ const styles = StyleSheet.create({
   activityText: {
     fontSize: 14,
   },
-  bottomActions: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  headerActions: {
     flexDirection: 'row',
-    padding: spacingSemantic.screen,
-    paddingBottom: Platform.OS === 'ios' ? 40 : spacingSemantic.screen,
-    gap: spacingSemantic.md,
-    backgroundColor: 'rgba(26, 31, 46, 0.8)',
-    borderTopWidth: 1,
+    gap: spacingSemantic.sm,
+    alignItems: 'center',
   },
-  actionButton: {
+  headerIcon: {
+    padding: spacingSemantic.sm,
+    minWidth: 36,
+    minHeight: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModal: {
+    width: '80%',
+    maxWidth: 400,
+    borderRadius: spacingSemantic.borderRadius.xl,
+    padding: spacingSemantic.xl,
+    alignItems: 'center',
+  },
+  deleteModalIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacingSemantic.md,
+  },
+  deleteModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: spacingSemantic.sm,
+  },
+  deleteModalMessage: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: spacingSemantic.lg,
+    lineHeight: 20,
+  },
+  deleteModalActions: {
+    flexDirection: 'row',
+    gap: spacingSemantic.md,
+    width: '100%',
+  },
+  deleteModalButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: spacingSemantic.borderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelButton: {
+    borderWidth: 1,
+  },
+  deleteModalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmDeleteButton: {
+    backgroundColor: '#EF4444',
+  },
+  confirmDeleteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
   },
 });
 

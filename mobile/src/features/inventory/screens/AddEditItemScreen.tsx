@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,10 +19,10 @@ import { ChevronLeft, ChevronDown } from 'lucide-react-native';
 import { colors, spacingSemantic } from '../../../theme/constants';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
-import Toast from 'react-native-toast-message';
+import Toast, { ToastManager, ToastItem } from '../../../components/common/Toast';
 import AISuggestionModal from '../components/AISuggestionModal';
 import { InventoryItem } from '../types/inventory.types';
-import { useGetCategoriesQuery, useCreateItemMutation, useUpdateItemMutation } from '../../../api/slices/inventoryApi';
+import { useGetCategoriesQuery, useCreateItemMutation, useUpdateItemMutation, useGetItemByIdQuery } from '../../../api/slices/inventoryApi';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -44,16 +44,31 @@ type RootStackParamList = {
 const AddEditItemScreen = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'AddEditItem'>>();
-  const item = route.params?.item;
-  const isEdit = !!item;
+  const routeItem = route.params?.item;
+  const routeItemId = route.params?.itemId;
+  const isEdit = !!(routeItem || routeItemId);
+
+  // Fetch item by ID if only itemId was passed (no full item object)
+  const { data: fetchedItem, isLoading: isFetchingItem } = useGetItemByIdQuery(routeItemId || '', {
+    skip: !routeItemId || !!routeItem,
+  });
+
+  // Use route item first, then fetched item
+  const item = routeItem || fetchedItem;
 
   const [isAIModalVisible, setIsAIModalVisible] = useState(false);
-  const [aiSuggestion, setAISuggestion] = useState<{
+  const [aiSuggestion] = useState<{
     value: number;
     confidence: number;
     reasoning: string;
   } | null>(null);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = ToastManager.getInstance().subscribe(setToasts);
+    return () => unsubscribe();
+  }, []);
 
   // Fetch categories from backend
   const { data: categoriesData, isLoading: isCategoriesLoading } = useGetCategoriesQuery();
@@ -67,20 +82,48 @@ const AddEditItemScreen = () => {
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors, isDirty },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: item?.name || '',
-      quantity: item?.quantity || 0,
-      minQuantity: item?.minQuantity || 0,
-      maxQuantity: item?.maxQuantity || 100,
-      price: item?.price || 0,
-      category: item?.category || '',
-      unit: item?.unit || 'pcs',
-      sku: item?.sku || '',
+      name: '',
+      quantity: 0,
+      minQuantity: 0,
+      maxQuantity: 100,
+      price: 0,
+      category: '',
+      unit: 'pcs',
+      sku: '',
     },
   });
+
+  // Populate form when item data is available (edit mode), reset to empty for new item
+  useEffect(() => {
+    if (item) {
+      reset({
+        name: item.name || '',
+        quantity: item.quantity || 0,
+        minQuantity: item.minQuantity || 0,
+        maxQuantity: item.maxQuantity || 100,
+        price: item.price || 0,
+        category: item.category || '',
+        unit: item.unit || 'pcs',
+        sku: item.sku || '',
+      });
+    } else if (!isEdit) {
+      reset({
+        name: '',
+        quantity: 0,
+        minQuantity: 0,
+        maxQuantity: 100,
+        price: 0,
+        category: '',
+        unit: 'pcs',
+        sku: '',
+      });
+    }
+  }, [item, reset]);
 
   const selectedCategory = watch('category');
 
@@ -100,46 +143,30 @@ const AddEditItemScreen = () => {
 
       if (isEdit && item?.id) {
         await updateItem({ id: item.id, ...itemData }).unwrap();
-        Toast.show({
-          type: 'success',
-          text1: 'Item Updated',
-          text2: `${data.name} has been updated successfully.`,
-          position: 'bottom',
-        });
+        ToastManager.getInstance().success(
+          `${data.name} has been updated successfully.`,
+          { position: 'bottom' }
+        );
       } else {
         await createItem(itemData).unwrap();
-        Toast.show({
-          type: 'success',
-          text1: 'Item Created',
-          text2: `${data.name} has been added to inventory.`,
-          position: 'bottom',
-        });
+        ToastManager.getInstance().success(
+          `${data.name} has been added to inventory.`,
+          { position: 'bottom' }
+        );
       }
 
       navigation.goBack();
     } catch (error: any) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: error.data?.message || `Failed to ${isEdit ? 'update' : 'create'} item.`,
-        position: 'bottom',
-      });
+      ToastManager.getInstance().error(
+        error.data?.message || `Failed to ${isEdit ? 'update' : 'create'} item.`,
+        { position: 'bottom' }
+      );
     }
   };
 
   const handleSelectCategory = (categoryName: string) => {
     setValue('category', categoryName, { shouldValidate: true, shouldDirty: true });
     setShowCategoryDropdown(false);
-  };
-
-  const handleFetchAISuggestion = () => {
-    // Mocking AI suggestion fetch
-    setAISuggestion({
-      value: Math.floor(Math.random() * 50) + 10,
-      confidence: 0.85,
-      reasoning: 'Based on your recent sales velocity and seasonal trends, this quantity will prevent stockouts while minimizing holding costs.',
-    });
-    setIsAIModalVisible(true);
   };
 
   const applyAISuggestion = (value: number) => {
@@ -165,6 +192,12 @@ const AddEditItemScreen = () => {
         <View style={styles.headerRight} />
       </View>
 
+      {isFetchingItem ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ color: colors.textSecondary, marginTop: 12 }}>Loading item data...</Text>
+        </View>
+      ) : (
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.formSection}>
           <Controller
@@ -325,6 +358,7 @@ const AddEditItemScreen = () => {
           />
         </View>
       </ScrollView>
+      )}
 
       {/* Category Dropdown Modal */}
       <Modal
@@ -368,6 +402,20 @@ const AddEditItemScreen = () => {
         onApply={applyAISuggestion}
         suggestion={aiSuggestion}
       />
+
+      {/* Toast notifications */}
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          type={toast.type}
+          message={toast.message}
+          duration={toast.duration}
+          onHide={() => ToastManager.getInstance().removeToast(toast.id)}
+          actionLabel={toast.actionLabel}
+          onAction={toast.onAction}
+          position={toast.position}
+        />
+      ))}
     </KeyboardAvoidingView>
   );
 };
@@ -383,6 +431,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacingSemantic.screen,
     paddingVertical: spacingSemantic.md,
     borderBottomWidth: 1,
+    marginTop: spacingSemantic.lg,
   },
   backButton: {
     padding: spacingSemantic.sm,
@@ -493,6 +542,12 @@ const styles = StyleSheet.create({
   },
   dropdownScroll: {
     maxHeight: 300,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacingSemantic.xl * 2,
   },
 });
 
