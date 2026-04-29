@@ -1,155 +1,92 @@
-# Restaurant Inventory Management System
+# Restaurant Inventory Reorder Planner
 
-A complete full-stack React Native + Node.js application for restaurant inventory management with AI-powered reorder planning.
+A simplified full-stack React Native + Node.js application for restaurant managers to view inventory status and generate AI-powered reorder plans.
 
 ## 🚀 Quick Start (Copy-Paste Commands)
 
 ### Prerequisites
 - **Node.js** >= 18.0.0
 - **MongoDB** running locally or MongoDB Atlas URI
-- **React Native CLI** environment setup (Xcode for iOS, Android Studio for Android)
-- **pnpm** (recommended) or npm for package management
+- **React Native CLI** environment setup (Android Studio for Android)
+- **pnpm** (recommended) or npm
 
-### 1. Install Dependencies
+### 1. Install
 
-**Using pnpm (Recommended):**
 ```bash
-# From project root, install backend dependencies
+# Install backend dependencies
 cd backend && pnpm install
 
-# From project root, install mobile dependencies  
-cd mobile && pnpm install
-
-# Return to project root
-cd ..
+# Install mobile dependencies  
+cd ../mobile && pnpm install
 ```
 
-**Using npm (Alternative):**
+### 2. Environment Setup
+
 ```bash
-# From project root, install backend dependencies
-cd backend && npm install
+# Backend env
+cd backend
+cp .env.example .env
+# Edit .env with your MongoDB URI
 
-# From project root, install mobile dependencies  
-cd mobile && npm install
-
-# Return to project root
-cd ..
+# Mobile env
+cd ../mobile
+cp .env.example .env.dev
+# Edit .env.dev with your backend URL (e.g., http://192.168.1.x:5000)
 ```
 
-### 2. Set Environment Variables
+### 3. Seed Database
 
 ```bash
-# Create backend .env file from example
-cp backend/.env.example backend/.env
-
-# Create mobile .env.dev file from example (if not exists)
-cp mobile/.env.example mobile/.env.dev
-
-# Edit backend/.env with your values:
-# MONGO_URI=mongodb://localhost:27017/inventory_management
-# GEMINI_API_KEY=your_gemini_api_key_here (optional)
-# PORT=5000
-# JWT_SECRET=your_jwt_secret_here
-# JWT_EXPIRE=30d
-# CLIENT_URL=http://localhost:3000
-
-# Edit mobile/.env.dev with your backend URL:
-# API_BASE_URL=http://localhost:5000
+cd backend
+pnpm seed
 ```
 
-### 3. Seed the Database
+Creates: 1 restaurant, 1 manager user, 9 inventory items (in-stock, low-stock, out-of-stock)
+
+### 4. Start Backend
 
 ```bash
-# Using pnpm:
-cd backend && pnpm seed
-
-# Using npm:
-cd backend && npm run seed
+cd backend
+pnpm dev
 ```
 
-Expected output: Database populated with test restaurants, users, and inventory items.
+Server runs on `http://localhost:5000`
 
-### 4. Start Backend Server
+### 5. Start Mobile
 
 ```bash
-# Using pnpm:
-cd backend && pnpm start
+# Terminal 1: Start Metro
+cd mobile
+pnpm start
 
-# Using npm:
-cd backend && npm start
+# Terminal 2: Run Android
+cd mobile
+npx react-native run-android
 ```
 
-Server will start on `http://localhost:5000` (or your configured PORT)
+### 6. Login & Test
 
-**Verify backend is running:**
+- **Email:** `manager@restaurant.com`
+- **Password:** `manager123`
+
+**Flow:** Dashboard → Tap "Reorder Plan" → Generate Plan → View Suggestions
+
+### TypeScript Check (Required)
+
 ```bash
-curl http://localhost:5000/api/health
-```
-Should return: `{"status":"ok","timestamp":"..."}`
+# Backend
+cd backend && npx tsc --noEmit
 
-### 5. TypeScript Compilation Check (Required for Submission)
-
-```bash
-# Backend TypeScript check
-cd backend && pnpm type-check  # or npm run type-check
-
-# Mobile TypeScript check  
+# Mobile
 cd mobile && npx tsc --noEmit
 ```
 
-Both should pass with no errors. This is required for the hiring task.
-
-### 6. Start Metro Bundler (Mobile)
-
-Open a **new terminal** and run:
-
-```bash
-# Using pnpm:
-cd mobile && pnpm start
-
-# Using npm:
-cd mobile && npm start
-```
-
-### 7. Run the Mobile App
-
-**iOS:**
-```bash
-# Using pnpm:
-cd mobile && pnpm ios
-
-# Using npm:
-cd mobile && npm run ios
-```
-
-**Android:**
-```bash
-# Using pnpm:
-cd mobile && pnpm android
-
-# Using npm:
-cd mobile && npm run android
-```
-
-### 8. Test the Reorder Planner Feature
-
-1. **Login** with test account:
-   - Email: `manager@restaurantA.com`
-   - Password: `password@manager`
-
-2. **Navigate to Inventory** tab
-
-3. **Tap "Plan Reorder"** button to trigger AI analysis
-
-4. **View results** showing low/out-of-stock items with reorder suggestions
-
 ## 📱 Features
 
-- **Real-time Inventory Tracking** - Monitor stock levels with status badges
-- **AI Reorder Planning** - Smart suggestions for low stock items (Gemini AI)
-- **Restaurant Management** - Multi-restaurant support with role-based access
-- **Stock Analytics** - Dashboard with critical alerts and statistics
-- **Mobile First** - React Native CLI with TypeScript
+- **Dashboard** - Stats (Total, In Stock, Low Stock, Out of Stock) + Critical items list
+- **Inventory List** - All items with status badges (OK / LOW / OUT)
+- **Reorder Plan** - Lazy fetch: API only called when "Generate Plan" button tapped
+- **AI + Fallback** - Uses Gemini AI if available, otherwise calculates based on stock levels
 
 ## 🏗️ Tech Stack
 
@@ -161,45 +98,65 @@ cd mobile && npm run android
 | **Database** | MongoDB with Mongoose ODM |
 | **Package Manager** | pnpm (recommended) or npm |
 
-## 📋 Hiring Task Acceptance Criteria
+## ✅ Acceptance Criteria
 
-✅ **Database Seeding** - `pnpm seed` or `npm run seed` populates DB with various stock states  
-✅ **Reorder API** - `GET /api/inventory/reorder-plan` returns low/out-of-stock suggestions  
-✅ **AI Fallback** - Gemini errors gracefully fallback without 500s  
-✅ **Status Badges** - Inventory list shows correct status colors  
-✅ **Lazy Loading** - Reorder plan fetched only on button tap  
-✅ **Error States** - Loading, error, and empty states handled in UI  
-✅ **TypeScript** - `tsc --noEmit` passes on both backend and mobile  
-✅ **Public Endpoint** - Reorder plan API is public (no auth required) for demo purposes  
+- [x] **Seed Script** - `pnpm seed` inserts sample data (users + items)
+- [x] **Status Badges** - OK 🟢 / LOW 🟡 / OUT 🔴 on inventory items
+- [x] **Lazy Fetch** - API only called when button clicked
+- [x] **UI States** - Loading ⏳ / Error ❌ / Empty 📭 handled
+- [x] **AI Fallback** - Try AI first, fallback to normal logic on error
+- [x] **TypeScript** - `tsc --noEmit` passes (0 errors)  
 
 ## 🔧 API Endpoints
 
 ### Inventory
 - `GET /api/inventory` - List all inventory items
-- `GET /api/inventory/reorder-plan` - **Public endpoint** - Get reorder suggestions (no auth required)
-- `GET /api/inventory/stats` - Inventory statistics
-- `POST /api/inventory` - Create new item
-- `PATCH /api/inventory/:id` - Update item
-- `DELETE /api/inventory/:id` - Delete item
+- `GET /api/inventory/reorder-plan` - Get reorder suggestions (lazy load endpoint)
+- `GET /api/inventory/stats` - Dashboard statistics
 
 ### Authentication
 - `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
 
-## 🎯 Reorder Planner Feature
+## 🎯 App Workflow
 
-The core feature demonstrates:
-1. **Backend Intelligence** - Analyzes stock levels against thresholds
-2. **AI Integration** - Gemini provides smart reorder suggestions with fallback
-3. **Mobile UX** - Lazy loading with proper loading/error states
-4. **Type Safety** - Full TypeScript implementation
-5. **Public Access** - Reorder plan API is public for easy testing
+1. **Login** - Manager enters credentials
+2. **Dashboard** - See stats and critical items (low/out of stock)
+3. **Inventory Tab** - View all items with status badges
+4. **Reorder Plan Tab** - 
+   - Initial: "Generate Plan" button shown
+   - On tap: API called, loading state shown
+   - Success: List of items to reorder with quantities
+   - Error: "Something went wrong" with retry button
+   - Empty: "Everything is well stocked" message
 
-## 📱 Test Accounts
+## 🎯 Reorder Planner Logic
 
-After seeding, use these accounts:
-- **Manager**: `manager@restaurantA.com` / `password@manager`
-- **Superadmin**: `super@admin.com` / `password@superadmin`
+**Backend Calculation:**
+```
+Tomato: Stock=2, Min=10, Max=50 → Suggest: order 8 more
+Cheese: Stock=0, Min=5, Max=20 → Suggest: order 5 more
+Chicken: Stock=20, Min=10 → No suggestion (OK status)
+```
+
+**AI Fallback:**
+```
+try {
+  // Call Gemini AI for smart suggestions
+} catch {
+  // Fallback: maxStock - currentStock for low/out items
+}
+```
+
+## 📱 Test Account
+
+After `pnpm seed`:
+- **Email:** `manager@restaurant.com`
+- **Password:** `manager123`
+
+**Sample Data:**
+- 3 In-Stock items (Onions, Potatoes, Milk)
+- 3 Low-Stock items (Tomatoes, Cheese, Chicken)
+- 3 Out-of-Stock items (Lettuce, Butter, Beef)
 
 ## 🚀 Complete Build & Run Workflow
 

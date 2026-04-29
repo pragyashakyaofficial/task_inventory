@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from '../../../api/baseQuery';
-import { LoginRequest, RegisterRequest, AuthResponse } from '../types/auth.types';
+import { LoginRequest, AuthResponse } from '../types/auth.types';
 import { ENDPOINTS } from '../../../api';
 
 export const authApi = createApi({
@@ -24,19 +24,6 @@ export const authApi = createApi({
       },
     }),
 
-    // Register endpoint
-    register: builder.mutation<AuthResponse, RegisterRequest>({
-      query: (userData) => ({
-        url: ENDPOINTS.REGISTER,
-        method: 'POST',
-        body: userData,
-      }),
-      invalidatesTags: ['Auth'],
-      transformResponse: (response: AuthResponse) => {
-        console.log('Registration successful:', response);
-        return response;
-      },
-    }),
 
     // Refresh token endpoint
     refreshToken: builder.mutation<AuthResponse, { refreshToken: string }>({
@@ -57,19 +44,13 @@ export const authApi = createApi({
       invalidatesTags: ['Auth'],
     }),
 
-    // Get current user profile
-    getCurrentUser: builder.query<AuthResponse['user'], void>({
-      query: () => ENDPOINTS.PROFILE,
-      providesTags: ['Auth'],
-    }),
+
   }),
 });
 
 // Export hooks for usage in components
 export const {
   useLoginMutation,
-  useRegisterMutation,
   useRefreshTokenMutation,
   useLogoutMutation,
-  useGetCurrentUserQuery,
 } = authApi;

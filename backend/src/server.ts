@@ -12,13 +12,12 @@ import connectDB from "./config/database";
 
 // API Routes
 import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
-import restaurantRoutes from "./routes/restaurantRoutes";
-import categoryRoutes from "./routes/categoryRoutes";
 import inventoryRoutes from "./routes/inventoryRoutes";
-import inventoryLogRoutes from "./routes/inventoryLogRoutes";
-import stockRequestRoutes from "./routes/stockRequestRoutes";
-import orderRoutes from "./routes/orderRoutes";
+
+// Register models with Mongoose (needed for populate)
+import "./models/Category";
+import "./models/Restaurant";
+import "./models/User";
 
 import AppError from "./utils/appError";
 import globalErrorHandler from "./middleware/errorMiddleware";
@@ -55,13 +54,7 @@ app.use(express.static('public'));
 
 // Mount routes
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/restaurants", restaurantRoutes);
-app.use("/api/categories", categoryRoutes);
 app.use("/api/inventory", inventoryRoutes);
-app.use("/api/logs", inventoryLogRoutes);
-app.use("/api/stock-requests", stockRequestRoutes);
-app.use("/api/orders", orderRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import Inventory from '../models/Inventory';
-import InventoryLog from '../models/InventoryLog';
 import Restaurant from '../models/Restaurant';
 import { getReorderSuggestion  } from '../services/aiService';
 
@@ -234,21 +233,6 @@ export const updateInventory = async (req: AuthRequest, res: Response, next: Nex
 
     item.lastUpdatedBy = req.user?.id;
     await item.save();
-
-    // Create log if stock changed
-    if (stockChanged) {
-      await InventoryLog.create({
-        inventoryId: item._id,
-        restaurantId: item.restaurantId,
-        action: updates.currentStock > previousStock ? 'ADD' :
-                updates.currentStock < previousStock ? 'REMOVE' : 'ADJUST',
-        quantity: updates.currentStock - previousStock,
-        previousStock,
-        newStock: updates.currentStock,
-        note: req.body.note || 'Stock updated',
-        createdBy: req.user?.id
-      });
-    }
 
     const populatedItem = await Inventory.findById(item._id)
       .populate('categoryId', 'name')

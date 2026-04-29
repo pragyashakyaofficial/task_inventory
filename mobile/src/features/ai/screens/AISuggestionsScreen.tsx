@@ -1,267 +1,165 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  RefreshControl,
   TouchableOpacity,
-  Alert,
-  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  Brain, 
-  CheckCircle2, 
-  ArrowRight,
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { MainStackParamList } from '../../../navigation/types';
+import {
+  XCircle,
   RefreshCcw,
-  AlertTriangle,
-  PackageOpen,
+  ArrowLeft,
 } from 'lucide-react-native';
 import { colors } from '../../../theme/constants';
 import GlassCard from '../../../components/common/GlassCard';
-import Button from '../../../components/common/Button';
-import { useInventory } from '../../inventory/hooks/useInventory';
-import { InventoryItem } from '../../inventory/types/inventory.types';
-import { useCreateStockRequestMutation } from '../../../api/slices/inventoryApi';
-import StockRequestModal from '../components/StockRequestModal';
+import { useLazyGetReorderPlanQuery, useGetItemsQuery } from '../../../api/slices/inventoryApi';
 
-interface SuggestionItem extends InventoryItem {
-  suggestedQuantity: number;
-  confidence: number;
-  reason: string;
-}
+type Props = NativeStackScreenProps<MainStackParamList, 'Suggestions'>;
 
-const AISuggestionsScreen = () => {
+const AISuggestionsScreen = ({ navigation }: Props) => {
   const insets = useSafeAreaInsets();
-  const { items, refetchItems } = useInventory({});
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [confidenceFilter, setConfidenceFilter] = useState<number>(0);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-  const [createStockRequest, { isLoading: isCreatingRequest }] = useCreateStockRequestMutation();
+  const [getReorderPlan, { data: reorderData, isLoading: isFetching, error, isError }] = useLazyGetReorderPlanQuery();
+  const { data: itemsData } = useGetItemsQuery({});
+  const [hasFetched, setHasFetched] = useState(false);
 
-  // Log dynamic data updates
   useEffect(() => {
-    console.log('AI Suggestions dynamic data source (Inventory) updated:', {
-      totalItems: items.length,
-      outOfStock: items.filter(i => i.status === 'out-of-stock').length,
-      lowStock: items.filter(i => i.status === 'low-stock').length,
-    });
-  }, [items]);
-
-  const suggestions: SuggestionItem[] = useMemo(() => {
-    return items
-      .filter(item => item.status === 'low-stock' || item.status === 'out-of-stock')
-      .map(item => ({
-        ...item,
-        suggestedQuantity: item.maxQuantity,
-        confidence: item.status === 'out-of-stock' ? 1.0 : 0.85,
-        reason: item.status === 'out-of-stock' 
-          ? 'Critical stockout detected. Urgent reorder required to meet projected demand.' 
-          : 'Stock levels critically low. Reorder needed to avoid disruption.',
-      }))
-      // Sort by urgency: out-of-stock first, then low-stock
-      .sort((a, b) => {
-        if (a.status === 'out-of-stock' && b.status !== 'out-of-stock') return -1;
-        if (b.status === 'out-of-stock' && a.status !== 'out-of-stock') return 1;
-        return b.confidence - a.confidence;
-      });
-  }, [items]);
-
-  const filteredSuggestions = useMemo(() => {
-    return suggestions.filter(s => s.confidence >= confidenceFilter);
-  }, [suggestions, confidenceFilter]);
-
-  const onRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await refetchItems();
-    setIsRefreshing(false);
-  }, [refetchItems]);
-
-  const handleApplyAll = useCallback(() => {
-    Alert.alert(
-      'Apply All Suggestions',
-      `Are you sure you want to apply all ${filteredSuggestions.length} suggested reorders?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Apply All', 
-          onPress: () => Alert.alert('Success', 'All suggestions applied successfully')
-        }
-      ]
-    );
-  }, [filteredSuggestions.length]);
-
-  const handleRequestPress = useCallback((item: InventoryItem) => {
-    setSelectedItem(item);
-    setModalVisible(true);
+    if (!hasFetched) {
+      handleFetchPlan();
+    }
   }, []);
 
-  const handleCloseModal = useCallback(() => {
-    setModalVisible(false);
-    setSelectedItem(null);
-  }, []);
+  const handleFetchPlan = useCallback(() => {
+    setHasFetched(true);
+    getReorderPlan();
+  }, [getReorderPlan]);
 
-  const handleSubmitRequest = useCallback(async (quantity: number) => {
-    if (!selectedItem?.id) {
-      Alert.alert('Error', 'Item ID is not available');
-      return;
-    }
-    try {
-      await createStockRequest({
-        inventoryId: selectedItem.id,
-        requestedQuantity: quantity,
-      }).unwrap();
-      Alert.alert('Success', `Stock request for ${quantity} ${selectedItem.unit} submitted successfully`);
-      setModalVisible(false);
-      setSelectedItem(null);
-    } catch (error: any) {
-      Alert.alert('Error', error?.data?.message || 'Failed to submit stock request');
-    }
-  }, [selectedItem, createStockRequest]);
+  const suggestions = reorderData?.suggestions || [];
 
-  const renderItem = useCallback(({ item }: { item: SuggestionItem; index: number }) => {
-    const isCritical = item.status === 'out-of-stock';
-    const urgencyColor = isCritical ? '#EF4444' : '#F59E0B';
-    const UrgencyIcon = isCritical ? AlertTriangle : PackageOpen;
+  // Fallback: filter inventory items that are low/out of stock
+  const fallbackItems = (itemsData?.items || [])
+    .filter((item: any) => item.status === 'low-stock' || item.status === 'out-of-stock')
+    .map((item: any) => ({
+      itemId: item.id,
+      name: item.name,
+      category: item.category || '',
+      currentQuantity: item.quantity,
+      minThreshold: item.minQuantity,
+      maxStock: item.maxQuantity,
+      unit: item.unit || 'units',
+      status: item.status,
+      shouldReorder: true,
+      suggestedQuantity: Math.max(0, (item.maxQuantity || 100) - (item.quantity || 0)),
+      reason: `Below minimum threshold (${item.minQuantity} ${item.unit})`,
+    }));
+
+  const renderItem = useCallback(({ item }: { item: any }) => {
+    const isOut = item.status === 'OUT' || item.status === 'out-of-stock';
+    const urgencyColor = isOut ? '#EF4444' : '#F59E0B';
 
     return (
-      <View>
-        <GlassCard style={{ ...styles.card, ...(isCritical ? styles.criticalCard : {}) }}>
-          <View style={styles.cardHeader}>
-            <View style={styles.itemInfo}>
-              <View style={styles.titleRow}>
-                <UrgencyIcon size={16} color={urgencyColor} style={styles.urgencyIcon} />
-                <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
-              </View>
-              <Text style={[styles.itemSku, { color: colors.textSecondary }]}>SKU: {item.sku}</Text>
-            </View>
-            <View style={[styles.urgencyBadge, { backgroundColor: urgencyColor + '15' }]}>
-              <Text style={[styles.urgencyText, { color: urgencyColor }]}>
-                {isCritical ? 'OUT OF STOCK' : 'LOW STOCK'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.suggestionBody}>
-            <View style={styles.quantityRow}>
-              <View style={styles.quantityBox}>
-                <Text style={[styles.quantityLabel, { color: colors.textSecondary }]}>Current</Text>
-                <Text style={[styles.quantityValue, { color: urgencyColor }]}>{item.quantity}</Text>
-                <Text style={[styles.quantityUnit, { color: colors.textSecondary }]}>{item.unit}</Text>
-              </View>
-              <ArrowRight size={20} color={colors.textTertiary} />
-              <View style={styles.quantityBox}>
-                <Text style={[styles.quantityLabel, { color: colors.primary }]}>Suggested</Text>
-                <Text style={[styles.quantityValue, { color: colors.primary }]}>{item.suggestedQuantity}</Text>
-                <Text style={[styles.quantityUnit, { color: colors.textSecondary }]}>{item.unit}</Text>
-              </View>
-            </View>
-
-            <View style={[styles.reasonBox, { backgroundColor: colors.backgroundSecondary }]}>
-              <Brain size={16} color={colors.textSecondary} style={styles.reasonIcon} />
-              <Text style={[styles.reasonText, { color: colors.textSecondary }]}>{item.reason}</Text>
-            </View>
-          </View>
-
-          <View style={styles.cardFooter}>
-            <Button 
-              title="Request" 
-              size="small"
-              onPress={() => handleRequestPress(item)}
-              style={styles.requestButton}
-            />
-          </View>
-        </GlassCard>
-      </View>
-    );
-  }, [handleRequestPress]);
-
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <View>
-          <Text style={[styles.title, { color: colors.text }]}>AI Optimization</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {filteredSuggestions.filter(s => s.status === 'out-of-stock').length} Critical · {filteredSuggestions.filter(s => s.status === 'low-stock').length} Low Stock
-          </Text>
-        </View>
-        <TouchableOpacity 
-          style={[styles.iconButton, { backgroundColor: colors.backgroundSecondary }]}
-          onPress={onRefresh}
-        >
-          <RefreshCcw size={20} color={colors.text} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.filterBar}>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScroll}
-        >
-          {[0, 0.8, 0.9, 0.95].map((val) => (
-            <TouchableOpacity
-              key={val}
-              style={[
-                styles.filterChip,
-                { 
-                  backgroundColor: confidenceFilter === val ? colors.primary : colors.backgroundSecondary,
-                }
-              ]}
-              onPress={() => setConfidenceFilter(val)}
-            >
-              <Text style={[
-                styles.filterText,
-                { color: confidenceFilter === val ? 'white' : colors.textSecondary }
-              ]}>
-                {val === 0 ? 'All' : `${Math.round(val * 100)}%+ Confidence`}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      <FlatList
-        data={filteredSuggestions}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 100 }]}
-        refreshControl={
-          <RefreshControl 
-            refreshing={isRefreshing} 
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-        ListHeaderComponent={
-          filteredSuggestions.length > 1 ? (
-            <Button 
-              title={`Apply All (${filteredSuggestions.length})`}
-              onPress={handleApplyAll}
-              style={styles.applyAllBtn}
-            />
-          ) : null
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <CheckCircle2 size={64} color={colors.textTertiary} />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>All Clear!</Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              No items currently require AI-driven reordering.
+      <GlassCard style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={[styles.statusDot, { backgroundColor: urgencyColor }]} />
+          <View style={styles.itemInfo}>
+            <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+            <Text style={[styles.itemCategory, { color: colors.textSecondary }]}>
+              {item.category}
             </Text>
           </View>
-        }
-      />
+        </View>
 
-      <StockRequestModal
-        isVisible={modalVisible}
-        onClose={handleCloseModal}
-        onSubmit={handleSubmitRequest}
-        item={selectedItem}
-        isLoading={isCreatingRequest}
-      />
+        <View style={styles.suggestionDetails}>
+          <View style={styles.detailRow}>
+            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Current:</Text>
+            <Text style={[styles.detailValue, { color: urgencyColor }]}>{item.currentQuantity} {item.unit}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Suggest:</Text>
+            <Text style={[styles.detailValue, { color: colors.primary }]}>{item.suggestedQuantity} {item.unit}</Text>
+          </View>
+        </View>
+
+        <Text style={[styles.reasonText, { color: colors.textSecondary }]}>
+          {item.reason}
+        </Text>
+      </GlassCard>
+    );
+  }, []);
+
+  const renderLoading = () => (
+    <View style={styles.centerContainer}>
+      <ActivityIndicator size="large" color={colors.primary} />
+      <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Fetching plan...</Text>
+    </View>
+  );
+
+  const renderError = () => (
+    <View style={styles.centerContainer}>
+      <XCircle size={48} color="#EF4444" />
+      <Text style={[styles.errorTitle, { color: colors.text }]}>Something went wrong</Text>
+      <Text style={[styles.errorText, { color: colors.textSecondary }]}>
+        {error?.toString() || 'Failed to fetch reorder plan'}
+      </Text>
+      <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={handleFetchPlan}>
+        <RefreshCcw size={16} color="#fff" />
+        <Text style={styles.retryButtonText}>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <ArrowLeft size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: colors.text }]}>Reorder Plan</Text>
+      </View>
+
+      <View style={styles.content}>
+        {isFetching ? (
+          renderLoading()
+        ) : isError ? (
+          fallbackItems.length > 0 ? (
+            <>
+              <View style={styles.fallbackBanner}>
+                <Text style={[styles.fallbackBannerText, { color: colors.textSecondary }]}>
+                  AI suggestions unavailable. Showing items that need attention.
+                </Text>
+              </View>
+              <FlatList
+                data={fallbackItems}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.itemId}
+                contentContainerStyle={styles.list}
+                showsVerticalScrollIndicator={false}
+              />
+            </>
+          ) : renderError()
+        ) : suggestions.length > 0 ? (
+          <FlatList
+            data={suggestions}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.itemId}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : fallbackItems.length > 0 ? (
+          <FlatList
+            data={fallbackItems}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.itemId}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : renderError()
+        }
+      </View>
     </View>
   );
 };
@@ -272,156 +170,119 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingVertical: 16,
+    gap: 12,
+  },
+  backButton: {
+    padding: 4,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
   },
-  subtitle: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterBar: {
-    marginBottom: 16,
-  },
-  filterScroll: {
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-  filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  filterText: {
-    fontSize: 13,
-    fontWeight: '600',
+  content: {
+    flex: 1,
   },
   list: {
     paddingHorizontal: 20,
-    paddingTop: 8,
-  },
-  applyAllBtn: {
-    marginBottom: 20,
+    paddingBottom: 40,
   },
   card: {
     padding: 16,
-    borderRadius: 20,
-    marginBottom: 16,
+    borderRadius: 16,
+    marginBottom: 12,
   },
   cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 12,
   },
   itemInfo: {
     flex: 1,
   },
   itemName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 2,
   },
-  itemSku: {
-    fontSize: 12,
-  },
-  suggestionBody: {
-    marginBottom: 16,
-  },
-  quantityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  quantityBox: {
-    alignItems: 'center',
-  },
-  quantityLabel: {
-    fontSize: 12,
+  itemCategory: {
+    fontSize: 13,
     fontWeight: '500',
-    marginBottom: 4,
   },
-  quantityValue: {
-    fontSize: 24,
-    fontWeight: '800',
-  },
-  reasonBox: {
+  suggestionDetails: {
     flexDirection: 'row',
-    padding: 12,
-    borderRadius: 12,
-    gap: 10,
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
-  reasonIcon: {
-    marginTop: 2,
+  detailRow: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  detailLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   reasonText: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 16,
   },
-  cardFooter: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  emptyContainer: {
+  centerContainer: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 100,
-    gap: 12,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    textAlign: 'center',
+    alignItems: 'center',
     paddingHorizontal: 40,
   },
-  criticalCard: {
-    borderWidth: 1,
-    borderColor: '#EF444430',
+  loadingText: {
+    fontSize: 14,
+    marginTop: 12,
   },
-  titleRow: {
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 12,
+  },
+  errorText: {
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginTop: 16,
   },
-  urgencyIcon: {
-    marginTop: 2,
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
-  urgencyBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+  fallbackBanner: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#F59E0B15',
+    marginHorizontal: 20,
+    marginBottom: 8,
+    borderRadius: 10,
   },
-  urgencyText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  quantityUnit: {
-    fontSize: 12,
+  fallbackBannerText: {
+    fontSize: 13,
     fontWeight: '500',
-    marginTop: 2,
-  },
-  requestButton: {
-    flex: 1,
+    textAlign: 'center',
   },
 });
 

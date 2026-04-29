@@ -6,23 +6,27 @@ const genAI = process.env.GEMINI_API_KEY ?
   null;
 
 export const getReorderSuggestion = async (item: any) => {
-  // Generate random quantity between minThreshold and maxStock for fallback
-  const generateRandomQuantity = (min: number, max: number) => {
-    if (min >= max) return min;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  // Calculate suggested quantity based on stock status
+  const calculateSuggestedQuantity = (status: string, currentQty: number, maxStock: number) => {
+    if (status === 'OUT' || status === 'out-of-stock') {
+      return maxStock; // Order full capacity when out of stock
+    }
+    return Math.max(0, maxStock - currentQty); // Fill up to max capacity for low stock
   };
 
   // Check if API key is available
   if (!genAI || !process.env.GEMINI_API_KEY) {
     console.log("Gemini API key not provided, using fallback logic");
-    const shouldReorder = item.status !== "In Stock";
-    const suggestedQuantity = shouldReorder 
-      ? generateRandomQuantity(item.minThreshold || 10, item.maxStock || 100)
+    const shouldReorder = item.status !== "In Stock" && item.status !== "OK";
+    const suggestedQuantity = shouldReorder
+      ? calculateSuggestedQuantity(item.status, item.quantity || 0, item.maxStock || 100)
       : 0;
     return {
       shouldReorder,
       suggestedQuantity,
-      reason: "Smart suggestion based on current stock levels and reorder patterns."
+      reason: shouldReorder
+        ? `${item.name} is ${item.status === 'OUT' || item.status === 'out-of-stock' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${suggestedQuantity} ${item.unit || 'units'} to reach max capacity.`
+        : "Item is sufficiently stocked."
     };
   }
 
@@ -67,14 +71,16 @@ export const getReorderSuggestion = async (item: any) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error("AI Service Error:", errorMessage);
     // Comprehensive fallback logic - never throws, always returns valid response
-    const shouldReorder = item.status !== "In Stock";
-    const suggestedQuantity = shouldReorder 
-      ? generateRandomQuantity(item.minThreshold || 10, item.maxStock || 100)
+    const shouldReorder = item.status !== "In Stock" && item.status !== "OK";
+    const suggestedQuantity = shouldReorder
+      ? calculateSuggestedQuantity(item.status, item.quantity || 0, item.maxStock || 100)
       : 0;
     return {
       shouldReorder,
       suggestedQuantity,
-      reason: "Smart suggestion based on current stock levels and reorder patterns."
+      reason: shouldReorder
+        ? `${item.name} is ${item.status === 'OUT' || item.status === 'out-of-stock' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${suggestedQuantity} ${item.unit || 'units'} to reach max capacity.`
+        : "Item is sufficiently stocked."
     };
   }
 };

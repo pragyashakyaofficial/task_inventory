@@ -6,7 +6,7 @@
     "start": "ts-node src/server.ts",
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
-    "seed": "ts-node seed.ts",
+    "seed": "ts-node src/scripts/seed.ts",
     "type-check": "tsc --noEmit"
   },
   "keywords": [],

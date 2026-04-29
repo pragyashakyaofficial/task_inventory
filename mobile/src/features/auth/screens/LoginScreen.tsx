@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -23,7 +23,6 @@ import { colors } from '../../../theme/constants';
 import { useLoginMutation } from '../api/authApi';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../store/authSlice';
-import Toast, { ToastManager, ToastItem } from '../../../components/common/Toast';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,13 +31,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 export const LoginScreen: React.FC<Props> = () => {
   const dispatch = useDispatch();
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [apiError, setApiError] = useState<string>('');
-
-  useEffect(() => {
-    const unsubscribe = ToastManager.getInstance().subscribe(setToasts);
-    return () => unsubscribe();
-  }, []);
 
   const {
     control,
@@ -63,38 +56,20 @@ export const LoginScreen: React.FC<Props> = () => {
         token: response.token,
       }));
 
-      ToastManager.getInstance().success(
-        `Welcome Back! Successfully logged in as ${response.user?.email || 'user'}`,
-        { position: 'bottom' }
-      );
     } catch (error: any) {
       const message = error?.data?.message || 'Invalid email or password. Please try again.';
       setApiError(message);
-      ToastManager.getInstance().error(message, { position: 'bottom' });
     }
   };
 
   const handleForgotPassword = () => {
-    ToastManager.getInstance().info('Password reset link will be sent to your email', { position: 'bottom' });
+    // Password reset placeholder
   };
 
   const isLoading = isLoginLoading;
 
   return (
     <View style={styles.container}>
-      {/* Toast Notifications */}
-      {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          type={toast.type}
-          message={toast.message}
-          duration={toast.duration}
-          onHide={() => ToastManager.getInstance().removeToast(toast.id)}
-          actionLabel={toast.actionLabel}
-          onAction={toast.onAction}
-          position={toast.position}
-        />
-      ))}
       <StatusBar
         backgroundColor={colors.background}
         barStyle="light-content"
