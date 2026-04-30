@@ -15,6 +15,7 @@ import {
   RefreshCcw,
   ArrowLeft,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react-native';
 import { colors } from '../../../theme/constants';
 import GlassCard from '../../../components/common/GlassCard';
@@ -62,6 +63,7 @@ const AISuggestionsScreen = ({ navigation, route }: Props) => {
   const renderItem = useCallback(({ item }: { item: any }) => {
     const isOut = item.status === 'OUT' || item.status === 'out-of-stock';
     const urgencyColor = isOut ? '#EF4444' : '#F59E0B';
+    const isAI = item.aiGenerated === true;
 
     return (
       <GlassCard style={styles.card}>
@@ -73,6 +75,12 @@ const AISuggestionsScreen = ({ navigation, route }: Props) => {
               {item.category}
             </Text>
           </View>
+          {isAI && (
+            <View style={styles.aiBadge}>
+              <Sparkles size={12} color="#7C3AED" />
+              <Text style={styles.aiBadgeText}>AI</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.suggestionDetails}>
@@ -86,9 +94,14 @@ const AISuggestionsScreen = ({ navigation, route }: Props) => {
           </View>
         </View>
 
-        <Text style={[styles.reasonText, { color: colors.textSecondary }]}>
-          {item.reason}
-        </Text>
+        <View style={[styles.reasonContainer, { borderLeftColor: isAI ? '#7C3AED' : urgencyColor }]}>
+          <Text style={[styles.reasonLabel, { color: isAI ? '#7C3AED' : colors.textSecondary }]}>
+            {isAI ? 'AI Suggestion' : 'Reason'}
+          </Text>
+          <Text style={[styles.reasonText, { color: colors.text }]}>
+            {item.reason}
+          </Text>
+        </View>
       </GlassCard>
     );
   }, []);
@@ -251,6 +264,30 @@ const styles = StyleSheet.create({
   detailValue: {
     fontSize: 13,
     fontWeight: '700',
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: '#7C3AED15',
+  },
+  aiBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#7C3AED',
+  },
+  reasonContainer: {
+    borderLeftWidth: 3,
+    paddingLeft: 10,
+    marginTop: 4,
+  },
+  reasonLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 2,
   },
   reasonText: {
     fontSize: 12,
