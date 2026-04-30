@@ -18,7 +18,6 @@ import "./models/Category";
 import "./models/Restaurant";
 import "./models/User";
 
-import AppError from "./utils/appError";
 import globalErrorHandler from "./middleware/errorMiddleware";
 
 const app = express();
@@ -27,9 +26,15 @@ const app = express();
 // Set security HTTP headers
 app.use(helmet());
 
-// CORS configuration
+// CORS configuration — credentials requires explicit origins, not wildcard
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:8081,http://10.0.2.2:8081').split(',').map(s => s.trim());
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
@@ -50,6 +55,11 @@ app.use("/api/inventory", inventoryRoutes);
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// 404 handler for unmatched routes (middleware, not route — avoids Express 5 path-to-regexp issue)
+app.use((req, res) => {
+  res.status(404).json({ status: 'error', message: `Can't find ${req.originalUrl} on this server!` });
 });
 
 // Global error handler

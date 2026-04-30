@@ -58,13 +58,15 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
-  // Log API calls and data
+  // Log API calls and data (dev only)
   React.useEffect(() => {
-    console.log('Dashboard Data Updated:', {
-      inventoryItemsCount: items.length,
-      dashboardStats: dashboardStats,
-      isLoading: isInventoryLoading || isStatsLoading
-    });
+    if (__DEV__) {
+      console.log('Dashboard Data Updated:', {
+        inventoryItemsCount: items.length,
+        dashboardStats: dashboardStats,
+        isLoading: isInventoryLoading || isStatsLoading
+      });
+    }
   }, [items, dashboardStats, isInventoryLoading, isStatsLoading]);
 
   const isLoading = isInventoryLoading || isStatsLoading;

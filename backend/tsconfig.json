@@ -19,6 +19,9 @@
     "isolatedModules": false,
     "noEmitOnError": false
   },
+  "files": [
+    "src/types/express.d.ts"
+  ],
   "include": [
     "seed.ts",
     "src/**/*.ts"

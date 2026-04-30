@@ -11,13 +11,8 @@ import {
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { loginSchema, LoginFormData } from '../schemas/auth.schemas';
 import GlassCard from '../../../components/common/GlassCard';
 import Input from '../../../components/common/Input';
-import { AuthStackParamList } from '../navigation/AuthNavigator';
 import { colors } from '../../../theme/constants';
 
 import { useLoginMutation } from '../api/authApi';
@@ -26,31 +21,49 @@ import { setCredentials } from '../store/authSlice';
 
 const { width, height } = Dimensions.get('window');
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const LoginScreen: React.FC<Props> = () => {
+export const LoginScreen: React.FC = () => {
   const dispatch = useDispatch();
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const [apiError, setApiError] = useState<string>('');
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors, isValid },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    mode: 'onChange',
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string>('');
+  const [passwordError, setPasswordError] = useState<string>('');
 
-  const onSubmit = async (data: LoginFormData) => {
+  const validate = (): boolean => {
+    let valid = true;
+    if (!email) {
+      setEmailError('Email is required');
+      valid = false;
+    } else if (!emailRegex.test(email)) {
+      setEmailError('Invalid email format');
+      valid = false;
+    } else {
+      setEmailError('');
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      valid = false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      valid = false;
+    } else {
+      setPasswordError('');
+    }
+
+    return valid;
+  };
+
+  const onSubmit = async () => {
+    if (!validate()) return;
     setApiError('');
     try {
-      const response = await login(data).unwrap();
-      
+      const response = await login({ email, password }).unwrap();
+
       dispatch(setCredentials({
         user: response.user,
         token: response.token,
@@ -62,11 +75,8 @@ export const LoginScreen: React.FC<Props> = () => {
     }
   };
 
-  const handleForgotPassword = () => {
-    // Password reset placeholder
-  };
-
   const isLoading = isLoginLoading;
+  const isFormValid = email.length > 0 && password.length >= 6 && emailRegex.test(email);
 
   return (
     <View style={styles.container}>
@@ -93,12 +103,6 @@ export const LoginScreen: React.FC<Props> = () => {
           <View style={styles.content}>
             {/* Logo/Brand Section */}
             <View style={styles.brandSection}>
-              {/* <View style={styles.logoContainer}>
-                <View style={styles.logoPlaceholder}>
-                  <Text style={styles.logoText}>📦</Text>
-                </View>
-              </View>
-              <Text style={styles.appName}>InventoryApp</Text> */}
             </View>
 
             {/* Header Section */}
@@ -114,49 +118,42 @@ export const LoginScreen: React.FC<Props> = () => {
                   {/* Email Field */}
                   <View style={styles.inputWrapper}>
                     <Text style={styles.inputLabel}>Email Address</Text>
-                    <Controller
-                      control={control}
-                      name="email"
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <Input
-                          placeholder="john@example.com"
-                          value={value}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          error={errors.email?.message}
-                          keyboardType="email-address"
-                          autoCapitalize="none"
-                          autoComplete="email"
-                          textContentType="emailAddress"
-                        />
-                      )}
+                    <Input
+                      placeholder="john@example.com"
+                      value={email}
+                      onChangeText={(text) => { setEmail(text); if (emailError) setEmailError(''); }}
+                      onBlur={() => {
+                        if (!email) setEmailError('Email is required');
+                        else if (!emailRegex.test(email)) setEmailError('Invalid email format');
+                      }}
+                      error={emailError}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      textContentType="emailAddress"
                     />
                   </View>
 
                   {/* Password Field */}
                   <View style={styles.inputWrapper}>
                     <Text style={styles.inputLabel}>Password</Text>
-                    <Controller
-                      control={control}
-                      name="password"
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <Input
-                          placeholder="••••••••"
-                          value={value}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          error={errors.password?.message}
-                          secureTextEntry
-                          showPasswordToggle
-                        />
-                      )}
+                    <Input
+                      placeholder="••••••••"
+                      value={password}
+                      onChangeText={(text) => { setPassword(text); if (passwordError) setPasswordError(''); }}
+                      onBlur={() => {
+                        if (!password) setPasswordError('Password is required');
+                        else if (password.length < 6) setPasswordError('Password must be at least 6 characters');
+                      }}
+                      error={passwordError}
+                      secureTextEntry
+                      showPasswordToggle
                     />
                   </View>
 
                   {/* Remember Me & Forgot Password Row */}
                   <View style={styles.optionsRow}>
                     <TouchableOpacity
-                      onPress={handleForgotPassword}
                       activeOpacity={0.7}
                     >
                       <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
@@ -175,10 +172,10 @@ export const LoginScreen: React.FC<Props> = () => {
                   <TouchableOpacity
                     style={[
                       styles.loginButton,
-                      (!isValid || isLoading) && styles.loginButtonDisabled
+                      (!isFormValid || isLoading) && styles.loginButtonDisabled
                     ]}
-                    onPress={handleSubmit(onSubmit)}
-                    disabled={!isValid || isLoading}
+                    onPress={onSubmit}
+                    disabled={!isFormValid || isLoading}
                     activeOpacity={0.8}
                   >
                     {isLoading ? (
@@ -187,50 +184,9 @@ export const LoginScreen: React.FC<Props> = () => {
                       <Text style={styles.loginButtonText}>Sign In</Text>
                     )}
                   </TouchableOpacity>
-
-                  {/* Divider */}
-                  {/* <View style={styles.divider}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>or continue with</Text>
-                    <View style={styles.dividerLine} />
-                  </View> */}
-
-                  {/* Social Login Buttons */}
-                  {/* <View style={styles.socialButtons}>
-                    <TouchableOpacity style={styles.socialButton}>
-                      <Text style={styles.socialIcon}>G</Text>
-                      <Text style={styles.socialButtonText}>Google</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.socialButton}>
-                      <Text style={styles.socialIcon}>f</Text>
-                      <Text style={styles.socialButtonText}>Facebook</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.socialButton}>
-                      <Text style={styles.socialIcon}>🐦</Text>
-                      <Text style={styles.socialButtonText}>Twitter</Text>
-                    </TouchableOpacity>
-                  </View> */}
                 </View>
               </GlassCard>
             </View>
-
-            {/* Register Link */}
-            {/* <View style={styles.registerLink}>
-              <Text style={styles.registerText}>New to our platform? </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Register')}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.registerLinkText}>Create Account →</Text>
-              </TouchableOpacity>
-            </View> */}
-
-            {/* Terms & Privacy */}
-            {/* <Text style={styles.termsText}>
-              By signing in, you agree to our{' '}
-              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>
-            </Text> */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -5,7 +5,7 @@
  * @format
  */
 
-import React from 'react';
+import React, { Component, type ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/es/integration/react';
 import { Text, Image, View, StyleSheet } from 'react-native';
@@ -14,6 +14,31 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { store, persistor } from './src/store';
 import { RootNavController } from './src/navigation/RootNavController';
 import Toast from 'react-native-toast-message';
+
+// Simple error boundary to prevent white-screen crashes
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    if (__DEV__) console.error('App ErrorBoundary caught:', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorSubtitle}>Please restart the app</Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const LoadingScreen = () => (
   <View style={styles.loadingContainer}>
@@ -28,16 +53,18 @@ const LoadingScreen = () => (
 
 function App() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Provider store={store}>
-        <PersistGate loading={<LoadingScreen />} persistor={persistor}>
-          <SafeAreaProvider>
-            <RootNavController />
-            <Toast />
-          </SafeAreaProvider>
-        </PersistGate>
-      </Provider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Provider store={store}>
+          <PersistGate loading={<LoadingScreen />} persistor={persistor}>
+            <SafeAreaProvider>
+              <RootNavController />
+              <Toast />
+            </SafeAreaProvider>
+          </PersistGate>
+        </Provider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
 
@@ -57,6 +84,23 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1a1f2e',
+    padding: 20,
+  },
+  errorTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  errorSubtitle: {
+    color: '#888888',
+    fontSize: 14,
   },
 });
 

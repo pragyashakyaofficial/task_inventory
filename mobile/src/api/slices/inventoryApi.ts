@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { baseQueryWithReauth } from '../baseQuery';
+import { baseQueryWithAuth } from '../baseQuery';
 import { InventoryItem as FeatureInventoryItem } from '../../features/inventory/types/inventory.types';
 
 // API endpoints
@@ -67,7 +67,7 @@ export const inventoryTags = {
 
 export const inventoryApi = createApi({
   reducerPath: 'inventoryApi',
-  baseQuery: baseQueryWithReauth,
+  baseQuery: baseQueryWithAuth,
   tagTypes: ['ITEMS', 'DASHBOARD', 'AI_SUGGESTION'],
   endpoints: (builder) => ({
     // Get all inventory items

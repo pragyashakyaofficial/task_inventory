@@ -3,4 +3,3 @@ export * from './screens/LoginScreen';
 export * from './navigation/AuthNavigator';
 export * from './api/authApi';
 export * from './types/auth.types';
-export * from './schemas/auth.schemas';

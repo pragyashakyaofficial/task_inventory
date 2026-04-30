@@ -108,11 +108,16 @@ inventorySchema.index({ restaurantId: 1, isDeleted: 1 });
 inventorySchema.index({ restaurantId: 1, categoryId: 1, isDeleted: 1 });
 inventorySchema.index({ restaurantId: 1, currentStock: 1, minThreshold: 1 });
 
+// Shared status computation logic
+const computeStatus = (currentStock: number, minThreshold: number): 'OUT' | 'LOW' | 'OK' => {
+  if (currentStock === 0) return 'OUT';
+  if (currentStock <= minThreshold) return 'LOW';
+  return 'OK';
+};
+
 // Virtual field for computed status
 inventorySchema.virtual('status').get(function() {
-  if (this.currentStock === 0) return 'OUT';
-  if (this.currentStock <= this.minThreshold) return 'LOW';
-  return 'OK';
+  return computeStatus(this.currentStock, this.minThreshold);
 });
 
 // Virtual field for suggested reorder quantity
@@ -123,9 +128,7 @@ inventorySchema.virtual('suggestedOrder').get(function() {
 
 // Method to compute status (for use in queries)
 inventorySchema.methods.getStatus = function() {
-  if (this.currentStock === 0) return 'OUT';
-  if (this.currentStock <= this.minThreshold) return 'LOW';
-  return 'OK';
+  return computeStatus(this.currentStock, this.minThreshold);
 };
 
 // Method to check if stock is low

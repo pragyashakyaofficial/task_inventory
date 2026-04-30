@@ -2,10 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
 
-interface AuthRequest extends Request {
-  user?: any;
-}
-
 // Helper to sign tokens
 const signToken = (id: any, secret: string, expires: string | number) => {
   return jwt.sign({ id }, secret, { expiresIn: expires as any });
@@ -37,14 +33,30 @@ const createSendToken = async (user: any, statusCode: number, res: Response) => 
   });
 };
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(401).json({
+      return res.status(400).json({
         status: 'error',
         message: 'Please provide email and password'
+      });
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Please provide a valid email'
+      });
+    }
+
+    if (typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Password must be at least 6 characters'
       });
     }
 
@@ -93,7 +105,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-export const logout = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await User.findById(req.user?.id);
     if (!user) return res.status(404).json({ message: 'User not found' });

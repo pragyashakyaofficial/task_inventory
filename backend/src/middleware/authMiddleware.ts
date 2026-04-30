@@ -2,12 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 
-interface AuthRequest extends Request {
-  user?: any;
-}
-
 // Protect routes - check if user is logged in
-export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const protect = async (req: Request, res: Response, next: NextFunction) => {
   try {
     let token: string | undefined;
     
@@ -46,7 +42,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
 
 // Restrict to specific roles
 export const restrictTo = (...roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     if (!roles.includes(req.user?.role)) {
       return res.status(403).json({ message: 'You do not have permission to perform this action' });
     }

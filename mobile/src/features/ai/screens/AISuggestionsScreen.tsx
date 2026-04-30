@@ -55,7 +55,7 @@ const AISuggestionsScreen = ({ navigation, route }: Props) => {
       unit: item.unit || 'units',
       status: item.status,
       shouldReorder: true,
-      suggestedQuantity: Math.max(0, (item.maxQuantity || 100) - (item.quantity || 0)),
+      suggestedQuantity: Math.max(0, (item.minQuantity || 10) - (item.quantity || 0)),
       reason: `Below minimum threshold (${item.minQuantity} ${item.unit})`,
     }));
 

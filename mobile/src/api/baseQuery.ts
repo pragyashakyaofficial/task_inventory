@@ -1,13 +1,14 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { RootState } from '../store';
 import { ENV } from '../config/env';
 import { logout } from '../features/auth/store/authSlice';
 
-// Base query with error handling
+// Base query with JWT auth header injection
 export const baseQuery = fetchBaseQuery({
   baseUrl: ENV.API_BASE_URL,
   prepareHeaders: (headers, { getState }) => {
-    const state = getState() as any;
-    const token = state.auth?.token;
+    const state = getState() as RootState;
+    const token = state.auth.token;
     if (token) {
       headers.set('authorization', `Bearer ${token}`);
     }
@@ -16,41 +17,45 @@ export const baseQuery = fetchBaseQuery({
   },
 });
 
-// Enhanced base query with error handling
-export const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
+// Enhanced base query with auth error handling.
+// On 401: clears local auth state and redirects to login (token refresh not implemented for MVP).
+export const baseQueryWithAuth = async (args: any, api: any, extraOptions: any) => {
   const method = args.method || 'GET';
   const url = typeof args === 'string' ? args : args.url;
-  
-  console.log(`[API Request] ${method} ${url}`, args.body ? args.body : '');
+
+  if (__DEV__) {
+    console.log(`[API Request] ${method} ${url}`);
+  }
 
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result.data) {
-    console.log(`[API Success] ${method} ${url}`, result.data);
+  if (__DEV__ && result.data) {
+    console.log(`[API Success] ${method} ${url}`);
   }
 
-  // Handle different status codes
   if (result.error && result.error.status) {
     const { status, data } = result.error as { status: number; data: any };
-    console.log(`[API Error] ${status} ${method} ${url}`, data);
-    
+
+    if (__DEV__) {
+      console.log(`[API Error] ${status} ${method} ${url}`, data);
+    }
+
     switch (status) {
       case 401:
-        console.error('Unauthorized:', data);
-        // Auto logout on 401
+        // Token expired or invalid — clear auth and redirect to login
         api.dispatch(logout());
         break;
       case 403:
-        console.error('Forbidden:', data);
+        if (__DEV__) console.error('Forbidden:', data);
         break;
       case 422:
-        console.error('Validation Error:', data);
+        if (__DEV__) console.error('Validation Error:', data);
         break;
       case 500:
-        console.error('Server Error:', data);
+        if (__DEV__) console.error('Server Error:', data);
         break;
       default:
-        console.error('API Error:', data);
+        if (__DEV__) console.error('API Error:', data);
     }
   }
 

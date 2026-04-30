@@ -3,12 +3,8 @@ import Inventory from '../models/Inventory';
 import Restaurant from '../models/Restaurant';
 import { getReorderSuggestion  } from '../services/aiService';
 
-interface AuthRequest extends Request {
-  user?: any;
-}
-
 // Get all inventory items for a restaurant
-export const getAllInventory = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getAllInventory = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { restaurantId, categoryId, status } = req.query as any;
 
@@ -48,6 +44,7 @@ export const getAllInventory = async (req: AuthRequest, res: Response, next: Nex
       : mappedItems;
 
     res.status(200).json({
+      status: 'success',
       count: result.length,
       inventory: result
     });
@@ -57,7 +54,7 @@ export const getAllInventory = async (req: AuthRequest, res: Response, next: Nex
 };
 
 // Get reorder plan (items with LOW or OUT status) - PUBLIC ENDPOINT
-export const getReorderPlan = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getReorderPlan = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { restaurantId } = req.query as any;
 
@@ -76,7 +73,7 @@ export const getReorderPlan = async (req: AuthRequest, res: Response, next: Next
         targetRestaurantId = firstRestaurant._id;
       } else {
         return res.status(404).json({
-          success: false,
+          status: 'error',
           suggestions: [],
           message: 'No restaurants found. Please seed the database first.'
         });
@@ -127,7 +124,7 @@ export const getReorderPlan = async (req: AuthRequest, res: Response, next: Next
     );
 
     res.status(200).json({
-      success: true,
+      status: 'success',
       suggestions,
       message: suggestions.length === 0
         ? 'All items are sufficiently stocked.'
@@ -139,7 +136,7 @@ export const getReorderPlan = async (req: AuthRequest, res: Response, next: Next
 };
 
 // Get inventory summary/stats
-export const getInventoryStats = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getInventoryStats = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { restaurantId } = req.query as any;
 
@@ -174,6 +171,7 @@ export const getInventoryStats = async (req: AuthRequest, res: Response, next: N
       }));
 
     res.status(200).json({
+      status: 'success',
       stats,
       criticalStockAlerts
     });
