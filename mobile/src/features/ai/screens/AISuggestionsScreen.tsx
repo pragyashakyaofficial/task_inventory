@@ -14,6 +14,7 @@ import {
   XCircle,
   RefreshCcw,
   ArrowLeft,
+  CheckCircle2,
 } from 'lucide-react-native';
 import { colors } from '../../../theme/constants';
 import GlassCard from '../../../components/common/GlassCard';
@@ -21,17 +22,18 @@ import { useLazyGetReorderPlanQuery, useGetItemsQuery } from '../../../api/slice
 
 type Props = NativeStackScreenProps<MainStackParamList, 'Suggestions'>;
 
-const AISuggestionsScreen = ({ navigation }: Props) => {
+const AISuggestionsScreen = ({ navigation, route }: Props) => {
   const insets = useSafeAreaInsets();
   const [getReorderPlan, { data: reorderData, isLoading: isFetching, error, isError }] = useLazyGetReorderPlanQuery();
   const { data: itemsData } = useGetItemsQuery({});
   const [hasFetched, setHasFetched] = useState(false);
 
+  // Only auto-fetch if navigated with autoFetch param (from dashboard button)
   useEffect(() => {
-    if (!hasFetched) {
+    if (route.params?.autoFetch && !hasFetched) {
       handleFetchPlan();
     }
-  }, []);
+  }, [route.params?.autoFetch]);
 
   const handleFetchPlan = useCallback(() => {
     setHasFetched(true);
@@ -112,6 +114,28 @@ const AISuggestionsScreen = ({ navigation }: Props) => {
     </View>
   );
 
+  const renderEmpty = () => (
+    <View style={styles.centerContainer}>
+      <CheckCircle2 size={48} color="#10B981" />
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>All stocked up!</Text>
+      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+        No items need reordering right now.
+      </Text>
+    </View>
+  );
+
+  const renderInitial = () => (
+    <View style={styles.centerContainer}>
+      <TouchableOpacity style={[styles.fetchButton, { backgroundColor: colors.primary }]} onPress={handleFetchPlan}>
+        <RefreshCcw size={20} color="#fff" />
+        <Text style={styles.fetchButtonText}>Get Reorder Plan</Text>
+      </TouchableOpacity>
+      <Text style={[styles.fetchHint, { color: colors.textSecondary }]}>
+        Tap to analyze which items need reordering
+      </Text>
+    </View>
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -122,7 +146,9 @@ const AISuggestionsScreen = ({ navigation }: Props) => {
       </View>
 
       <View style={styles.content}>
-        {isFetching ? (
+        {!hasFetched && !isFetching ? (
+          renderInitial()
+        ) : isFetching ? (
           renderLoading()
         ) : isError ? (
           fallbackItems.length > 0 ? (
@@ -149,16 +175,9 @@ const AISuggestionsScreen = ({ navigation }: Props) => {
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
           />
-        ) : fallbackItems.length > 0 ? (
-          <FlatList
-            data={fallbackItems}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.itemId}
-            contentContainerStyle={styles.list}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : renderError()
-        }
+        ) : (
+          renderEmpty()
+        )}
       </View>
     </View>
   );
@@ -282,6 +301,34 @@ const styles = StyleSheet.create({
   fallbackBannerText: {
     fontSize: 13,
     fontWeight: '500',
+    textAlign: 'center',
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 12,
+  },
+  emptyText: {
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  fetchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 14,
+  },
+  fetchButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  fetchHint: {
+    fontSize: 13,
+    marginTop: 12,
     textAlign: 'center',
   },
 });

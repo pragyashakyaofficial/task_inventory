@@ -9,7 +9,7 @@ import Inventory from '../models/Inventory';
 
 const seedDatabase = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/inventory-app');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/inventory-app');
     console.log('Connected to MongoDB');
 
     // Clear existing data
