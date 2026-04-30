@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Inventory from '../models/Inventory';
 import Restaurant from '../models/Restaurant';
-import { getReorderSuggestion  } from '../services/aiService';
+import { getReorderSuggestions  } from '../services/aiService';
 
 // Get all inventory items for a restaurant
 export const getAllInventory = async (req: Request, res: Response, next: NextFunction) => {
@@ -83,46 +83,43 @@ export const getReorderPlan = async (req: Request, res: Response, next: NextFunc
     const reorderItems = await Inventory.getReorderPlan(targetRestaurantId);
 
     // Build suggestions with AI-powered reasoning (fallback if AI unavailable)
-    const suggestions = await Promise.all(
-      reorderItems.map(async (item: any) => {
-        let aiResult;
-        try {
-          aiResult = await getReorderSuggestion({
-            name: item.name,
-            quantity: item.currentStock,
-            status: item.status,
-            minThreshold: item.minThreshold,
-            maxStock: item.maxStock,
-          });
-        } catch {
-          aiResult = null;
-        }
+    const itemsForAI = reorderItems.map((item: any) => ({
+      name: item.name,
+      quantity: item.currentStock,
+      status: item.status,
+      minThreshold: item.minThreshold,
+      maxStock: item.maxStock,
+      unit: item.unit,
+    }));
 
-        const shouldReorder = aiResult ? aiResult.shouldReorder : item.status !== 'OK';
-        const suggestedQuantity = aiResult
-          ? aiResult.suggestedQuantity
-          : item.suggestedOrder;
-        const reason = aiResult
-          ? aiResult.reason
-          : `${item.name} is ${item.status === 'OUT' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${item.suggestedOrder} ${item.unit}.`;
+    const aiResults = await getReorderSuggestions(itemsForAI);
 
-        return {
-          itemId: item._id,
-          name: item.name,
-          category: item.category,
-          currentQuantity: item.currentStock,
-          minThreshold: item.minThreshold,
-          maxStock: item.maxStock,
-          unit: item.unit,
-          status: item.status,
-          shouldReorder,
-          suggestedQuantity,
-          reason,
-          aiGenerated: aiResult?.aiGenerated ?? false,
-          price: (item as any).price || 0,
-        };
-      })
-    );
+    const suggestions = reorderItems.map((item: any, i: number) => {
+      const aiResult = aiResults[i];
+      const shouldReorder = aiResult ? aiResult.shouldReorder : item.status !== 'OK';
+      const suggestedQuantity = aiResult
+        ? aiResult.suggestedQuantity
+        : item.suggestedOrder;
+      const reason = aiResult
+        ? aiResult.reason
+        : `${item.name} is ${item.status === 'OUT' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${item.suggestedOrder} ${item.unit}.`;
+
+      return {
+        itemId: item._id,
+        name: item.name,
+        category: item.category,
+        currentQuantity: item.currentStock,
+        minThreshold: item.minThreshold,
+        maxStock: item.maxStock,
+        unit: item.unit,
+        status: item.status,
+        shouldReorder,
+        suggestedQuantity,
+        reason,
+        aiGenerated: aiResult?.aiGenerated ?? false,
+        price: (item as any).price || 0,
+      };
+    });
 
     res.status(200).json({
       status: 'success',
