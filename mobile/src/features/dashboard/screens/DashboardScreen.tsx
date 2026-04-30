@@ -1,5 +1,5 @@
-import React, { useMemo, memo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useMemo, memo, useCallback, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Modal } from 'react-native';
 import {
   Package,
   AlertTriangle,
@@ -56,6 +56,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { stats: dashboardStats, isLoading: isStatsLoading, refetchStats } = useDashboardStats();
   const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch();
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   // Log API calls and data
   React.useEffect(() => {
@@ -86,9 +87,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   const handleReorderPlan = useCallback(() => navigation.navigate('Suggestions', { autoFetch: true }), [navigation]);
 
-  const handleLogout = useCallback(() => {
+  const handleLogoutPress = useCallback(() => {
+    setLogoutModalVisible(true);
+  }, []);
+
+  const handleConfirmLogout = useCallback(() => {
+    setLogoutModalVisible(false);
     dispatch(logout());
   }, [dispatch]);
+
+  const handleCancelLogout = useCallback(() => {
+    setLogoutModalVisible(false);
+  }, []);
 
 
   const getStatusBadge = (status: string) => {
@@ -114,7 +124,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={[styles.logoutButton, { backgroundColor: colors.textSecondary + '20' }]}
-          onPress={handleLogout}
+          onPress={handleLogoutPress}
           activeOpacity={0.8}
         >
           <LogOut size={18} color={colors.textSecondary} />
@@ -211,6 +221,38 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           </GlassCard>
         )}
       </ScrollView>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={logoutModalVisible}
+        onRequestClose={handleCancelLogout}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.backgroundSecondary }]}>
+            <LogOut size={40} color={colors.primary} style={styles.modalIcon} />
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Confirm Logout</Text>
+            <Text style={[styles.modalMessage, { color: colors.textSecondary }]}>
+              Are you sure you want to logout?
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel, { borderColor: colors.textSecondary }]}
+                onPress={handleCancelLogout}
+              >
+                <Text style={[styles.modalButtonText, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonConfirm, { backgroundColor: colors.primary }]}
+                onPress={handleConfirmLogout}
+              >
+                <Text style={[styles.modalButtonText, styles.modalButtonConfirmText]}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -400,6 +442,58 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 320,
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+  },
+  modalIcon: {
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonCancel: {
+    borderWidth: 1,
+  },
+  modalButtonConfirm: {
+  },
+  modalButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  modalButtonConfirmText: {
+    color: '#fff',
   },
 });
 
