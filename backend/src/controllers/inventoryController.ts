@@ -159,7 +159,7 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
       total: items.length,
       outOfStock: items.filter(i => i.currentStock === 0).length,
       lowStock: items.filter(i => i.currentStock > 0 && i.currentStock <= i.minThreshold).length,
-      ok: items.filter(i => i.currentStock > i.minThreshold).length
+      inStock: items.filter(i => i.currentStock > i.minThreshold).length
     };
 
     // Get critical stock alerts (items that are out of stock or low stock)

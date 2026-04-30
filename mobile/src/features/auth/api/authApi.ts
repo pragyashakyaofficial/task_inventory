@@ -25,17 +25,7 @@ export const authApi = createApi({
     }),
 
 
-    // Refresh token endpoint
-    refreshToken: builder.mutation<AuthResponse, { refreshToken: string }>({
-      query: ({ refreshToken }) => ({
-        url: ENDPOINTS.REFRESH_TOKEN,
-        method: 'POST',
-        body: { refreshToken },
-      }),
-      invalidatesTags: ['Auth'],
-    }),
-
-    // Logout endpoint (if your backend supports it)
+    // Logout endpoint
     logout: builder.mutation<void, void>({
       query: () => ({
         url: '/api/auth/logout',
@@ -51,6 +41,5 @@ export const authApi = createApi({
 // Export hooks for usage in components
 export const {
   useLoginMutation,
-  useRefreshTokenMutation,
   useLogoutMutation,
 } = authApi;

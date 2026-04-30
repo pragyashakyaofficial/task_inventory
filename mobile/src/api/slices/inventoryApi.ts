@@ -131,7 +131,7 @@ export const inventoryApi = createApi({
         return {
           stats: {
             total: response.stats?.total || 0,
-            inStock: response.stats?.ok || 0,
+            inStock: response.stats?.inStock || 0,
             lowStock: response.stats?.lowStock || 0,
             outOfStock: response.stats?.outOfStock || 0,
           },

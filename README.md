@@ -81,9 +81,11 @@ Required variables in `backend/.env`:
 MONGODB_URI=mongodb://127.0.0.1:27017/inventoryDB
 GEMINI_API_KEY=your_gemini_api_key_here
 PORT=5001
+JWT_SECRET=your_jwt_secret_key_here
 ```
 
 > `GEMINI_API_KEY` is optional — the app uses deterministic fallback logic when the key is missing or the API fails.
+> `JWT_SECRET` defaults to a dev value if not set, but should be changed for production.
 
 Create `mobile/.env.dev` from the example:
 
@@ -135,7 +137,6 @@ pnpm ios:dev
 | GET | `/api/inventory/stats` | Dashboard statistics |
 | GET | `/api/inventory/reorder-plan` | AI-powered reorder suggestions for low/out-of-stock items |
 | POST | `/api/auth/login` | Login |
-| POST | `/api/auth/refresh` | Refresh access token |
 | POST | `/api/auth/logout` | Logout |
 | GET | `/api/health` | Health check |
 

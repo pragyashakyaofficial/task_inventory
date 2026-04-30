@@ -6,7 +6,6 @@ const router = express.Router();
 
 // Public routes
 router.post('/login', authController.login);
-router.post('/refresh', authController.refreshToken);
 
 // Protected routes
 router.use(authMiddleware.protect);

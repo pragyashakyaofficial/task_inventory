@@ -2,18 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
 
-// Helper to sign tokens
-const signToken = (id: any, secret: string, expires: string | number) => {
-  return jwt.sign({ id }, secret, { expiresIn: expires as any });
+// JWT defaults (used when env vars are not set, e.g. fresh setup from .env.example)
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-change-in-production';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30d';
+
+// Helper to sign token
+const signToken = (id: any) => {
+  return jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN as any });
 };
 
-// Create and send tokens in response
+// Create and send token in response
 const createSendToken = async (user: any, statusCode: number, res: Response) => {
-  const token = signToken(user._id, process.env.JWT_SECRET!, process.env.JWT_EXPIRES_IN || '30d');
-  const refreshToken = signToken(user._id, process.env.JWT_REFRESH_SECRET!, process.env.JWT_REFRESH_EXPIRES_IN || '60d');
-
-  // Save refresh token to DB
-  await User.findByIdAndUpdate(user._id, { refreshToken }, { validateBeforeSave: false });
+  const token = signToken(user._id);
 
   // Populate restaurant if exists
   const populatedUser = await User.findById(user._id).populate('restaurantId', 'name location status');
@@ -21,7 +21,6 @@ const createSendToken = async (user: any, statusCode: number, res: Response) => 
 
   res.status(statusCode).json({
     token,
-    refreshToken,
     user: {
       id: populatedUser._id,
       name: populatedUser.name,
@@ -107,53 +106,13 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await User.findById(req.user?.id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    (user as any).refreshToken = undefined;
-    await user.save({ validateBeforeSave: false });
-
     res.cookie('jwt', 'loggedout', {
       expires: new Date(Date.now() + 10 * 1000),
       httpOnly: true
     });
 
-    res.status(200).json({ success: true, message: 'Logged out successfully' });
+    res.status(200).json({ status: 'success', message: 'Logged out successfully' });
   } catch (error) {
     next(error);
-  }
-};
-
-export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Refresh token is required'
-      });
-    }
-
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as any;
-    const user = await User.findById(decoded.id);
-
-    if (!user || (user as any).refreshToken !== refreshToken) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid refresh token'
-      });
-    }
-
-    // Generate new access token
-    const token = signToken(user._id, process.env.JWT_SECRET!, process.env.JWT_EXPIRES_IN || '30d');
-
-    res.status(200).json({
-      token
-    });
-  } catch (error) {
-    return res.status(401).json({
-      status: 'error',
-      message: 'Invalid or expired refresh token'
-    });
   }
 };

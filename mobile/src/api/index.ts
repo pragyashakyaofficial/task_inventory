@@ -13,10 +13,8 @@ export const API_CONFIG = {
 export const ENDPOINTS = {
   // Inventory endpoints
   INVENTORY: '/inventory',
-  
+
   // Auth endpoints
   LOGIN: '/api/auth/login',
 
-  REFRESH_TOKEN: '/api/auth/refresh',
-  
 } as const;
