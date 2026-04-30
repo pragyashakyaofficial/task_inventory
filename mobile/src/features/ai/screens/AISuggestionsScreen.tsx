@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -28,20 +28,38 @@ const AISuggestionsScreen = ({ navigation, route }: Props) => {
   const [getReorderPlan, { data: reorderData, isLoading: isFetching, error, isError }] = useLazyGetReorderPlanQuery();
   const { data: itemsData } = useGetItemsQuery({});
   const [hasFetched, setHasFetched] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   // Only auto-fetch if navigated with autoFetch param (from dashboard button)
   useEffect(() => {
-    if (route.params?.autoFetch && !hasFetched) {
-      handleFetchPlan();
+    if (route.params?.autoFetch && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      setHasFetched(true);
+      getReorderPlan();
     }
-  }, [route.params?.autoFetch]);
+  }, [route.params?.autoFetch, getReorderPlan]);
+
+  // Log reorder data for debugging in dev tools
+  useEffect(() => {
+      console.log('[AISuggestionsScreen] Reorder plan response:', JSON.stringify(reorderData, null, 2));
+      if (reorderData?.suggestions) {
+        reorderData.suggestions.forEach((s: any) => {
+          console.log(`[AISuggestionsScreen] ${s.name}: aiGenerated=${s.aiGenerated}, reason=${s.reason}`);
+        });
+      }
+  }, [reorderData]);
 
   const handleFetchPlan = useCallback(() => {
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+    }
     setHasFetched(true);
     getReorderPlan();
   }, [getReorderPlan]);
 
-  const suggestions = reorderData?.suggestions || [];
+  const allSuggestions = reorderData?.suggestions || [];
+  const aiSuggestions = allSuggestions.filter((s: any) => s.aiGenerated === true);
+  const hasAISuggestions = aiSuggestions.length > 0;
 
   // Fallback: filter inventory items that are low/out of stock
   const fallbackItems = (itemsData?.items || [])
@@ -180,14 +198,29 @@ const AISuggestionsScreen = ({ navigation, route }: Props) => {
               />
             </>
           ) : renderError()
-        ) : suggestions.length > 0 ? (
+        ) : hasAISuggestions ? (
           <FlatList
-            data={suggestions}
+            data={aiSuggestions}
             renderItem={renderItem}
             keyExtractor={(item) => item.itemId}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
           />
+        ) : allSuggestions.length > 0 ? (
+          <>
+            <View style={styles.fallbackBanner}>
+              <Text style={[styles.fallbackBannerText, { color: colors.textSecondary }]}>
+                AI suggestions unavailable. Showing items that need attention.
+              </Text>
+            </View>
+            <FlatList
+              data={fallbackItems.length > 0 ? fallbackItems : allSuggestions}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.itemId}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+            />
+          </>
         ) : (
           renderEmpty()
         )}

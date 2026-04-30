@@ -118,7 +118,7 @@ export const getReorderPlan = async (req: Request, res: Response, next: NextFunc
           shouldReorder,
           suggestedQuantity,
           reason,
-          aiGenerated: !!aiResult,
+          aiGenerated: aiResult?.aiGenerated ?? false,
           price: (item as any).price || 0,
         };
       })

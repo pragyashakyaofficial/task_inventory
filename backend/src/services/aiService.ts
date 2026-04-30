@@ -26,11 +26,13 @@ export const getReorderSuggestion = async (item: any) => {
       suggestedQuantity,
       reason: shouldReorder
         ? `${item.name} is ${item.status === 'OUT' || item.status === 'out-of-stock' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${suggestedQuantity} ${item.unit || 'units'} to reach minimum threshold.`
-        : "Item is sufficiently stocked."
+        : "Item is sufficiently stocked.",
+      aiGenerated: false
     };
   }
 
   try {
+    console.log(`[AIService] Processing item: ${item.name}, status: ${item.status}`);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
@@ -52,18 +54,33 @@ export const getReorderSuggestion = async (item: any) => {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
+    console.log(`[AIService] Raw AI response for ${item.name}:`, text.substring(0, 500));
     
     // Attempt to parse JSON from the response
     const jsonMatch = text.match(/\{.*\}/s);
     if (jsonMatch) {
+      console.log(`[AIService] JSON match found for ${item.name}:`, jsonMatch[0]);
       const aiResponse = JSON.parse(jsonMatch[0]);
+      console.log(`[AIService] Parsed AI response for ${item.name}:`, JSON.stringify(aiResponse));
       
       // Validate AI response structure
-      if (typeof aiResponse.shouldReorder === 'boolean' && 
-          typeof aiResponse.suggestedQuantity === 'number' && 
+      if (typeof aiResponse.shouldReorder === 'boolean' &&
+          typeof aiResponse.suggestedQuantity === 'number' &&
           typeof aiResponse.reason === 'string') {
-        return aiResponse;
+        console.log(`[AIService] ✅ Valid AI response for ${item.name}`);
+        return {
+          ...aiResponse,
+          aiGenerated: true
+        };
+      } else {
+        console.log(`[AIService] ❌ Invalid AI response structure for ${item.name}:`, {
+          shouldReorder: typeof aiResponse.shouldReorder,
+          suggestedQuantity: typeof aiResponse.suggestedQuantity,
+          reason: typeof aiResponse.reason
+        });
       }
+    } else {
+      console.log(`[AIService] ❌ No JSON match found in AI response for ${item.name}`);
     }
     
     throw new Error("Invalid AI response structure");
@@ -80,7 +97,8 @@ export const getReorderSuggestion = async (item: any) => {
       suggestedQuantity,
       reason: shouldReorder
         ? `${item.name} is ${item.status === 'OUT' || item.status === 'out-of-stock' ? 'out of stock' : 'below minimum threshold'}. Suggest ordering ${suggestedQuantity} ${item.unit || 'units'} to reach minimum threshold.`
-        : "Item is sufficiently stocked."
+        : "Item is sufficiently stocked.",
+      aiGenerated: false
     };
   }
 };
